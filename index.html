@@ -1,0 +1,519 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <!-- user-scalable=no prevents accidental pinch-zoom during symbol tapping — standard AAC pattern -->
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <title>ELE Talk</title>
+
+  <style>
+    /* ===== RESET & BASE ===== */
+    *, *::before, *::after {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
+      background: #EEF1FA;
+    }
+
+    /* ===== APP SHELL =====
+       Full-viewport column. The symbol board gets flex:1 so it fills
+       whatever vertical space the header, strip, and nav don't need. */
+    #app {
+      display: flex;
+      flex-direction: column;
+      height: 100vh;
+      padding: 8px;
+      gap: 8px;
+      max-width: 1024px;
+      margin: 0 auto;
+    }
+
+    /* ===== HEADER ===== */
+    #header {
+      flex-shrink: 0;
+      text-align: center;
+      padding: 2px 0;
+    }
+
+    #header h1 {
+      font-size: 1.3rem;
+      font-weight: 900;
+      letter-spacing: 3px;
+      text-transform: uppercase;
+      color: #1A1A2E;
+    }
+
+    #header h1 .brand-ele {
+      color: #FF6B35;
+    }
+
+    /* ===== SENTENCE STRIP =====
+       Words appear here as tiles as the child taps symbols. */
+    #sentence-strip {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      background: white;
+      border: 2px solid #D8DCF0;
+      border-radius: 14px;
+      padding: 8px 10px;
+      min-height: 66px;
+    }
+
+    /* Scrollable tile area inside the strip */
+    #word-tiles {
+      flex: 1;
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 4px;
+      overflow-y: auto;
+      max-height: 82px;
+    }
+
+    #strip-placeholder {
+      color: #BFC4D6;
+      font-size: 0.9rem;
+      font-style: italic;
+      pointer-events: none;
+    }
+
+    .word-tile {
+      background: #EAECF8;
+      border: 1px solid #C8CCE8;
+      border-radius: 6px;
+      padding: 4px 10px;
+      font-size: 0.95rem;
+      font-weight: 700;
+      color: #1A1A2E;
+      white-space: nowrap;
+    }
+
+    /* Strip control buttons */
+    .strip-btn {
+      flex-shrink: 0;
+      border: none;
+      border-radius: 10px;
+      padding: 10px 14px;
+      font-size: 0.85rem;
+      font-weight: 700;
+      cursor: pointer;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    #btn-backspace {
+      background: #EAEAEA;
+      color: #444;
+      font-size: 1.25rem;
+      padding: 8px 12px;
+    }
+
+    #btn-speak {
+      background: #2E7D32;
+      color: white;
+    }
+
+    #btn-clear {
+      background: #C62828;
+      color: white;
+    }
+
+    .strip-btn:active { opacity: 0.8; }
+
+    /* ===== CATEGORY NAVIGATION ===== */
+    #category-nav {
+      flex-shrink: 0;
+      display: flex;
+      gap: 6px;
+      overflow-x: auto;
+      padding: 2px 0;
+      scrollbar-width: none;
+    }
+
+    #category-nav::-webkit-scrollbar { display: none; }
+
+    .cat-btn {
+      flex-shrink: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 2px;
+      padding: 7px 18px;
+      border: 2px solid #D8DCF0;
+      border-radius: 10px;
+      background: white;
+      cursor: pointer;
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #555;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    .cat-icon { font-size: 1.3rem; }
+
+    .cat-btn.active {
+      background: #1A1A2E;
+      color: white;
+      border-color: #1A1A2E;
+    }
+
+    /* ===== SYMBOL BOARD =====
+       flex:1 fills all remaining vertical space.
+       5 columns on tablet/desktop — the primary target device.
+       Drops to 4 columns on small phones (layout adaptation for prototype;
+       the motor-planning grid-scaling feature comes in a later build). */
+    #symbol-board {
+      flex: 1;
+      display: grid;
+      grid-template-columns: repeat(5, 1fr);
+      gap: 8px;
+      overflow-y: auto;
+      align-content: start;
+    }
+
+    .symbol-btn {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 8px 4px 12px;
+      border: none;
+      border-radius: 14px;
+      cursor: pointer;
+      min-height: 100px;
+      touch-action: manipulation;
+      user-select: none;
+      -webkit-user-select: none;
+    }
+
+    /* No transitions — instant visual response is critical for AAC */
+    .symbol-btn:active { opacity: 0.82; }
+
+    .sym-emoji {
+      font-size: 2.2rem;
+      line-height: 1;
+      margin-bottom: 6px;
+    }
+
+    .sym-label {
+      font-size: 0.82rem;
+      font-weight: 800;
+      color: #1A1A2E;
+      text-align: center;
+      line-height: 1.2;
+    }
+
+    /* ===== RESPONSIVE BREAKPOINTS ===== */
+    @media (max-width: 540px) {
+      #symbol-board { grid-template-columns: repeat(4, 1fr); }
+      .symbol-btn   { min-height: 80px; }
+      .sym-emoji    { font-size: 1.8rem; }
+      .sym-label    { font-size: 0.72rem; }
+      .strip-btn    { padding: 8px 10px; font-size: 0.78rem; }
+    }
+
+    @media (min-width: 900px) {
+      .sym-emoji { font-size: 2.6rem; }
+      .sym-label { font-size: 0.95rem; }
+    }
+  </style>
+</head>
+
+<body>
+  <div id="app">
+
+    <!-- App header -->
+    <div id="header" role="banner">
+      <h1><span class="brand-ele">ELE</span> Talk</h1>
+    </div>
+
+    <!-- Sentence strip: words queue here as tapped; Speak reads them aloud -->
+    <div id="sentence-strip" role="region" aria-label="Sentence strip">
+      <div id="word-tiles" aria-live="polite" aria-atomic="false">
+        <span id="strip-placeholder">Tap a symbol to start talking…</span>
+      </div>
+      <button class="strip-btn" id="btn-backspace" aria-label="Remove last word">⌫</button>
+      <button class="strip-btn" id="btn-speak"     aria-label="Speak sentence">🔊 Speak</button>
+      <button class="strip-btn" id="btn-clear"     aria-label="Clear all words">✕ Clear</button>
+    </div>
+
+    <!-- Category navigation tabs -->
+    <nav id="category-nav" aria-label="Word categories">
+      <!-- Injected by JS -->
+    </nav>
+
+    <!-- Symbol grid -->
+    <main id="symbol-board" aria-label="Symbol board">
+      <!-- Injected by JS -->
+    </main>
+
+  </div>
+
+  <script>
+    // ===== COLOUR PALETTE =====
+    // 8 warm, child-friendly colours that cycle across the grid.
+    // 8 is coprime with 5 (the column count) so no two adjacent cells in
+    // the same row ever share a colour on the core 20 board.
+    const COLOURS = [
+      '#FFAB76', // peach
+      '#82C9FF', // sky blue
+      '#69D9A3', // mint green
+      '#FFD166', // golden yellow
+      '#B39DDB', // lavender
+      '#FF8A80', // soft coral
+      '#4DD0E1', // teal
+      '#F48FB1', // pink
+    ];
+
+    // ===== THE STARTING 20 — POSITIONS ARE PERMANENTLY FIXED =====
+    // CRITICAL: This array order must NEVER change. Children build motor memory
+    // for symbol positions just like touch-typing. If a word moves, the child
+    // must relearn from scratch. New core words must only be appended at the end.
+    const CORE_WORDS = [
+      { label: 'I',        emoji: '🙋' },
+      { label: 'You',      emoji: '👆' },
+      { label: 'Me',       emoji: '🫵' },
+      { label: 'My',       emoji: '🤲' },
+      { label: 'Mine',     emoji: '✊' },
+      { label: 'It',       emoji: '🔵' },
+      { label: 'That',     emoji: '👈' },
+      { label: 'Want',     emoji: '💭' },
+      { label: 'Go',       emoji: '🏃' },
+      { label: 'Stop',     emoji: '✋' },
+      { label: 'Like',     emoji: '❤️' },
+      { label: 'Help',     emoji: '🤝' },
+      { label: 'Play',     emoji: '🎮' },
+      { label: 'Look',     emoji: '👀' },
+      { label: 'More',     emoji: '➕' },
+      { label: 'All gone', emoji: '👋' },
+      { label: 'Up',       emoji: '⬆️' },
+      { label: 'Down',     emoji: '⬇️' },
+      { label: 'On',       emoji: '💡' },
+      { label: 'Off',      emoji: '🌙' },
+    ];
+
+    // ===== FRINGE VOCABULARY CATEGORIES =====
+    // Topic-specific words that live inside category folders, not on the main board.
+    // These support the SNUG model: child selects core words + fringe nouns
+    // to build novel sentences (e.g. "I" + "want" + "more" + "pizza").
+    const CATEGORIES = [
+      {
+        id: 'core',
+        label: 'Core',
+        emoji: '⭐',
+        words: CORE_WORDS,
+      },
+      {
+        id: 'feelings',
+        label: 'Feelings',
+        emoji: '😊',
+        words: [
+          { label: 'happy',   emoji: '😊' },
+          { label: 'sad',     emoji: '😢' },
+          { label: 'mad',     emoji: '😠' },
+          { label: 'scared',  emoji: '😨' },
+          { label: 'tired',   emoji: '😴' },
+          { label: 'hungry',  emoji: '🍽️' },
+          { label: 'thirsty', emoji: '🥤' },
+          { label: 'sick',    emoji: '🤒' },
+          { label: 'excited', emoji: '🎉' },
+          { label: 'bored',   emoji: '😑' },
+          { label: 'hurt',    emoji: '🤕' },
+          { label: 'good',    emoji: '👍' },
+          { label: 'bad',     emoji: '👎' },
+          { label: 'love',    emoji: '💖' },
+        ],
+      },
+      {
+        id: 'food',
+        label: 'Food',
+        emoji: '🍎',
+        words: [
+          { label: 'water',    emoji: '💧' },
+          { label: 'milk',     emoji: '🥛' },
+          { label: 'apple',    emoji: '🍎' },
+          { label: 'banana',   emoji: '🍌' },
+          { label: 'sandwich', emoji: '🥪' },
+          { label: 'pizza',    emoji: '🍕' },
+          { label: 'cookie',   emoji: '🍪' },
+          { label: 'juice',    emoji: '🧃' },
+          { label: 'bread',    emoji: '🍞' },
+          { label: 'rice',     emoji: '🍚' },
+          { label: 'cheese',   emoji: '🧀' },
+          { label: 'egg',      emoji: '🥚' },
+          { label: 'fruit',    emoji: '🍓' },
+          { label: 'chips',    emoji: '🍟' },
+        ],
+      },
+      {
+        id: 'actions',
+        label: 'Actions',
+        emoji: '🏃',
+        words: [
+          { label: 'eat',   emoji: '🍴' },
+          { label: 'drink', emoji: '🥤' },
+          { label: 'sleep', emoji: '💤' },
+          { label: 'sit',   emoji: '🪑' },
+          { label: 'walk',  emoji: '🚶' },
+          { label: 'run',   emoji: '🏃' },
+          { label: 'jump',  emoji: '🦘' },
+          { label: 'push',  emoji: '🤜' },
+          { label: 'pull',  emoji: '🤏' },
+          { label: 'open',  emoji: '🔓' },
+          { label: 'close', emoji: '🔒' },
+          { label: 'find',  emoji: '🔍' },
+          { label: 'give',  emoji: '🎁' },
+          { label: 'wash',  emoji: '🧼' },
+          { label: 'make',  emoji: '🔨' },
+          { label: 'draw',  emoji: '✏️' },
+        ],
+      },
+      {
+        id: 'places',
+        label: 'Places',
+        emoji: '🏠',
+        words: [
+          { label: 'home',       emoji: '🏠' },
+          { label: 'school',     emoji: '🏫' },
+          { label: 'park',       emoji: '🌳' },
+          { label: 'bathroom',   emoji: '🚽' },
+          { label: 'outside',    emoji: '☀️' },
+          { label: 'kitchen',    emoji: '🍳' },
+          { label: 'bedroom',    emoji: '🛏️' },
+          { label: 'playground', emoji: '🛝' },
+          { label: 'car',        emoji: '🚗' },
+          { label: 'bus',        emoji: '🚌' },
+          { label: 'shop',       emoji: '🛒' },
+          { label: 'library',    emoji: '📚' },
+        ],
+      },
+    ];
+
+    // ===== STATE =====
+    let sentenceWords    = [];      // words queued in the sentence strip
+    let activeCategoryId = 'core'; // currently displayed category
+
+    // ===== SENTENCE STRIP =====
+
+    function renderStrip() {
+      const tilesEl = document.getElementById('word-tiles');
+      tilesEl.innerHTML = '';
+
+      if (sentenceWords.length === 0) {
+        const ph = document.createElement('span');
+        ph.id = 'strip-placeholder';
+        ph.textContent = 'Tap a symbol to start talking…';
+        tilesEl.appendChild(ph);
+      } else {
+        sentenceWords.forEach(word => {
+          const tile = document.createElement('span');
+          tile.className = 'word-tile';
+          tile.textContent = word;
+          tilesEl.appendChild(tile);
+        });
+      }
+    }
+
+    function addWord(word) {
+      sentenceWords.push(word);
+      renderStrip();
+    }
+
+    function backspace() {
+      if (sentenceWords.length > 0) {
+        sentenceWords.pop();
+        renderStrip();
+      }
+    }
+
+    function clearStrip() {
+      sentenceWords = [];
+      renderStrip();
+    }
+
+    // Speak uses the Web Speech API built into all modern browsers.
+    // speechSynthesis.cancel() first ensures zero delay if already speaking.
+    function speak() {
+      if (sentenceWords.length === 0) return;
+      window.speechSynthesis.cancel();
+      const utt  = new SpeechSynthesisUtterance(sentenceWords.join(' '));
+      utt.rate   = 0.9;
+      utt.pitch  = 1.0;
+      window.speechSynthesis.speak(utt);
+    }
+
+    // ===== CATEGORY NAVIGATION =====
+
+    function renderCategoryNav() {
+      const nav = document.getElementById('category-nav');
+      nav.innerHTML = '';
+
+      CATEGORIES.forEach(cat => {
+        const btn = document.createElement('button');
+        btn.className = 'cat-btn' + (cat.id === activeCategoryId ? ' active' : '');
+        btn.setAttribute('aria-label', cat.label + ' category');
+        btn.setAttribute('aria-pressed', cat.id === activeCategoryId ? 'true' : 'false');
+        btn.innerHTML = `<span class="cat-icon" aria-hidden="true">${cat.emoji}</span>${cat.label}`;
+        btn.addEventListener('click', () => {
+          activeCategoryId = cat.id;
+          renderCategoryNav();
+          renderBoard();
+        });
+        nav.appendChild(btn);
+      });
+    }
+
+    // ===== SYMBOL BOARD =====
+
+    function renderBoard() {
+      const board = document.getElementById('symbol-board');
+      board.innerHTML = '';
+
+      const cat = CATEGORIES.find(c => c.id === activeCategoryId);
+
+      cat.words.forEach((word, i) => {
+        const btn = document.createElement('button');
+        btn.className        = 'symbol-btn';
+        btn.style.background = COLOURS[i % COLOURS.length];
+        btn.setAttribute('aria-label', word.label);
+        btn.innerHTML = `
+          <span class="sym-emoji" aria-hidden="true">${word.emoji}</span>
+          <span class="sym-label">${word.label}</span>
+        `;
+
+        // pointerdown fires before click — reduces tap-to-word latency on touch screens.
+        // preventDefault stops the browser generating a redundant click event after.
+        btn.addEventListener('pointerdown', e => {
+          e.preventDefault();
+          addWord(word.label);
+        });
+
+        board.appendChild(btn);
+      });
+    }
+
+    // ===== STRIP BUTTON WIRING =====
+    document.getElementById('btn-backspace').addEventListener('click', backspace);
+    document.getElementById('btn-speak').addEventListener('click', speak);
+    document.getElementById('btn-clear').addEventListener('click', clearStrip);
+
+    // ===== INITIAL RENDER =====
+    renderStrip();
+    renderCategoryNav();
+    renderBoard();
+  </script>
+</body>
+</html>
