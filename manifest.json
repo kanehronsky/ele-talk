@@ -1,0 +1,24 @@
+{
+  "name": "ELE Talk",
+  "short_name": "ELE Talk",
+  "description": "AAC communication app for children with communication disabilities",
+  "start_url": "/",
+  "display": "standalone",
+  "orientation": "landscape",
+  "theme_color": "#4A86C8",
+  "background_color": "#f5f5f5",
+  "icons": [
+    {
+      "src": "icon-192.svg",
+      "sizes": "192x192",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    },
+    {
+      "src": "icon-512.svg",
+      "sizes": "512x512",
+      "type": "image/svg+xml",
+      "purpose": "any maskable"
+    }
+  ]
+}

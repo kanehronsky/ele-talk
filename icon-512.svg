@@ -1,0 +1,15 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512">
+  <!-- Blue background with rounded corners -->
+  <rect width="512" height="512" rx="85" fill="#4A86C8"/>
+  <!-- White speech bubble body -->
+  <rect x="53" y="48" width="406" height="299" rx="37" fill="#ffffff"/>
+  <!-- Speech bubble tail pointing down-left -->
+  <polygon points="149,347 213,432 277,347" fill="#ffffff"/>
+  <!-- ELE logotype -->
+  <text x="256" y="240"
+        text-anchor="middle"
+        font-family="Arial, Helvetica, sans-serif"
+        font-weight="900"
+        font-size="123"
+        fill="#4A86C8">ELE</text>
+</svg>
