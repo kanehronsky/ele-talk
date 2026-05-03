@@ -2,9 +2,7 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <!-- Prevent zoom; set landscape orientation for tablet use -->
   <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
-  <!-- PWA / home-screen meta -->
   <meta name="mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-capable" content="yes" />
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
@@ -30,12 +28,12 @@
       overflow: hidden;
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif;
       background: #d8dce4;
-      overscroll-behavior: none;        /* disable pull-to-refresh */
+      overscroll-behavior: none;
       -webkit-overflow-scrolling: none;
     }
 
     /* ═══════════════════════════════════════════════════
-       APP SHELL — full-viewport flex column
+       APP SHELL
     ═══════════════════════════════════════════════════ */
     #app {
       display: flex;
@@ -46,7 +44,7 @@
     }
 
     /* ═══════════════════════════════════════════════════
-       SENTENCE STRIP — fixed bar at the top
+       SENTENCE STRIP
     ═══════════════════════════════════════════════════ */
     #sentence-strip {
       display: flex;
@@ -60,7 +58,6 @@
       gap: 8px;
     }
 
-    /* High-contrast / settings toggle button */
     #settings-btn {
       flex-shrink: 0;
       width: 48px;
@@ -81,7 +78,6 @@
 
     #settings-btn:active { transform: scale(0.9); filter: brightness(0.88); }
 
-    /* Scrollable word-tile area */
     #word-tiles {
       flex: 1;
       display: flex;
@@ -97,7 +93,6 @@
 
     #word-tiles::-webkit-scrollbar { display: none; }
 
-    /* Empty-state placeholder */
     #strip-placeholder {
       color: #b0b8c8;
       font-size: 15px;
@@ -107,7 +102,6 @@
       pointer-events: none;
     }
 
-    /* Individual word chip */
     .word-tile {
       flex-shrink: 0;
       padding: 6px 14px;
@@ -120,7 +114,6 @@
       white-space: nowrap;
     }
 
-    /* Backspace / Speak / Clear buttons */
     #strip-controls {
       display: flex;
       gap: 6px;
@@ -150,39 +143,36 @@
     #clear-btn     { background: #D0D8FF; color: #1a1a8B; }
 
     /* ═══════════════════════════════════════════════════
-       MAIN GRID — fills all remaining viewport height
+       MAIN GRID
     ═══════════════════════════════════════════════════ */
     #grid {
       flex: 1;
-      min-height: 0;               /* lets the flex child shrink below auto height */
+      min-height: 0;
       display: grid;
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(6, 1fr);
       gap: 3px;
       padding: 3px;
-      background: #ffffff;         /* white shows through the 3 px gaps as grid lines */
+      background: #ffffff;
     }
 
     /* ═══════════════════════════════════════════════════
-       GRID BUTTONS — Fitzgerald Key colour-coded
+       GRID BUTTONS — emoji above label, flex column
     ═══════════════════════════════════════════════════ */
     .btn {
       display: flex;
+      flex-direction: column;
       align-items: center;
       justify-content: center;
       text-align: center;
       font-family: inherit;
-      font-weight: 700;
-      /* Scales smoothly from small phones to large desktops */
-      font-size: clamp(10px, 1.8vw, 18px);
       color: #1a1a1a;
       border: none;
       border-radius: 8px;
       cursor: pointer;
-      padding: 6px 4px;
-      line-height: 1.2;
-      word-break: break-word;
-      overflow-wrap: break-word;
+      padding: 4px 3px;
+      gap: 2px;
+      overflow: hidden;
       user-select: none;
       -webkit-user-select: none;
       touch-action: manipulation;
@@ -190,45 +180,84 @@
       transition: transform 0.08s ease, filter 0.08s ease;
     }
 
-    /* Pressed state added via JS (touchstart) and CSS :active (mouse) */
+    .btn-emoji {
+      font-size: clamp(1rem, 2.8vw, 1.8rem);
+      line-height: 1;
+      font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
+    }
+
+    .btn-label {
+      font-size: clamp(9px, 1.5vw, 15px);
+      font-weight: 700;
+      line-height: 1.15;
+      word-break: break-word;
+      overflow-wrap: break-word;
+    }
+
     .btn.pressed,
     .btn:active {
       transform: scale(0.92);
       filter: brightness(0.85);
     }
 
-    /* Fitzgerald Key colours + neon CSS variable for high-contrast mode */
-    .btn.blue   { background: #4A86C8; --neon: #00BFFF; }
-    .btn.green  { background: #5CAF5C; --neon: #00FF7F; }
-    .btn.pink   { background: #D96BA8; --neon: #FF69B4; }
-    .btn.orange { background: #E8954A; --neon: #FF8C00; }
-    .btn.yellow { background: #D4A820; --neon: #FFD700; }
-    .btn.red    { background: #D94848; --neon: #FF4040; }
+    /* Fitzgerald Key colours */
+    .btn.blue         { background: #4A86C8; --neon: #00BFFF; }
+    .btn.green        { background: #5CAF5C; --neon: #00FF7F; }
+    .btn.pink         { background: #D96BA8; --neon: #FF69B4; }
+    .btn.orange       { background: #E8954A; --neon: #FF8C00; }
+    .btn.yellow       { background: #D4A820; --neon: #FFD700; }
+    .btn.red          { background: #D94848; --neon: #FF4040; }
+
+    /* Sub-grid colours — lighter shades of parent category */
+    .btn.green-light  { background: #8FD08F; --neon: #00FF7F; }
+    .btn.yellow-light { background: #E8CC60; --neon: #FFD700; }
+    .btn.blue-light   { background: #80AADC; --neon: #00BFFF; }
+    .btn.pink-light   { background: #E89EC5; --neon: #FF69B4; }
+    .btn.orange-light { background: #F2B87A; --neon: #FF8C00; }
+
+    /* Active trigger: gold glow signals "you are inside this category" */
+    .btn.active-trigger {
+      box-shadow: 0 0 0 3px gold, 0 0 10px 3px rgba(255, 215, 0, 0.55);
+    }
+
+    /* Empty slot when sub-grid has fewer words than available positions */
+    .btn.empty {
+      background: rgba(200, 205, 215, 0.35) !important;
+      pointer-events: none;
+      cursor: default;
+    }
 
     /* ═══════════════════════════════════════════════════
-       HIGH CONTRAST MODE — class toggled on <html>
+       HIGH CONTRAST MODE
     ═══════════════════════════════════════════════════ */
-    html.high-contrast body            { background: #000; }
-
-    html.high-contrast #sentence-strip { background: #111; border-bottom-color: #333; }
-
-    html.high-contrast #settings-btn   { background: #222; color: #eee; border-color: #555; }
-
+    html.high-contrast body               { background: #000; }
+    html.high-contrast #sentence-strip    { background: #111; border-bottom-color: #333; }
+    html.high-contrast #settings-btn      { background: #222; color: #eee; border-color: #555; }
     html.high-contrast #strip-placeholder { color: #555; }
-
-    html.high-contrast .word-tile      { background: #1a1a1a; border-color: #555; color: #fff; }
-
-    html.high-contrast #backspace-btn  { background: #400000; color: #ff8080; }
-    html.high-contrast #speak-btn      { background: #004000; color: #80ff80; }
-    html.high-contrast #clear-btn      { background: #000040; color: #8080ff; }
-
-    html.high-contrast #grid           { background: #000; }
+    html.high-contrast .word-tile         { background: #1a1a1a; border-color: #555; color: #fff; }
+    html.high-contrast #backspace-btn     { background: #400000; color: #ff8080; }
+    html.high-contrast #speak-btn         { background: #004000; color: #80ff80; }
+    html.high-contrast #clear-btn         { background: #000040; color: #8080ff; }
+    html.high-contrast #grid              { background: #000; }
 
     html.high-contrast .btn {
       background: #000 !important;
       color: #ffffff !important;
       border: 2.5px solid var(--neon, #ffffff);
       box-shadow: 0 0 8px var(--neon, #ffffff);
+    }
+
+    html.high-contrast .btn.active-trigger {
+      box-shadow:
+        0 0 0 3px gold,
+        0 0 12px 4px rgba(255, 215, 0, 0.7),
+        0 0 8px var(--neon, #ffffff);
+    }
+
+    html.high-contrast .btn.empty {
+      background: transparent !important;
+      border: none;
+      box-shadow: none;
     }
   </style>
 </head>
@@ -255,93 +284,1035 @@
 
     </div>
 
-    <!-- ── Main Grid (built by JavaScript) ───────────── -->
+    <!-- ── Main Grid (36 persistent slots built by JS) ── -->
     <div id="grid" role="main" aria-label="Communication grid"></div>
 
   </div>
 
   <script>
     /* ═══════════════════════════════════════════════════════════
-       CORE 36 — permanent vocabulary in fixed grid order.
-       Index = grid slot. The position of every word is permanent
-       and must never change (motor planning integrity).
+       CORE 36 — permanent vocabulary. Index === grid slot.
+       The position of every word is permanent and must never change.
     ═══════════════════════════════════════════════════════════ */
     const CORE_36 = [
       /* Row 1 — Pronouns (Blue) */
-      { label: 'I / Me',      speak: 'I',        color: 'blue',   aria: 'I or Me'       },
-      { label: 'You',         speak: 'You',       color: 'blue'                          },
-      { label: 'It',          speak: 'It',        color: 'blue'                          },
-      { label: 'We',          speak: 'We',        color: 'blue'                          },
-      { label: 'Who',         speak: 'Who',       color: 'blue'                          },
-      { label: 'What',        speak: 'What',      color: 'blue'                          },
+      { label: 'I / Me',      speak: 'I',       emoji: '👤', color: 'blue',   aria: 'I or Me', subGrid: 'i_me', addToStrip: true },
+      { label: 'You',         speak: 'You',      emoji: '👉', color: 'blue',   subGrid: 'you',  addToStrip: true },
+      { label: 'It',          speak: 'It',       emoji: '👇', color: 'blue',   subGrid: 'it',   addToStrip: true },
+      { label: 'We',          speak: 'We',       emoji: '👫', color: 'blue',   subGrid: 'we',   addToStrip: true },
+      { label: 'Who',         speak: 'Who',      emoji: '🧑', color: 'blue',   subGrid: 'who'                    },
+      { label: 'What',        speak: 'What',     emoji: '❓', color: 'blue',   subGrid: 'what'                   },
 
       /* Row 2 — Actions (Green) */
-      { label: 'Want',        speak: 'Want',      color: 'green'                         },
-      { label: 'Go',          speak: 'Go',        color: 'green'                         },
-      { label: 'Stop',        speak: 'Stop',      color: 'green'                         },
-      { label: 'Make / Do',   speak: 'Make',      color: 'green',  aria: 'Make or Do'   },
-      { label: 'Look',        speak: 'Look',      color: 'green'                         },
-      { label: 'Like',        speak: 'Like',      color: 'green'                         },
+      { label: 'Want',        speak: 'Want',     emoji: '🤲', color: 'green',  subGrid: 'want', addToStrip: true },
+      { label: 'Go',          speak: 'Go',       emoji: '🏃', color: 'green',  subGrid: 'go',   addToStrip: true },
+      { label: 'Stop',        speak: 'Stop',     emoji: '🛑', color: 'green',  subGrid: 'stop'                     },
+      { label: 'Make / Do',   speak: 'Make',     emoji: '🔨', color: 'green',  aria: 'Make or Do', subGrid: 'make' },
+      { label: 'Look',        speak: 'Look',     emoji: '👀', color: 'green',  subGrid: 'look', addToStrip: true  },
+      { label: 'Like',        speak: 'Like',     emoji: '👍', color: 'green',  subGrid: 'like'                     },
 
       /* Row 3 — Position (Pink) */
-      { label: 'In',          speak: 'In',        color: 'pink'                          },
-      { label: 'Out',         speak: 'Out',       color: 'pink'                          },
-      { label: 'Up',          speak: 'Up',        color: 'pink'                          },
-      { label: 'Down',        speak: 'Down',      color: 'pink'                          },
-      { label: 'On',          speak: 'On',        color: 'pink'                          },
-      { label: 'Off',         speak: 'Off',       color: 'pink'                          },
+      { label: 'In',          speak: 'In',       emoji: '📥', color: 'pink',   subGrid: 'in_'   },
+      { label: 'Out',         speak: 'Out',      emoji: '📤', color: 'pink',   subGrid: 'out_'  },
+      { label: 'Up',          speak: 'Up',       emoji: '⬆️', color: 'pink',   subGrid: 'up_'   },
+      { label: 'Down',        speak: 'Down',     emoji: '⬇️', color: 'pink',   subGrid: 'down_' },
+      { label: 'On',          speak: 'On',       emoji: '💡', color: 'pink',   subGrid: 'on_'   },
+      { label: 'Off',         speak: 'Off',      emoji: '🌑', color: 'pink',   subGrid: 'off_'  },
 
       /* Row 4 — Descriptors (Orange) */
-      { label: 'Big',         speak: 'Big',       color: 'orange'                        },
-      { label: 'Little',      speak: 'Little',    color: 'orange'                        },
-      { label: 'Good',        speak: 'Good',      color: 'orange'                        },
-      { label: 'Bad / Yucky', speak: 'Bad',       color: 'orange', aria: 'Bad or Yucky' },
-      { label: 'More',        speak: 'More',      color: 'orange'                        },
-      { label: 'All Done',    speak: 'All Done',  color: 'orange'                        },
+      { label: 'Big',         speak: 'Big',      emoji: '🐘', color: 'orange', subGrid: 'big'                         },
+      { label: 'Little',      speak: 'Little',   emoji: '🐭', color: 'orange', subGrid: 'little'                      },
+      { label: 'Good',        speak: 'Good',     emoji: '😊', color: 'orange', subGrid: 'good'                        },
+      { label: 'Bad / Yucky', speak: 'Bad',      emoji: '🤢', color: 'orange', aria: 'Bad or Yucky', subGrid: 'bad'    },
+      { label: 'More',        speak: 'More',     emoji: '➕', color: 'orange', subGrid: 'more'                        },
+      { label: 'All Done',    speak: 'All Done', emoji: '✅', color: 'orange', subGrid: 'alldone'                     },
 
       /* Row 5 — Nouns / Navigation (Yellow) */
-      { label: 'MY WORDS',    speak: 'My Words',  color: 'yellow'                        },
-      { label: 'People',      speak: 'People',    color: 'yellow'                        },
-      { label: 'Food',        speak: 'Food',      color: 'yellow'                        },
-      { label: 'Drink',       speak: 'Drink',     color: 'yellow'                        },
-      { label: 'Places',      speak: 'Places',    color: 'yellow'                        },
-      { label: 'Toys / Play', speak: 'Toys',      color: 'yellow', aria: 'Toys or Play' },
+      { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow'                       },
+      { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
+      { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', subGrid: 'food'      },
+      { label: 'Drink',       speak: 'Drink',    emoji: '🥤', color: 'yellow', subGrid: 'drink'     },
+      { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', subGrid: 'places'    },
+      { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', subGrid: 'toys',     aria: 'Toys or Play' },
 
-      /* Row 6 — Power Tools (Red) — always on the outer right edge */
-      { label: 'YES',         speak: 'Yes',       color: 'red'                           },
-      { label: 'NO',          speak: 'No',        color: 'red'                           },
-      { label: 'STOP',        speak: 'Stop',      color: 'red'                           },
-      { label: 'GO',          speak: 'Go',        color: 'red'                           },
-      { label: 'WAIT',        speak: 'Wait',      color: 'red'                           },
-      { label: 'BREAK',       speak: 'Break',     color: 'red'                           },
+      /* Row 6 — Power Tools (Red) — always visible, even in sub-grids */
+      { label: 'YES',         speak: 'Yes',      emoji: '✔️', color: 'red'                          },
+      { label: 'NO',          speak: 'No',       emoji: '✖️', color: 'red'                          },
+      { label: 'STOP',        speak: 'Stop',     emoji: '🚨', color: 'red'                          },
+      { label: 'GO',          speak: 'Go',       emoji: '🟢', color: 'red'                          },
+      { label: 'WAIT',        speak: 'Wait',     emoji: '✋', color: 'red'                          },
+      { label: 'BREAK',       speak: 'Break',    emoji: '😮‍💨', color: 'red'                        },
     ];
+
+    /* ═══════════════════════════════════════════════════════════
+       SUB-GRIDS — 29 words each
+       (36 total slots − 6 power tools − 1 trigger = 29 available)
+    ═══════════════════════════════════════════════════════════ */
+    const SUB_GRIDS = {
+
+      want: [
+        { label: 'Eat',    speak: 'Eat',    emoji: '🍽️', color: 'green-light' },
+        { label: 'Sleep',  speak: 'Sleep',  emoji: '😴', color: 'green-light' },
+        { label: 'Help',   speak: 'Help',   emoji: '🙏', color: 'green-light' },
+        { label: 'Play',   speak: 'Play',   emoji: '🎮', color: 'green-light' },
+        { label: 'Drink',  speak: 'Drink',  emoji: '💧', color: 'green-light' },
+        { label: 'Read',   speak: 'Read',   emoji: '📖', color: 'green-light' },
+        { label: 'Sing',   speak: 'Sing',   emoji: '🎵', color: 'green-light' },
+        { label: 'Dance',  speak: 'Dance',  emoji: '💃', color: 'green-light' },
+        { label: 'Wash',   speak: 'Wash',   emoji: '🫧', color: 'green-light' },
+        { label: 'Sit',    speak: 'Sit',    emoji: '🪑', color: 'green-light' },
+        { label: 'Stand',  speak: 'Stand',  emoji: '🧍', color: 'green-light' },
+        { label: 'Run',    speak: 'Run',    emoji: '🏃', color: 'green-light' },
+        { label: 'Jump',   speak: 'Jump',   emoji: '🦘', color: 'green-light' },
+        { label: 'Walk',   speak: 'Walk',   emoji: '🚶', color: 'green-light' },
+        { label: 'Swim',   speak: 'Swim',   emoji: '🏊', color: 'green-light' },
+        { label: 'Climb',  speak: 'Climb',  emoji: '🧗', color: 'green-light' },
+        { label: 'Build',  speak: 'Build',  emoji: '🏗️', color: 'green-light' },
+        { label: 'Draw',   speak: 'Draw',   emoji: '✏️', color: 'green-light' },
+        { label: 'Write',  speak: 'Write',  emoji: '✍️', color: 'green-light' },
+        { label: 'Hug',    speak: 'Hug',    emoji: '🤗', color: 'green-light' },
+        { label: 'Watch',  speak: 'Watch',  emoji: '📺', color: 'green-light' },
+        { label: 'Listen', speak: 'Listen', emoji: '🎧', color: 'green-light' },
+        { label: 'Cook',   speak: 'Cook',   emoji: '👨‍🍳', color: 'green-light' },
+        { label: 'Try',    speak: 'Try',    emoji: '🌟', color: 'green-light' },
+        { label: 'Choose', speak: 'Choose', emoji: '🤔', color: 'green-light' },
+        { label: 'Open',   speak: 'Open',   emoji: '📂', color: 'green-light' },
+        { label: 'Close',  speak: 'Close',  emoji: '📁', color: 'green-light' },
+        { label: 'Share',  speak: 'Share',  emoji: '🤝', color: 'green-light' },
+        { label: 'Fix',    speak: 'Fix',    emoji: '🔧', color: 'green-light' },
+      ],
+
+      go: [
+        { label: 'Run',        speak: 'Run',        emoji: '🏃', color: 'green-light' },
+        { label: 'Jump',       speak: 'Jump',       emoji: '🦘', color: 'green-light' },
+        { label: 'Walk',       speak: 'Walk',       emoji: '🚶', color: 'green-light' },
+        { label: 'Crawl',      speak: 'Crawl',      emoji: '🐾', color: 'green-light' },
+        { label: 'Slide',      speak: 'Slide',      emoji: '🛝', color: 'green-light' },
+        { label: 'Swing',      speak: 'Swing',      emoji: '🎠', color: 'green-light' },
+        { label: 'Climb',      speak: 'Climb',      emoji: '🧗', color: 'green-light' },
+        { label: 'Skip',       speak: 'Skip',       emoji: '🕺', color: 'green-light' },
+        { label: 'Hop',        speak: 'Hop',        emoji: '🐸', color: 'green-light' },
+        { label: 'Dance',      speak: 'Dance',      emoji: '💃', color: 'green-light' },
+        { label: 'Swim',       speak: 'Swim',       emoji: '🏊', color: 'green-light' },
+        { label: 'Back',       speak: 'Back',       emoji: '🔙', color: 'green-light' },
+        { label: 'Forward',    speak: 'Forward',    emoji: '➡️', color: 'green-light' },
+        { label: 'Outside',    speak: 'Outside',    emoji: '🌳', color: 'green-light' },
+        { label: 'Inside',     speak: 'Inside',     emoji: '🏠', color: 'green-light' },
+        { label: 'Home',       speak: 'Home',       emoji: '🏡', color: 'green-light' },
+        { label: 'School',     speak: 'School',     emoji: '🏫', color: 'green-light' },
+        { label: 'Park',       speak: 'Park',       emoji: '🌳', color: 'green-light' },
+        { label: 'Fast',       speak: 'Fast',       emoji: '💨', color: 'green-light' },
+        { label: 'Slow',       speak: 'Slow',       emoji: '🐢', color: 'green-light' },
+        { label: 'Together',   speak: 'Together',   emoji: '🤝', color: 'green-light' },
+        { label: 'Away',       speak: 'Away',       emoji: '👋', color: 'green-light' },
+        { label: 'Upstairs',   speak: 'Upstairs',   emoji: '🆙', color: 'green-light' },
+        { label: 'Downstairs', speak: 'Downstairs', emoji: '🔽', color: 'green-light' },
+        { label: 'Now',        speak: 'Now',        emoji: '⏰', color: 'green-light' },
+        { label: 'Quietly',    speak: 'Quietly',    emoji: '🤫', color: 'green-light' },
+        { label: 'Carefully',  speak: 'Carefully',  emoji: '🎯', color: 'green-light' },
+        { label: 'Again',      speak: 'Again',      emoji: '🔄', color: 'green-light' },
+        { label: 'Alone',      speak: 'Alone',      emoji: '🧍', color: 'green-light' },
+      ],
+
+      look: [
+        { label: 'See',    speak: 'See',    emoji: '👁️', color: 'green-light' },
+        { label: 'Watch',  speak: 'Watch',  emoji: '📺', color: 'green-light' },
+        { label: 'Find',   speak: 'Find',   emoji: '🔍', color: 'green-light' },
+        { label: 'Show',   speak: 'Show',   emoji: '📌', color: 'green-light' },
+        { label: 'Point',  speak: 'Point',  emoji: '👆', color: 'green-light' },
+        { label: 'Read',   speak: 'Read',   emoji: '📖', color: 'green-light' },
+        { label: 'Listen', speak: 'Listen', emoji: '👂', color: 'green-light' },
+        { label: 'Hear',   speak: 'Hear',   emoji: '🔊', color: 'green-light' },
+        { label: 'Smell',  speak: 'Smell',  emoji: '👃', color: 'green-light' },
+        { label: 'Taste',  speak: 'Taste',  emoji: '👅', color: 'green-light' },
+        { label: 'Touch',  speak: 'Touch',  emoji: '🤏', color: 'green-light' },
+        { label: 'Help',   speak: 'Help',   emoji: '🙏', color: 'green-light' },
+        { label: 'Try',    speak: 'Try',    emoji: '🌟', color: 'green-light' },
+        { label: 'Check',  speak: 'Check',  emoji: '✅', color: 'green-light' },
+        { label: 'Wait',   speak: 'Wait',   emoji: '⏰', color: 'green-light' },
+        { label: 'Draw',   speak: 'Draw',   emoji: '✏️', color: 'green-light' },
+        { label: 'Count',  speak: 'Count',  emoji: '🔢', color: 'green-light' },
+        { label: 'Learn',  speak: 'Learn',  emoji: '📚', color: 'green-light' },
+        { label: 'Play',   speak: 'Play',   emoji: '🎮', color: 'green-light' },
+        { label: 'Make',   speak: 'Make',   emoji: '🔨', color: 'green-light' },
+        { label: 'Eat',    speak: 'Eat',    emoji: '🍽️', color: 'green-light' },
+        { label: 'Drink',  speak: 'Drink',  emoji: '💧', color: 'green-light' },
+        { label: 'Sleep',  speak: 'Sleep',  emoji: '😴', color: 'green-light' },
+        { label: 'Open',   speak: 'Open',   emoji: '📂', color: 'green-light' },
+        { label: 'Close',  speak: 'Close',  emoji: '📁', color: 'green-light' },
+        { label: 'Give',   speak: 'Give',   emoji: '🎁', color: 'green-light' },
+        { label: 'Take',   speak: 'Take',   emoji: '🖐️', color: 'green-light' },
+        { label: 'Share',  speak: 'Share',  emoji: '🤝', color: 'green-light' },
+        { label: 'Here',   speak: 'Here',   emoji: '📍', color: 'green-light' },
+      ],
+
+      people: [
+        { label: 'Mom',       speak: 'Mom',       emoji: '👩',   color: 'yellow-light' },
+        { label: 'Dad',       speak: 'Dad',       emoji: '👨',   color: 'yellow-light' },
+        { label: 'Grandma',   speak: 'Grandma',   emoji: '👵',   color: 'yellow-light' },
+        { label: 'Grandpa',   speak: 'Grandpa',   emoji: '👴',   color: 'yellow-light' },
+        { label: 'Brother',   speak: 'Brother',   emoji: '👦',   color: 'yellow-light' },
+        { label: 'Sister',    speak: 'Sister',    emoji: '👧',   color: 'yellow-light' },
+        { label: 'Baby',      speak: 'Baby',      emoji: '👶',   color: 'yellow-light' },
+        { label: 'Teacher',   speak: 'Teacher',   emoji: '🍎',   color: 'yellow-light' },
+        { label: 'Assistant', speak: 'Assistant', emoji: '🙋',   color: 'yellow-light' },
+        { label: 'Friend',    speak: 'Friend',    emoji: '🤝',   color: 'yellow-light' },
+        { label: 'Doctor',    speak: 'Doctor',    emoji: '👨‍⚕️',  color: 'yellow-light' },
+        { label: 'Nurse',     speak: 'Nurse',     emoji: '👩‍⚕️',  color: 'yellow-light' },
+        { label: 'He',        speak: 'He',        emoji: '👦',   color: 'yellow-light' },
+        { label: 'She',       speak: 'She',       emoji: '👧',   color: 'yellow-light' },
+        { label: 'They',      speak: 'They',      emoji: '👥',   color: 'yellow-light' },
+        { label: 'Aunt',      speak: 'Aunt',      emoji: '👩‍🦱',  color: 'yellow-light' },
+        { label: 'Uncle',     speak: 'Uncle',     emoji: '👨‍🦳',  color: 'yellow-light' },
+        { label: 'Cousin',    speak: 'Cousin',    emoji: '🧒',   color: 'yellow-light' },
+        { label: 'Therapist', speak: 'Therapist', emoji: '🧑‍⚕️',  color: 'yellow-light' },
+        { label: 'Principal', speak: 'Principal', emoji: '🏫',   color: 'yellow-light' },
+        { label: 'Boy',       speak: 'Boy',       emoji: '👦',   color: 'yellow-light' },
+        { label: 'Girl',      speak: 'Girl',      emoji: '👧',   color: 'yellow-light' },
+        { label: 'Everyone',  speak: 'Everyone',  emoji: '🌍',   color: 'yellow-light' },
+        { label: 'Coach',     speak: 'Coach',     emoji: '🏆',   color: 'yellow-light' },
+        { label: 'Neighbour', speak: 'Neighbour', emoji: '🏘️',   color: 'yellow-light' },
+        { label: 'Me',        speak: 'Me',        emoji: '👤',   color: 'yellow-light' },
+        { label: 'Us',        speak: 'Us',        emoji: '👫',   color: 'yellow-light' },
+        { label: 'Dentist',   speak: 'Dentist',   emoji: '🦷',   color: 'yellow-light' },
+        { label: 'Police',    speak: 'Police',    emoji: '🚔',   color: 'yellow-light' },
+      ],
+
+      food: [
+        { label: 'Apple',     speak: 'Apple',     emoji: '🍎', color: 'yellow-light' },
+        { label: 'Banana',    speak: 'Banana',    emoji: '🍌', color: 'yellow-light' },
+        { label: 'Cracker',   speak: 'Cracker',   emoji: '🍘', color: 'yellow-light' },
+        { label: 'Chip',      speak: 'Chip',      emoji: '🥔', color: 'yellow-light' },
+        { label: 'Cookie',    speak: 'Cookie',    emoji: '🍪', color: 'yellow-light' },
+        { label: 'Pizza',     speak: 'Pizza',     emoji: '🍕', color: 'yellow-light' },
+        { label: 'Nugget',    speak: 'Nugget',    emoji: '🍗', color: 'yellow-light' },
+        { label: 'Pasta',     speak: 'Pasta',     emoji: '🍝', color: 'yellow-light' },
+        { label: 'Bread',     speak: 'Bread',     emoji: '🍞', color: 'yellow-light' },
+        { label: 'Rice',      speak: 'Rice',      emoji: '🍚', color: 'yellow-light' },
+        { label: 'Egg',       speak: 'Egg',       emoji: '🥚', color: 'yellow-light' },
+        { label: 'Sandwich',  speak: 'Sandwich',  emoji: '🥪', color: 'yellow-light' },
+        { label: 'Fruit',     speak: 'Fruit',     emoji: '🍇', color: 'yellow-light' },
+        { label: 'Veggie',    speak: 'Veggie',    emoji: '🥦', color: 'yellow-light' },
+        { label: 'Cheese',    speak: 'Cheese',    emoji: '🧀', color: 'yellow-light' },
+        { label: 'Yoghurt',   speak: 'Yoghurt',   emoji: '🥛', color: 'yellow-light' },
+        { label: 'Cake',      speak: 'Cake',      emoji: '🎂', color: 'yellow-light' },
+        { label: 'Soup',      speak: 'Soup',      emoji: '🍜', color: 'yellow-light' },
+        { label: 'Noodle',    speak: 'Noodle',    emoji: '🍜', color: 'yellow-light' },
+        { label: 'Meat',      speak: 'Meat',      emoji: '🥩', color: 'yellow-light' },
+        { label: 'Fish',      speak: 'Fish',      emoji: '🐟', color: 'yellow-light' },
+        { label: 'Snack',     speak: 'Snack',     emoji: '🍿', color: 'yellow-light' },
+        { label: 'Treat',     speak: 'Treat',     emoji: '🍬', color: 'yellow-light' },
+        { label: 'Hot',       speak: 'Hot',       emoji: '🔥', color: 'yellow-light' },
+        { label: 'Cold',      speak: 'Cold',      emoji: '🧊', color: 'yellow-light' },
+        { label: 'Yummy',     speak: 'Yummy',     emoji: '😋', color: 'yellow-light' },
+        { label: 'Breakfast', speak: 'Breakfast', emoji: '🌅', color: 'yellow-light' },
+        { label: 'Lunch',     speak: 'Lunch',     emoji: '☀️', color: 'yellow-light' },
+        { label: 'Dinner',    speak: 'Dinner',    emoji: '🌙', color: 'yellow-light' },
+      ],
+
+      drink: [
+        { label: 'Water',     speak: 'Water',         emoji: '💧', color: 'yellow-light' },
+        { label: 'Milk',      speak: 'Milk',          emoji: '🥛', color: 'yellow-light' },
+        { label: 'Juice',     speak: 'Juice',         emoji: '🧃', color: 'yellow-light' },
+        { label: 'Cordial',   speak: 'Cordial',       emoji: '🍹', color: 'yellow-light' },
+        { label: 'Hot Choc',  speak: 'Hot Chocolate', emoji: '☕', color: 'yellow-light' },
+        { label: 'Smoothie',  speak: 'Smoothie',      emoji: '🥤', color: 'yellow-light' },
+        { label: 'Tea',       speak: 'Tea',           emoji: '🍵', color: 'yellow-light' },
+        { label: 'Lemonade',  speak: 'Lemonade',      emoji: '🍋', color: 'yellow-light' },
+        { label: 'Fizzy',     speak: 'Fizzy drink',   emoji: '🫧', color: 'yellow-light' },
+        { label: 'Apple Juice', speak: 'Apple Juice', emoji: '🍎', color: 'yellow-light' },
+        { label: 'OJ',        speak: 'Orange Juice',  emoji: '🍊', color: 'yellow-light' },
+        { label: 'Milo',      speak: 'Milo',          emoji: '🍫', color: 'yellow-light' },
+        { label: 'Hot',       speak: 'Hot',           emoji: '🔥', color: 'yellow-light' },
+        { label: 'Cold',      speak: 'Cold',          emoji: '🧊', color: 'yellow-light' },
+        { label: 'Icy',       speak: 'Icy',           emoji: '🧊', color: 'yellow-light' },
+        { label: 'Warm',      speak: 'Warm',          emoji: '🌡️', color: 'yellow-light' },
+        { label: 'Big',       speak: 'Big',           emoji: '🐘', color: 'yellow-light' },
+        { label: 'Little',    speak: 'Little',        emoji: '🐭', color: 'yellow-light' },
+        { label: 'Cup',       speak: 'Cup',           emoji: '🫖', color: 'yellow-light' },
+        { label: 'Bottle',    speak: 'Bottle',        emoji: '🍼', color: 'yellow-light' },
+        { label: 'Straw',     speak: 'Straw',         emoji: '🥤', color: 'yellow-light' },
+        { label: 'Please',    speak: 'Please',        emoji: '🙏', color: 'yellow-light' },
+        { label: 'Sweet',     speak: 'Sweet',         emoji: '🍬', color: 'yellow-light' },
+        { label: 'More',      speak: 'More',          emoji: '➕', color: 'yellow-light' },
+        { label: 'All Gone',  speak: 'All gone',      emoji: '✅', color: 'yellow-light' },
+        { label: 'Bubbly',    speak: 'Bubbly',        emoji: '🫧', color: 'yellow-light' },
+        { label: 'Plain',     speak: 'Plain',         emoji: '💧', color: 'yellow-light' },
+        { label: 'Coconut',   speak: 'Coconut water', emoji: '🥥', color: 'yellow-light' },
+        { label: 'Flavoured', speak: 'Flavoured',     emoji: '🌈', color: 'yellow-light' },
+      ],
+
+      places: [
+        { label: 'Home',       speak: 'Home',            emoji: '🏡',  color: 'yellow-light' },
+        { label: 'School',     speak: 'School',          emoji: '🏫',  color: 'yellow-light' },
+        { label: 'Park',       speak: 'Park',            emoji: '🌳',  color: 'yellow-light' },
+        { label: 'Beach',      speak: 'Beach',           emoji: '🏖️',  color: 'yellow-light' },
+        { label: 'Pool',       speak: 'Pool',            emoji: '🏊',  color: 'yellow-light' },
+        { label: 'Zoo',        speak: 'Zoo',             emoji: '🦁',  color: 'yellow-light' },
+        { label: 'Farm',       speak: 'Farm',            emoji: '🌾',  color: 'yellow-light' },
+        { label: 'Shop',       speak: 'Shop',            emoji: '🛒',  color: 'yellow-light' },
+        { label: 'Hospital',   speak: 'Hospital',        emoji: '🏥',  color: 'yellow-light' },
+        { label: 'Therapy',    speak: 'Therapy',         emoji: '🧑‍⚕️', color: 'yellow-light' },
+        { label: 'Bedroom',    speak: 'Bedroom',         emoji: '🛏️',  color: 'yellow-light' },
+        { label: 'Bathroom',   speak: 'Bathroom',        emoji: '🚿',  color: 'yellow-light' },
+        { label: 'Kitchen',    speak: 'Kitchen',         emoji: '🍳',  color: 'yellow-light' },
+        { label: 'Playground', speak: 'Playground',      emoji: '🛝',  color: 'yellow-light' },
+        { label: 'Library',    speak: 'Library',         emoji: '📚',  color: 'yellow-light' },
+        { label: 'Gym',        speak: 'Gym',             emoji: '🏋️',  color: 'yellow-light' },
+        { label: 'Outside',    speak: 'Outside',         emoji: '🌳',  color: 'yellow-light' },
+        { label: 'Garden',     speak: 'Garden',          emoji: '🌺',  color: 'yellow-light' },
+        { label: 'Restaurant', speak: 'Restaurant',      emoji: '🍽️',  color: 'yellow-light' },
+        { label: 'Cinema',     speak: 'Cinema',          emoji: '🎬',  color: 'yellow-light' },
+        { label: 'Car',        speak: 'Car',             emoji: '🚗',  color: 'yellow-light' },
+        { label: 'Bus',        speak: 'Bus',             emoji: '🚌',  color: 'yellow-light' },
+        { label: "Grandma's",  speak: "Grandma's house", emoji: '🏠',  color: 'yellow-light' },
+        { label: 'Inside',     speak: 'Inside',          emoji: '🏠',  color: 'yellow-light' },
+        { label: 'Classroom',  speak: 'Classroom',       emoji: '📝',  color: 'yellow-light' },
+        { label: 'Church',     speak: 'Church',          emoji: '⛪',  color: 'yellow-light' },
+        { label: "Friend's",   speak: "Friend's house",  emoji: '🤝',  color: 'yellow-light' },
+        { label: 'Upstairs',   speak: 'Upstairs',        emoji: '🆙',  color: 'yellow-light' },
+        { label: 'Town',       speak: 'Town',            emoji: '🏙️',  color: 'yellow-light' },
+      ],
+
+      toys: [
+        { label: 'Lego',       speak: 'Lego',       emoji: '🧱', color: 'yellow-light' },
+        { label: 'Doll',       speak: 'Doll',       emoji: '🪆', color: 'yellow-light' },
+        { label: 'Car',        speak: 'Car',        emoji: '🚗', color: 'yellow-light' },
+        { label: 'Ball',       speak: 'Ball',       emoji: '⚽', color: 'yellow-light' },
+        { label: 'Book',       speak: 'Book',       emoji: '📖', color: 'yellow-light' },
+        { label: 'iPad',       speak: 'iPad',       emoji: '📱', color: 'yellow-light' },
+        { label: 'TV',         speak: 'TV',         emoji: '📺', color: 'yellow-light' },
+        { label: 'Puzzle',     speak: 'Puzzle',     emoji: '🧩', color: 'yellow-light' },
+        { label: 'Crayon',     speak: 'Crayon',     emoji: '✏️', color: 'yellow-light' },
+        { label: 'Marker',     speak: 'Marker',     emoji: '🖊️', color: 'yellow-light' },
+        { label: 'Paper',      speak: 'Paper',      emoji: '📄', color: 'yellow-light' },
+        { label: 'Clay',       speak: 'Clay',       emoji: '🎨', color: 'yellow-light' },
+        { label: 'Sticker',    speak: 'Sticker',    emoji: '⭐', color: 'yellow-light' },
+        { label: 'Bubbles',    speak: 'Bubbles',    emoji: '🫧', color: 'yellow-light' },
+        { label: 'Sand',       speak: 'Sand',       emoji: '🏖️', color: 'yellow-light' },
+        { label: 'Slime',      speak: 'Slime',      emoji: '🟢', color: 'yellow-light' },
+        { label: 'Fidget',     speak: 'Fidget toy', emoji: '🌀', color: 'yellow-light' },
+        { label: 'Swing',      speak: 'Swing',      emoji: '🎠', color: 'yellow-light' },
+        { label: 'Trampoline', speak: 'Trampoline', emoji: '🤸', color: 'yellow-light' },
+        { label: 'Bike',       speak: 'Bike',       emoji: '🚲', color: 'yellow-light' },
+        { label: 'Scooter',    speak: 'Scooter',    emoji: '🛴', color: 'yellow-light' },
+        { label: 'Game',       speak: 'Game',       emoji: '🎮', color: 'yellow-light' },
+        { label: 'Music',      speak: 'Music',      emoji: '🎵', color: 'yellow-light' },
+        { label: 'Art',        speak: 'Art',        emoji: '🖼️', color: 'yellow-light' },
+        { label: 'Dance',      speak: 'Dance',      emoji: '💃', color: 'yellow-light' },
+        { label: 'Sport',      speak: 'Sport',      emoji: '🏆', color: 'yellow-light' },
+        { label: 'Outside',    speak: 'Outside',    emoji: '🌳', color: 'yellow-light' },
+        { label: 'Blocks',     speak: 'Blocks',     emoji: '🟦', color: 'yellow-light' },
+        { label: 'Water',      speak: 'Water play', emoji: '💧', color: 'yellow-light' },
+      ],
+
+      /* ── Pronouns ──────────────────────────────────────── */
+
+      i_me: [
+        { label: 'I want',       speak: 'I want',        emoji: '🤲', color: 'blue-light' },
+        { label: 'I need',       speak: 'I need',        emoji: '❗', color: 'blue-light' },
+        { label: 'I like',       speak: 'I like',        emoji: '👍', color: 'blue-light' },
+        { label: "I don't like", speak: "I don't like",  emoji: '👎', color: 'blue-light' },
+        { label: 'I feel',       speak: 'I feel',        emoji: '💭', color: 'blue-light' },
+        { label: 'I think',      speak: 'I think',       emoji: '🤔', color: 'blue-light' },
+        { label: 'I know',       speak: 'I know',        emoji: '💡', color: 'blue-light' },
+        { label: 'I see',        speak: 'I see',         emoji: '👁️', color: 'blue-light' },
+        { label: 'I hear',       speak: 'I hear',        emoji: '👂', color: 'blue-light' },
+        { label: 'I smell',      speak: 'I smell',       emoji: '👃', color: 'blue-light' },
+        { label: 'I taste',      speak: 'I taste',       emoji: '👅', color: 'blue-light' },
+        { label: 'I touch',      speak: 'I touch',       emoji: '🤏', color: 'blue-light' },
+        { label: 'I can',        speak: 'I can',         emoji: '✅', color: 'blue-light' },
+        { label: "I can't",      speak: "I can't",       emoji: '❌', color: 'blue-light' },
+        { label: 'I will',       speak: 'I will',        emoji: '👍', color: 'blue-light' },
+        { label: "I won't",      speak: "I won't",       emoji: '🚫', color: 'blue-light' },
+        { label: 'I did',        speak: 'I did',         emoji: '✔️', color: 'blue-light' },
+        { label: "I didn't",     speak: "I didn't",      emoji: '❌', color: 'blue-light' },
+        { label: 'I have',       speak: 'I have',        emoji: '🖐️', color: 'blue-light' },
+        { label: "I don't have", speak: "I don't have",  emoji: '🤷', color: 'blue-light' },
+        { label: 'I am',         speak: 'I am',          emoji: '👤', color: 'blue-light' },
+        { label: "I'm not",      speak: "I'm not",       emoji: '🙅', color: 'blue-light' },
+        { label: 'I go',         speak: 'I go',          emoji: '🏃', color: 'blue-light' },
+        { label: 'I stay',       speak: 'I stay',        emoji: '🧍', color: 'blue-light' },
+        { label: 'I help',       speak: 'I help',        emoji: '🤝', color: 'blue-light' },
+        { label: 'I try',        speak: 'I try',         emoji: '🌟', color: 'blue-light' },
+        { label: 'I win',        speak: 'I win',         emoji: '🏆', color: 'blue-light' },
+        { label: 'I lose',       speak: 'I lose',        emoji: '😢', color: 'blue-light' },
+        { label: 'I love',       speak: 'I love',        emoji: '❤️', color: 'blue-light' },
+      ],
+
+      you: [
+        { label: 'You help',     speak: 'You help',      emoji: '🤝', color: 'blue-light' },
+        { label: 'You come',     speak: 'You come',      emoji: '👋', color: 'blue-light' },
+        { label: 'You go',       speak: 'You go',        emoji: '🚶', color: 'blue-light' },
+        { label: 'You stay',     speak: 'You stay',      emoji: '🧍', color: 'blue-light' },
+        { label: 'You stop',     speak: 'You stop',      emoji: '🛑', color: 'blue-light' },
+        { label: 'You wait',     speak: 'You wait',      emoji: '⏰', color: 'blue-light' },
+        { label: 'You look',     speak: 'You look',      emoji: '👀', color: 'blue-light' },
+        { label: 'You listen',   speak: 'You listen',    emoji: '👂', color: 'blue-light' },
+        { label: 'You try',      speak: 'You try',       emoji: '🌟', color: 'blue-light' },
+        { label: 'You can',      speak: 'You can',       emoji: '✅', color: 'blue-light' },
+        { label: 'You will',     speak: 'You will',      emoji: '👍', color: 'blue-light' },
+        { label: 'You did',      speak: 'You did',       emoji: '✔️', color: 'blue-light' },
+        { label: 'You have',     speak: 'You have',      emoji: '🖐️', color: 'blue-light' },
+        { label: 'You are',      speak: 'You are',       emoji: '👤', color: 'blue-light' },
+        { label: "You're good",  speak: "You're good",   emoji: '😊', color: 'blue-light' },
+        { label: "You're kind",  speak: "You're kind",   emoji: '🤗', color: 'blue-light' },
+        { label: "You're funny", speak: "You're funny",  emoji: '😄', color: 'blue-light' },
+        { label: "You're nice",  speak: "You're nice",   emoji: '😊', color: 'blue-light' },
+        { label: "You're smart", speak: "You're smart",  emoji: '🧠', color: 'blue-light' },
+        { label: "You're strong",speak: "You're strong", emoji: '💪', color: 'blue-light' },
+        { label: "You're fast",  speak: "You're fast",   emoji: '💨', color: 'blue-light' },
+        { label: "You're slow",  speak: "You're slow",   emoji: '🐢', color: 'blue-light' },
+        { label: "You're big",   speak: "You're big",    emoji: '🐘', color: 'blue-light' },
+        { label: "You're little",speak: "You're little", emoji: '🐭', color: 'blue-light' },
+        { label: "You're loud",  speak: "You're loud",   emoji: '📢', color: 'blue-light' },
+        { label: "You're quiet", speak: "You're quiet",  emoji: '🤫', color: 'blue-light' },
+        { label: "You're right", speak: "You're right",  emoji: '✅', color: 'blue-light' },
+        { label: "You're wrong", speak: "You're wrong",  emoji: '❌', color: 'blue-light' },
+        { label: "You're here",  speak: "You're here",   emoji: '📍', color: 'blue-light' },
+      ],
+
+      it: [
+        { label: 'It hurts',    speak: 'It hurts',    emoji: '🤕', color: 'blue-light' },
+        { label: "It's good",   speak: "It's good",   emoji: '😊', color: 'blue-light' },
+        { label: "It's bad",    speak: "It's bad",    emoji: '😟', color: 'blue-light' },
+        { label: "It's yucky",  speak: "It's yucky",  emoji: '🤢', color: 'blue-light' },
+        { label: "It's nice",   speak: "It's nice",   emoji: '🥰', color: 'blue-light' },
+        { label: "It's funny",  speak: "It's funny",  emoji: '😄', color: 'blue-light' },
+        { label: "It's scary",  speak: "It's scary",  emoji: '😨', color: 'blue-light' },
+        { label: "It's loud",   speak: "It's loud",   emoji: '📢', color: 'blue-light' },
+        { label: "It's quiet",  speak: "It's quiet",  emoji: '🤫', color: 'blue-light' },
+        { label: "It's hot",    speak: "It's hot",    emoji: '🔥', color: 'blue-light' },
+        { label: "It's cold",   speak: "It's cold",   emoji: '🧊', color: 'blue-light' },
+        { label: "It's big",    speak: "It's big",    emoji: '🐘', color: 'blue-light' },
+        { label: "It's little", speak: "It's little", emoji: '🐭', color: 'blue-light' },
+        { label: "It's heavy",  speak: "It's heavy",  emoji: '⬇️', color: 'blue-light' },
+        { label: "It's light",  speak: "It's light",  emoji: '🪶', color: 'blue-light' },
+        { label: "It's fast",   speak: "It's fast",   emoji: '💨', color: 'blue-light' },
+        { label: "It's slow",   speak: "It's slow",   emoji: '🐢', color: 'blue-light' },
+        { label: "It's hard",   speak: "It's hard",   emoji: '💪', color: 'blue-light' },
+        { label: "It's soft",   speak: "It's soft",   emoji: '🧸', color: 'blue-light' },
+        { label: "It's wet",    speak: "It's wet",    emoji: '💧', color: 'blue-light' },
+        { label: "It's dry",    speak: "It's dry",    emoji: '☀️', color: 'blue-light' },
+        { label: "It's clean",  speak: "It's clean",  emoji: '✨', color: 'blue-light' },
+        { label: "It's dirty",  speak: "It's dirty",  emoji: '🤢', color: 'blue-light' },
+        { label: "It's broken", speak: "It's broken", emoji: '💔', color: 'blue-light' },
+        { label: "It's fixed",  speak: "It's fixed",  emoji: '🔧', color: 'blue-light' },
+        { label: "It's done",   speak: "It's done",   emoji: '✅', color: 'blue-light' },
+        { label: "It's mine",   speak: "It's mine",   emoji: '👤', color: 'blue-light' },
+        { label: "It's yours",  speak: "It's yours",  emoji: '👉', color: 'blue-light' },
+        { label: "It's here",   speak: "It's here",   emoji: '📍', color: 'blue-light' },
+      ],
+
+      we: [
+        { label: 'We go',       speak: 'We go',       emoji: '🏃', color: 'blue-light' },
+        { label: 'We stay',     speak: 'We stay',     emoji: '🧍', color: 'blue-light' },
+        { label: 'We play',     speak: 'We play',     emoji: '🎮', color: 'blue-light' },
+        { label: 'We work',     speak: 'We work',     emoji: '💼', color: 'blue-light' },
+        { label: 'We eat',      speak: 'We eat',      emoji: '🍽️', color: 'blue-light' },
+        { label: 'We drink',    speak: 'We drink',    emoji: '💧', color: 'blue-light' },
+        { label: 'We sleep',    speak: 'We sleep',    emoji: '😴', color: 'blue-light' },
+        { label: 'We read',     speak: 'We read',     emoji: '📖', color: 'blue-light' },
+        { label: 'We sing',     speak: 'We sing',     emoji: '🎵', color: 'blue-light' },
+        { label: 'We dance',    speak: 'We dance',    emoji: '💃', color: 'blue-light' },
+        { label: 'We jump',     speak: 'We jump',     emoji: '🦘', color: 'blue-light' },
+        { label: 'We run',      speak: 'We run',      emoji: '🏃', color: 'blue-light' },
+        { label: 'We swim',     speak: 'We swim',     emoji: '🏊', color: 'blue-light' },
+        { label: 'We build',    speak: 'We build',    emoji: '🏗️', color: 'blue-light' },
+        { label: 'We draw',     speak: 'We draw',     emoji: '✏️', color: 'blue-light' },
+        { label: 'We help',     speak: 'We help',     emoji: '🤝', color: 'blue-light' },
+        { label: 'We try',      speak: 'We try',      emoji: '🌟', color: 'blue-light' },
+        { label: 'We win',      speak: 'We win',      emoji: '🏆', color: 'blue-light' },
+        { label: 'We lose',     speak: 'We lose',     emoji: '😢', color: 'blue-light' },
+        { label: 'We share',    speak: 'We share',    emoji: '🤝', color: 'blue-light' },
+        { label: 'We wait',     speak: 'We wait',     emoji: '⏰', color: 'blue-light' },
+        { label: 'We listen',   speak: 'We listen',   emoji: '👂', color: 'blue-light' },
+        { label: 'We talk',     speak: 'We talk',     emoji: '💬', color: 'blue-light' },
+        { label: 'We laugh',    speak: 'We laugh',    emoji: '😄', color: 'blue-light' },
+        { label: 'We cry',      speak: 'We cry',      emoji: '😢', color: 'blue-light' },
+        { label: 'We hug',      speak: 'We hug',      emoji: '🤗', color: 'blue-light' },
+        { label: 'We learn',    speak: 'We learn',    emoji: '📚', color: 'blue-light' },
+        { label: 'We practice', speak: 'We practice', emoji: '🔄', color: 'blue-light' },
+        { label: 'We finish',   speak: 'We finish',   emoji: '✅', color: 'blue-light' },
+      ],
+
+      who: [
+        { label: 'Mom',       speak: 'Mom',       emoji: '👩',   color: 'blue-light' },
+        { label: 'Dad',       speak: 'Dad',       emoji: '👨',   color: 'blue-light' },
+        { label: 'Grandma',   speak: 'Grandma',   emoji: '👵',   color: 'blue-light' },
+        { label: 'Grandpa',   speak: 'Grandpa',   emoji: '👴',   color: 'blue-light' },
+        { label: 'Brother',   speak: 'Brother',   emoji: '👦',   color: 'blue-light' },
+        { label: 'Sister',    speak: 'Sister',    emoji: '👧',   color: 'blue-light' },
+        { label: 'Baby',      speak: 'Baby',      emoji: '👶',   color: 'blue-light' },
+        { label: 'Me',        speak: 'Me',        emoji: '👤',   color: 'blue-light' },
+        { label: 'Friend',    speak: 'Friend',    emoji: '🤝',   color: 'blue-light' },
+        { label: 'Teacher',   speak: 'Teacher',   emoji: '🍎',   color: 'blue-light' },
+        { label: 'Assistant', speak: 'Assistant', emoji: '🙋',   color: 'blue-light' },
+        { label: 'Principal', speak: 'Principal', emoji: '🏫',   color: 'blue-light' },
+        { label: 'Doctor',    speak: 'Doctor',    emoji: '👨‍⚕️',  color: 'blue-light' },
+        { label: 'Nurse',     speak: 'Nurse',     emoji: '👩‍⚕️',  color: 'blue-light' },
+        { label: 'Dentist',   speak: 'Dentist',   emoji: '🦷',   color: 'blue-light' },
+        { label: 'Therapist', speak: 'Therapist', emoji: '🧑‍⚕️',  color: 'blue-light' },
+        { label: 'Coach',     speak: 'Coach',     emoji: '🏆',   color: 'blue-light' },
+        { label: 'Neighbour', speak: 'Neighbour', emoji: '🏘️',   color: 'blue-light' },
+        { label: 'Stranger',  speak: 'Stranger',  emoji: '🚫',   color: 'blue-light' },
+        { label: 'Everyone',  speak: 'Everyone',  emoji: '🌍',   color: 'blue-light' },
+        { label: 'Someone',   speak: 'Someone',   emoji: '🧑',   color: 'blue-light' },
+        { label: 'Anyone',    speak: 'Anyone',    emoji: '👥',   color: 'blue-light' },
+        { label: 'No one',    speak: 'No one',    emoji: '🚫',   color: 'blue-light' },
+        { label: 'He',        speak: 'He',        emoji: '👦',   color: 'blue-light' },
+        { label: 'She',       speak: 'She',       emoji: '👧',   color: 'blue-light' },
+        { label: 'They',      speak: 'They',      emoji: '👥',   color: 'blue-light' },
+        { label: 'We',        speak: 'We',        emoji: '👫',   color: 'blue-light' },
+        { label: 'Us',        speak: 'Us',        emoji: '👫',   color: 'blue-light' },
+        { label: 'Them',      speak: 'Them',      emoji: '👥',   color: 'blue-light' },
+      ],
+
+      what: [
+        { label: 'What is it',   speak: 'What is it',   emoji: '❓', color: 'blue-light' },
+        { label: 'What happened',speak: 'What happened', emoji: '😮', color: 'blue-light' },
+        { label: 'What now',     speak: 'What now',     emoji: '⏰', color: 'blue-light' },
+        { label: 'What next',    speak: 'What next',    emoji: '➡️', color: 'blue-light' },
+        { label: 'What time',    speak: 'What time',    emoji: '🕐', color: 'blue-light' },
+        { label: 'What day',     speak: 'What day',     emoji: '📅', color: 'blue-light' },
+        { label: 'What food',    speak: 'What food',    emoji: '🍎', color: 'blue-light' },
+        { label: 'What drink',   speak: 'What drink',   emoji: '🥤', color: 'blue-light' },
+        { label: 'What game',    speak: 'What game',    emoji: '🎮', color: 'blue-light' },
+        { label: 'What book',    speak: 'What book',    emoji: '📖', color: 'blue-light' },
+        { label: 'What song',    speak: 'What song',    emoji: '🎵', color: 'blue-light' },
+        { label: 'What show',    speak: 'What show',    emoji: '📺', color: 'blue-light' },
+        { label: 'What class',   speak: 'What class',   emoji: '📝', color: 'blue-light' },
+        { label: 'What work',    speak: 'What work',    emoji: '💼', color: 'blue-light' },
+        { label: 'What play',    speak: 'What play',    emoji: '🎮', color: 'blue-light' },
+        { label: 'What help',    speak: 'What help',    emoji: '🙏', color: 'blue-light' },
+        { label: 'What problem', speak: 'What problem', emoji: '😟', color: 'blue-light' },
+        { label: 'What hurts',   speak: 'What hurts',   emoji: '🤕', color: 'blue-light' },
+        { label: 'What need',    speak: 'What need',    emoji: '❗', color: 'blue-light' },
+        { label: 'What want',    speak: 'What want',    emoji: '🤲', color: 'blue-light' },
+        { label: 'What like',    speak: 'What like',    emoji: '👍', color: 'blue-light' },
+        { label: 'What dislike', speak: 'What dislike', emoji: '👎', color: 'blue-light' },
+        { label: 'What think',   speak: 'What think',   emoji: '💭', color: 'blue-light' },
+        { label: 'What feel',    speak: 'What feel',    emoji: '💭', color: 'blue-light' },
+        { label: 'What see',     speak: 'What see',     emoji: '👁️', color: 'blue-light' },
+        { label: 'What hear',    speak: 'What hear',    emoji: '👂', color: 'blue-light' },
+        { label: 'What smell',   speak: 'What smell',   emoji: '👃', color: 'blue-light' },
+        { label: 'What taste',   speak: 'What taste',   emoji: '👅', color: 'blue-light' },
+        { label: 'What touch',   speak: 'What touch',   emoji: '🤏', color: 'blue-light' },
+      ],
+
+      /* ── Actions ───────────────────────────────────────── */
+
+      stop: [
+        { label: 'Stop hitting', speak: 'Stop hitting', emoji: '👊', color: 'green-light' },
+        { label: 'Stop talking', speak: 'Stop talking', emoji: '🤐', color: 'green-light' },
+        { label: 'Stop music',   speak: 'Stop music',   emoji: '🔇', color: 'green-light' },
+        { label: 'Stop video',   speak: 'Stop video',   emoji: '📵', color: 'green-light' },
+        { label: 'Stop running', speak: 'Stop running', emoji: '🛑', color: 'green-light' },
+        { label: 'Stop please',  speak: 'Stop please',  emoji: '🙏', color: 'green-light' },
+        { label: 'Finished',     speak: 'Finished',     emoji: '✅', color: 'green-light' },
+        { label: 'Enough',       speak: 'Enough',       emoji: '✋', color: 'green-light' },
+        { label: 'No more',      speak: 'No more',      emoji: '❌', color: 'green-light' },
+        { label: 'Too loud',     speak: 'Too loud',     emoji: '📢', color: 'green-light' },
+        { label: 'Too much',     speak: 'Too much',     emoji: '😤', color: 'green-light' },
+        { label: 'Hurts',        speak: 'Hurts',        emoji: '🤕', color: 'green-light' },
+        { label: "Don't like",   speak: "Don't like",   emoji: '👎', color: 'green-light' },
+        { label: 'Go away',      speak: 'Go away',      emoji: '👋', color: 'green-light' },
+        { label: 'Leave me',     speak: 'Leave me',     emoji: '🚪', color: 'green-light' },
+        { label: 'My turn',      speak: 'My turn',      emoji: '☝️', color: 'green-light' },
+        { label: 'Wait',         speak: 'Wait',         emoji: '⏰', color: 'green-light' },
+        { label: 'Calm down',    speak: 'Calm down',    emoji: '😮‍💨', color: 'green-light' },
+        { label: 'Too fast',     speak: 'Too fast',     emoji: '💨', color: 'green-light' },
+        { label: 'Too close',    speak: 'Too close',    emoji: '😳', color: 'green-light' },
+        { label: 'Too bright',   speak: 'Too bright',   emoji: '🌟', color: 'green-light' },
+        { label: 'Too dark',     speak: 'Too dark',     emoji: '🌑', color: 'green-light' },
+        { label: 'Scared',       speak: 'Scared',       emoji: '😨', color: 'green-light' },
+        { label: 'Angry',        speak: 'Angry',        emoji: '😡', color: 'green-light' },
+        { label: 'Sad',          speak: 'Sad',          emoji: '😢', color: 'green-light' },
+        { label: 'Frustrated',   speak: 'Frustrated',   emoji: '😤', color: 'green-light' },
+        { label: 'Need break',   speak: 'Need break',   emoji: '☕', color: 'green-light' },
+        { label: 'Need help',    speak: 'Need help',    emoji: '🆘', color: 'green-light' },
+        { label: 'Need quiet',   speak: 'Need quiet',   emoji: '🤫', color: 'green-light' },
+      ],
+
+      make: [
+        { label: 'Draw',   speak: 'Draw',   emoji: '✏️', color: 'green-light' },
+        { label: 'Paint',  speak: 'Paint',  emoji: '🎨', color: 'green-light' },
+        { label: 'Cut',    speak: 'Cut',    emoji: '✂️', color: 'green-light' },
+        { label: 'Glue',   speak: 'Glue',   emoji: '🧲', color: 'green-light' },
+        { label: 'Build',  speak: 'Build',  emoji: '🏗️', color: 'green-light' },
+        { label: 'Cook',   speak: 'Cook',   emoji: '👨‍🍳', color: 'green-light' },
+        { label: 'Bake',   speak: 'Bake',   emoji: '🥐', color: 'green-light' },
+        { label: 'Clean',  speak: 'Clean',  emoji: '🧹', color: 'green-light' },
+        { label: 'Tidy',   speak: 'Tidy',   emoji: '🗂️', color: 'green-light' },
+        { label: 'Write',  speak: 'Write',  emoji: '✍️', color: 'green-light' },
+        { label: 'Read',   speak: 'Read',   emoji: '📖', color: 'green-light' },
+        { label: 'Sing',   speak: 'Sing',   emoji: '🎵', color: 'green-light' },
+        { label: 'Dance',  speak: 'Dance',  emoji: '💃', color: 'green-light' },
+        { label: 'Jump',   speak: 'Jump',   emoji: '🦘', color: 'green-light' },
+        { label: 'Run',    speak: 'Run',    emoji: '🏃', color: 'green-light' },
+        { label: 'Climb',  speak: 'Climb',  emoji: '🧗', color: 'green-light' },
+        { label: 'Swing',  speak: 'Swing',  emoji: '🎠', color: 'green-light' },
+        { label: 'Slide',  speak: 'Slide',  emoji: '🛝', color: 'green-light' },
+        { label: 'Kick',   speak: 'Kick',   emoji: '🦵', color: 'green-light' },
+        { label: 'Throw',  speak: 'Throw',  emoji: '🤾', color: 'green-light' },
+        { label: 'Catch',  speak: 'Catch',  emoji: '🥎', color: 'green-light' },
+        { label: 'Push',   speak: 'Push',   emoji: '👊', color: 'green-light' },
+        { label: 'Pull',   speak: 'Pull',   emoji: '💪', color: 'green-light' },
+        { label: 'Fold',   speak: 'Fold',   emoji: '📄', color: 'green-light' },
+        { label: 'Colour', speak: 'Colour', emoji: '🖍️', color: 'green-light' },
+        { label: 'Stick',  speak: 'Stick',  emoji: '⭐', color: 'green-light' },
+        { label: 'Pour',   speak: 'Pour',   emoji: '🫗', color: 'green-light' },
+        { label: 'Mix',    speak: 'Mix',    emoji: '🥄', color: 'green-light' },
+        { label: 'Open',   speak: 'Open',   emoji: '📂', color: 'green-light' },
+      ],
+
+      like: [
+        { label: 'Music',    speak: 'Music',    emoji: '🎵', color: 'green-light' },
+        { label: 'Dancing',  speak: 'Dancing',  emoji: '💃', color: 'green-light' },
+        { label: 'Swimming', speak: 'Swimming', emoji: '🏊', color: 'green-light' },
+        { label: 'Running',  speak: 'Running',  emoji: '🏃', color: 'green-light' },
+        { label: 'Drawing',  speak: 'Drawing',  emoji: '✏️', color: 'green-light' },
+        { label: 'Painting', speak: 'Painting', emoji: '🎨', color: 'green-light' },
+        { label: 'Reading',  speak: 'Reading',  emoji: '📖', color: 'green-light' },
+        { label: 'Singing',  speak: 'Singing',  emoji: '🎤', color: 'green-light' },
+        { label: 'Cooking',  speak: 'Cooking',  emoji: '👨‍🍳', color: 'green-light' },
+        { label: 'Playing',  speak: 'Playing',  emoji: '🎮', color: 'green-light' },
+        { label: 'Hugging',  speak: 'Hugging',  emoji: '🤗', color: 'green-light' },
+        { label: 'Laughing', speak: 'Laughing', emoji: '😄', color: 'green-light' },
+        { label: 'Animals',  speak: 'Animals',  emoji: '🐾', color: 'green-light' },
+        { label: 'Outside',  speak: 'Outside',  emoji: '🌳', color: 'green-light' },
+        { label: 'Inside',   speak: 'Inside',   emoji: '🏠', color: 'green-light' },
+        { label: 'School',   speak: 'School',   emoji: '🏫', color: 'green-light' },
+        { label: 'Home',     speak: 'Home',     emoji: '🏡', color: 'green-light' },
+        { label: 'Friends',  speak: 'Friends',  emoji: '🤝', color: 'green-light' },
+        { label: 'Family',   speak: 'Family',   emoji: '👨‍👩‍👧', color: 'green-light' },
+        { label: 'Food',     speak: 'Food',     emoji: '🍎', color: 'green-light' },
+        { label: 'Sweets',   speak: 'Sweets',   emoji: '🍬', color: 'green-light' },
+        { label: 'Games',    speak: 'Games',    emoji: '🎮', color: 'green-light' },
+        { label: 'TV',       speak: 'TV',       emoji: '📺', color: 'green-light' },
+        { label: 'iPad',     speak: 'iPad',     emoji: '📱', color: 'green-light' },
+        { label: 'Videos',   speak: 'Videos',   emoji: '▶️', color: 'green-light' },
+        { label: 'Books',    speak: 'Books',    emoji: '📚', color: 'green-light' },
+        { label: 'Sports',   speak: 'Sports',   emoji: '🏆', color: 'green-light' },
+        { label: 'Lego',     speak: 'Lego',     emoji: '🧱', color: 'green-light' },
+        { label: 'Dolls',    speak: 'Dolls',    emoji: '🪆', color: 'green-light' },
+      ],
+
+      /* ── Position ──────────────────────────────────────── */
+
+      in_: [
+        { label: 'In school',   speak: 'In school',   emoji: '🏫', color: 'pink-light' },
+        { label: 'In class',    speak: 'In class',    emoji: '📝', color: 'pink-light' },
+        { label: 'In bed',      speak: 'In bed',      emoji: '🛏️', color: 'pink-light' },
+        { label: 'In bath',     speak: 'In bath',     emoji: '🛁', color: 'pink-light' },
+        { label: 'In car',      speak: 'In car',      emoji: '🚗', color: 'pink-light' },
+        { label: 'In house',    speak: 'In house',    emoji: '🏠', color: 'pink-light' },
+        { label: 'In garden',   speak: 'In garden',   emoji: '🌺', color: 'pink-light' },
+        { label: 'In kitchen',  speak: 'In kitchen',  emoji: '🍳', color: 'pink-light' },
+        { label: 'In bedroom',  speak: 'In bedroom',  emoji: '🛏️', color: 'pink-light' },
+        { label: 'In bathroom', speak: 'In bathroom', emoji: '🚿', color: 'pink-light' },
+        { label: 'In lounge',   speak: 'In lounge',   emoji: '🛋️', color: 'pink-light' },
+        { label: 'In pool',     speak: 'In pool',     emoji: '🏊', color: 'pink-light' },
+        { label: 'In park',     speak: 'In park',     emoji: '🌳', color: 'pink-light' },
+        { label: 'In shop',     speak: 'In shop',     emoji: '🛒', color: 'pink-light' },
+        { label: 'In hospital', speak: 'In hospital', emoji: '🏥', color: 'pink-light' },
+        { label: 'In therapy',  speak: 'In therapy',  emoji: '🧑‍⚕️', color: 'pink-light' },
+        { label: 'In gym',      speak: 'In gym',      emoji: '🏋️', color: 'pink-light' },
+        { label: 'In library',  speak: 'In library',  emoji: '📚', color: 'pink-light' },
+        { label: 'In office',   speak: 'In office',   emoji: '💼', color: 'pink-light' },
+        { label: 'In playground',speak:'In playground',emoji: '🛝', color: 'pink-light' },
+        { label: 'In hall',     speak: 'In hall',     emoji: '🚪', color: 'pink-light' },
+        { label: 'In toilet',   speak: 'In toilet',   emoji: '🚽', color: 'pink-light' },
+        { label: 'In chair',    speak: 'In chair',    emoji: '🪑', color: 'pink-light' },
+        { label: 'In corner',   speak: 'In corner',   emoji: '📐', color: 'pink-light' },
+        { label: 'In box',      speak: 'In box',      emoji: '📦', color: 'pink-light' },
+        { label: 'In bag',      speak: 'In bag',      emoji: '🎒', color: 'pink-light' },
+        { label: 'In pocket',   speak: 'In pocket',   emoji: '👖', color: 'pink-light' },
+        { label: 'In hand',     speak: 'In hand',     emoji: '🖐️', color: 'pink-light' },
+        { label: 'In mouth',    speak: 'In mouth',    emoji: '👄', color: 'pink-light' },
+      ],
+
+      out_: [
+        { label: 'Outside',     speak: 'Outside',      emoji: '🌳', color: 'pink-light' },
+        { label: 'Out here',    speak: 'Out here',     emoji: '📍', color: 'pink-light' },
+        { label: 'Out there',   speak: 'Out there',    emoji: '👉', color: 'pink-light' },
+        { label: 'Get out',     speak: 'Get out',      emoji: '🚪', color: 'pink-light' },
+        { label: 'Come out',    speak: 'Come out',     emoji: '👋', color: 'pink-light' },
+        { label: 'Out of bed',  speak: 'Out of bed',   emoji: '🛏️', color: 'pink-light' },
+        { label: 'Out of class',speak: 'Out of class', emoji: '📝', color: 'pink-light' },
+        { label: 'Out of car',  speak: 'Out of car',   emoji: '🚗', color: 'pink-light' },
+        { label: 'Out of bath', speak: 'Out of bath',  emoji: '🛁', color: 'pink-light' },
+        { label: 'Out of pool', speak: 'Out of pool',  emoji: '🏊', color: 'pink-light' },
+        { label: 'Out of way',  speak: 'Out of way',   emoji: '🚶', color: 'pink-light' },
+        { label: 'Out of time', speak: 'Out of time',  emoji: '⏰', color: 'pink-light' },
+        { label: 'Out please',  speak: 'Out please',   emoji: '🙏', color: 'pink-light' },
+        { label: 'Go out',      speak: 'Go out',       emoji: '🚪', color: 'pink-light' },
+        { label: 'Stay out',    speak: 'Stay out',     emoji: '🛑', color: 'pink-light' },
+        { label: 'Look out',    speak: 'Look out',     emoji: '👀', color: 'pink-light' },
+        { label: 'Watch out',   speak: 'Watch out',    emoji: '⚠️', color: 'pink-light' },
+        { label: 'Help out',    speak: 'Help out',     emoji: '🤝', color: 'pink-light' },
+        { label: 'Left out',    speak: 'Left out',     emoji: '😢', color: 'pink-light' },
+        { label: 'Worn out',    speak: 'Worn out',     emoji: '😴', color: 'pink-light' },
+        { label: 'Tired out',   speak: 'Tired out',    emoji: '😴', color: 'pink-light' },
+        { label: 'Run out',     speak: 'Run out',      emoji: '💨', color: 'pink-light' },
+        { label: 'Time out',    speak: 'Time out',     emoji: '⏰', color: 'pink-light' },
+        { label: 'Miss out',    speak: 'Miss out',     emoji: '😢', color: 'pink-light' },
+        { label: 'Find out',    speak: 'Find out',     emoji: '🔍', color: 'pink-light' },
+        { label: 'Work out',    speak: 'Work out',     emoji: '💪', color: 'pink-light' },
+        { label: 'Breathe out', speak: 'Breathe out',  emoji: '😮‍💨', color: 'pink-light' },
+        { label: 'Step out',    speak: 'Step out',     emoji: '👟', color: 'pink-light' },
+        { label: 'Walk out',    speak: 'Walk out',     emoji: '🚶', color: 'pink-light' },
+      ],
+
+      up_: [
+        { label: 'Up please',  speak: 'Up please',  emoji: '🙏', color: 'pink-light' },
+        { label: 'Pick up',    speak: 'Pick up',    emoji: '🖐️', color: 'pink-light' },
+        { label: 'Stand up',   speak: 'Stand up',   emoji: '🧍', color: 'pink-light' },
+        { label: 'Get up',     speak: 'Get up',     emoji: '⬆️', color: 'pink-light' },
+        { label: 'Sit up',     speak: 'Sit up',     emoji: '🪑', color: 'pink-light' },
+        { label: 'Wake up',    speak: 'Wake up',    emoji: '☀️', color: 'pink-light' },
+        { label: 'Climb up',   speak: 'Climb up',   emoji: '🧗', color: 'pink-light' },
+        { label: 'Jump up',    speak: 'Jump up',    emoji: '🦘', color: 'pink-light' },
+        { label: 'Lift up',    speak: 'Lift up',    emoji: '💪', color: 'pink-light' },
+        { label: 'Hold up',    speak: 'Hold up',    emoji: '✋', color: 'pink-light' },
+        { label: 'Look up',    speak: 'Look up',    emoji: '👀', color: 'pink-light' },
+        { label: 'Go up',      speak: 'Go up',      emoji: '⬆️', color: 'pink-light' },
+        { label: 'Come up',    speak: 'Come up',    emoji: '☝️', color: 'pink-light' },
+        { label: 'Up high',    speak: 'Up high',    emoji: '🌟', color: 'pink-light' },
+        { label: 'Up there',   speak: 'Up there',   emoji: '☝️', color: 'pink-light' },
+        { label: 'Up here',    speak: 'Up here',    emoji: '⬆️', color: 'pink-light' },
+        { label: 'Up stairs',  speak: 'Up stairs',  emoji: '🆙', color: 'pink-light' },
+        { label: 'Up hill',    speak: 'Up hill',    emoji: '⛰️', color: 'pink-light' },
+        { label: 'Up tree',    speak: 'Up tree',    emoji: '🌳', color: 'pink-light' },
+        { label: 'Grow up',    speak: 'Grow up',    emoji: '🌱', color: 'pink-light' },
+        { label: 'Speed up',   speak: 'Speed up',   emoji: '💨', color: 'pink-light' },
+        { label: 'Turn up',    speak: 'Turn up',    emoji: '🔊', color: 'pink-light' },
+        { label: 'Open up',    speak: 'Open up',    emoji: '📂', color: 'pink-light' },
+        { label: 'Light up',   speak: 'Light up',   emoji: '💡', color: 'pink-light' },
+        { label: 'Fill up',    speak: 'Fill up',    emoji: '🫗', color: 'pink-light' },
+        { label: 'Build up',   speak: 'Build up',   emoji: '🏗️', color: 'pink-light' },
+        { label: 'Back up',    speak: 'Back up',    emoji: '🔙', color: 'pink-light' },
+        { label: 'Give up',    speak: 'Give up',    emoji: '🤷', color: 'pink-light' },
+        { label: 'Keep up',    speak: 'Keep up',    emoji: '🏃', color: 'pink-light' },
+      ],
+
+      down_: [
+        { label: 'Down please', speak: 'Down please', emoji: '🙏', color: 'pink-light' },
+        { label: 'Sit down',    speak: 'Sit down',    emoji: '🪑', color: 'pink-light' },
+        { label: 'Lie down',    speak: 'Lie down',    emoji: '🛏️', color: 'pink-light' },
+        { label: 'Get down',    speak: 'Get down',    emoji: '⬇️', color: 'pink-light' },
+        { label: 'Come down',   speak: 'Come down',   emoji: '⬇️', color: 'pink-light' },
+        { label: 'Go down',     speak: 'Go down',     emoji: '⬇️', color: 'pink-light' },
+        { label: 'Calm down',   speak: 'Calm down',   emoji: '😮‍💨', color: 'pink-light' },
+        { label: 'Slow down',   speak: 'Slow down',   emoji: '🐢', color: 'pink-light' },
+        { label: 'Turn down',   speak: 'Turn down',   emoji: '🔉', color: 'pink-light' },
+        { label: 'Put down',    speak: 'Put down',    emoji: '🖐️', color: 'pink-light' },
+        { label: 'Fall down',   speak: 'Fall down',   emoji: '😵', color: 'pink-light' },
+        { label: 'Kneel down',  speak: 'Kneel down',  emoji: '🧎', color: 'pink-light' },
+        { label: 'Step down',   speak: 'Step down',   emoji: '👟', color: 'pink-light' },
+        { label: 'Down here',   speak: 'Down here',   emoji: '⬇️', color: 'pink-light' },
+        { label: 'Down there',  speak: 'Down there',  emoji: '👇', color: 'pink-light' },
+        { label: 'Down stairs', speak: 'Down stairs', emoji: '🔽', color: 'pink-light' },
+        { label: 'Down hill',   speak: 'Down hill',   emoji: '⬇️', color: 'pink-light' },
+        { label: 'Down low',    speak: 'Down low',    emoji: '⬇️', color: 'pink-light' },
+        { label: 'Quiet down',  speak: 'Quiet down',  emoji: '🤫', color: 'pink-light' },
+        { label: 'Cool down',   speak: 'Cool down',   emoji: '🧊', color: 'pink-light' },
+        { label: 'Settle down', speak: 'Settle down', emoji: '😌', color: 'pink-light' },
+        { label: 'Count down',  speak: 'Count down',  emoji: '🔢', color: 'pink-light' },
+        { label: 'Break down',  speak: 'Break down',  emoji: '😢', color: 'pink-light' },
+        { label: 'Write down',  speak: 'Write down',  emoji: '✍️', color: 'pink-light' },
+        { label: 'Look down',   speak: 'Look down',   emoji: '👇', color: 'pink-light' },
+        { label: 'Bend down',   speak: 'Bend down',   emoji: '🧘', color: 'pink-light' },
+        { label: 'Lean down',   speak: 'Lean down',   emoji: '↙️', color: 'pink-light' },
+        { label: 'Reach down',  speak: 'Reach down',  emoji: '🖐️', color: 'pink-light' },
+        { label: 'Press down',  speak: 'Press down',  emoji: '👇', color: 'pink-light' },
+      ],
+
+      on_: [
+        { label: 'On please',  speak: 'On please',  emoji: '🙏', color: 'pink-light' },
+        { label: 'Turn on',    speak: 'Turn on',    emoji: '💡', color: 'pink-light' },
+        { label: 'Put on',     speak: 'Put on',     emoji: '👕', color: 'pink-light' },
+        { label: 'Come on',    speak: 'Come on',    emoji: '👋', color: 'pink-light' },
+        { label: 'Go on',      speak: 'Go on',      emoji: '➡️', color: 'pink-light' },
+        { label: 'Hold on',    speak: 'Hold on',    emoji: '✋', color: 'pink-light' },
+        { label: 'Move on',    speak: 'Move on',    emoji: '🚶', color: 'pink-light' },
+        { label: 'On here',    speak: 'On here',    emoji: '📍', color: 'pink-light' },
+        { label: 'On there',   speak: 'On there',   emoji: '👉', color: 'pink-light' },
+        { label: 'On top',     speak: 'On top',     emoji: '⬆️', color: 'pink-light' },
+        { label: 'On floor',   speak: 'On floor',   emoji: '🦶', color: 'pink-light' },
+        { label: 'On chair',   speak: 'On chair',   emoji: '🪑', color: 'pink-light' },
+        { label: 'On table',   speak: 'On table',   emoji: '🪑', color: 'pink-light' },
+        { label: 'On bed',     speak: 'On bed',     emoji: '🛏️', color: 'pink-light' },
+        { label: 'On lap',     speak: 'On lap',     emoji: '🦵', color: 'pink-light' },
+        { label: 'On shoulder',speak: 'On shoulder',emoji: '💪', color: 'pink-light' },
+        { label: 'On hand',    speak: 'On hand',    emoji: '🖐️', color: 'pink-light' },
+        { label: 'On foot',    speak: 'On foot',    emoji: '🦶', color: 'pink-light' },
+        { label: 'On head',    speak: 'On head',    emoji: '👆', color: 'pink-light' },
+        { label: 'On back',    speak: 'On back',    emoji: '🔙', color: 'pink-light' },
+        { label: 'On front',   speak: 'On front',   emoji: '➡️', color: 'pink-light' },
+        { label: 'On side',    speak: 'On side',    emoji: '↔️', color: 'pink-light' },
+        { label: 'Carry on',   speak: 'Carry on',   emoji: '💪', color: 'pink-light' },
+        { label: 'Log on',     speak: 'Log on',     emoji: '💻', color: 'pink-light' },
+        { label: 'Switch on',  speak: 'Switch on',  emoji: '💡', color: 'pink-light' },
+        { label: 'Jump on',    speak: 'Jump on',    emoji: '🦘', color: 'pink-light' },
+        { label: 'Climb on',   speak: 'Climb on',   emoji: '🧗', color: 'pink-light' },
+        { label: 'Sit on',     speak: 'Sit on',     emoji: '🪑', color: 'pink-light' },
+        { label: 'Stand on',   speak: 'Stand on',   emoji: '🧍', color: 'pink-light' },
+      ],
+
+      off_: [
+        { label: 'Off please', speak: 'Off please', emoji: '🙏', color: 'pink-light' },
+        { label: 'Turn off',   speak: 'Turn off',   emoji: '🌑', color: 'pink-light' },
+        { label: 'Take off',   speak: 'Take off',   emoji: '✈️', color: 'pink-light' },
+        { label: 'Get off',    speak: 'Get off',    emoji: '🖐️', color: 'pink-light' },
+        { label: 'Go off',     speak: 'Go off',     emoji: '💥', color: 'pink-light' },
+        { label: 'Come off',   speak: 'Come off',   emoji: '🔧', color: 'pink-light' },
+        { label: 'Back off',   speak: 'Back off',   emoji: '👋', color: 'pink-light' },
+        { label: 'Far off',    speak: 'Far off',    emoji: '🌅', color: 'pink-light' },
+        { label: 'Off here',   speak: 'Off here',   emoji: '📍', color: 'pink-light' },
+        { label: 'Off there',  speak: 'Off there',  emoji: '👉', color: 'pink-light' },
+        { label: 'Off chair',  speak: 'Off chair',  emoji: '🪑', color: 'pink-light' },
+        { label: 'Off table',  speak: 'Off table',  emoji: '🪑', color: 'pink-light' },
+        { label: 'Off bed',    speak: 'Off bed',    emoji: '🛏️', color: 'pink-light' },
+        { label: 'Off floor',  speak: 'Off floor',  emoji: '🦶', color: 'pink-light' },
+        { label: 'Off lap',    speak: 'Off lap',    emoji: '🦵', color: 'pink-light' },
+        { label: 'Switch off', speak: 'Switch off', emoji: '🌑', color: 'pink-light' },
+        { label: 'Log off',    speak: 'Log off',    emoji: '💻', color: 'pink-light' },
+        { label: 'Cool off',   speak: 'Cool off',   emoji: '🧊', color: 'pink-light' },
+        { label: 'Drop off',   speak: 'Drop off',   emoji: '💧', color: 'pink-light' },
+        { label: 'Fall off',   speak: 'Fall off',   emoji: '😵', color: 'pink-light' },
+        { label: 'Jump off',   speak: 'Jump off',   emoji: '🦘', color: 'pink-light' },
+        { label: 'Climb off',  speak: 'Climb off',  emoji: '🧗', color: 'pink-light' },
+        { label: 'Step off',   speak: 'Step off',   emoji: '👟', color: 'pink-light' },
+        { label: 'Walk off',   speak: 'Walk off',   emoji: '🚶', color: 'pink-light' },
+        { label: 'Run off',    speak: 'Run off',    emoji: '🏃', color: 'pink-light' },
+        { label: 'Drive off',  speak: 'Drive off',  emoji: '🚗', color: 'pink-light' },
+        { label: 'Float off',  speak: 'Float off',  emoji: '🌊', color: 'pink-light' },
+        { label: 'Fly off',    speak: 'Fly off',    emoji: '✈️', color: 'pink-light' },
+        { label: 'Peel off',   speak: 'Peel off',   emoji: '🍊', color: 'pink-light' },
+      ],
+
+      /* ── Descriptors ───────────────────────────────────── */
+
+      big: [
+        { label: 'Big please', speak: 'Big please', emoji: '🙏', color: 'orange-light' },
+        { label: 'Very big',   speak: 'Very big',   emoji: '🐘', color: 'orange-light' },
+        { label: 'Too big',    speak: 'Too big',    emoji: '😤', color: 'orange-light' },
+        { label: 'So big',     speak: 'So big',     emoji: '🤩', color: 'orange-light' },
+        { label: 'Really big', speak: 'Really big', emoji: '⬆️', color: 'orange-light' },
+        { label: 'Biggest',    speak: 'Biggest',    emoji: '🏆', color: 'orange-light' },
+        { label: 'Big one',    speak: 'Big one',    emoji: '☝️', color: 'orange-light' },
+        { label: 'Big dog',    speak: 'Big dog',    emoji: '🐕', color: 'orange-light' },
+        { label: 'Big car',    speak: 'Big car',    emoji: '🚌', color: 'orange-light' },
+        { label: 'Big house',  speak: 'Big house',  emoji: '🏠', color: 'orange-light' },
+        { label: 'Big school', speak: 'Big school', emoji: '🏫', color: 'orange-light' },
+        { label: 'Big tree',   speak: 'Big tree',   emoji: '🌳', color: 'orange-light' },
+        { label: 'Big ball',   speak: 'Big ball',   emoji: '⚽', color: 'orange-light' },
+        { label: 'Big box',    speak: 'Big box',    emoji: '📦', color: 'orange-light' },
+        { label: 'Big bed',    speak: 'Big bed',    emoji: '🛏️', color: 'orange-light' },
+        { label: 'Big chair',  speak: 'Big chair',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Big table',  speak: 'Big table',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Big room',   speak: 'Big room',   emoji: '🏠', color: 'orange-light' },
+        { label: 'Big pool',   speak: 'Big pool',   emoji: '🏊', color: 'orange-light' },
+        { label: 'Big park',   speak: 'Big park',   emoji: '🌳', color: 'orange-light' },
+        { label: 'Big noise',  speak: 'Big noise',  emoji: '📢', color: 'orange-light' },
+        { label: 'Big mess',   speak: 'Big mess',   emoji: '😱', color: 'orange-light' },
+        { label: 'Big hug',    speak: 'Big hug',    emoji: '🤗', color: 'orange-light' },
+        { label: 'Big smile',  speak: 'Big smile',  emoji: '😄', color: 'orange-light' },
+        { label: 'Big laugh',  speak: 'Big laugh',  emoji: '😂', color: 'orange-light' },
+        { label: 'Big cry',    speak: 'Big cry',    emoji: '😭', color: 'orange-light' },
+        { label: 'Big jump',   speak: 'Big jump',   emoji: '🦘', color: 'orange-light' },
+        { label: 'Big run',    speak: 'Big run',    emoji: '🏃', color: 'orange-light' },
+        { label: 'Big eat',    speak: 'Big eat',    emoji: '🍽️', color: 'orange-light' },
+      ],
+
+      little: [
+        { label: 'Little please', speak: 'Little please', emoji: '🙏', color: 'orange-light' },
+        { label: 'Very little',   speak: 'Very little',   emoji: '🐭', color: 'orange-light' },
+        { label: 'Too little',    speak: 'Too little',    emoji: '😟', color: 'orange-light' },
+        { label: 'So little',     speak: 'So little',     emoji: '🤏', color: 'orange-light' },
+        { label: 'Really little', speak: 'Really little', emoji: '🐜', color: 'orange-light' },
+        { label: 'Littlest',      speak: 'Littlest',      emoji: '🥇', color: 'orange-light' },
+        { label: 'Little one',    speak: 'Little one',    emoji: '🧒', color: 'orange-light' },
+        { label: 'Little bit',    speak: 'Little bit',    emoji: '🤏', color: 'orange-light' },
+        { label: 'Little dog',    speak: 'Little dog',    emoji: '🐕', color: 'orange-light' },
+        { label: 'Little cat',    speak: 'Little cat',    emoji: '🐱', color: 'orange-light' },
+        { label: 'Little baby',   speak: 'Little baby',   emoji: '👶', color: 'orange-light' },
+        { label: 'Little child',  speak: 'Little child',  emoji: '🧒', color: 'orange-light' },
+        { label: 'Little car',    speak: 'Little car',    emoji: '🚗', color: 'orange-light' },
+        { label: 'Little box',    speak: 'Little box',    emoji: '📦', color: 'orange-light' },
+        { label: 'Little room',   speak: 'Little room',   emoji: '🏠', color: 'orange-light' },
+        { label: 'Little house',  speak: 'Little house',  emoji: '🏡', color: 'orange-light' },
+        { label: 'Little chair',  speak: 'Little chair',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Little table',  speak: 'Little table',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Little ball',   speak: 'Little ball',   emoji: '⚽', color: 'orange-light' },
+        { label: 'Little bird',   speak: 'Little bird',   emoji: '🐦', color: 'orange-light' },
+        { label: 'Little bug',    speak: 'Little bug',    emoji: '🐛', color: 'orange-light' },
+        { label: 'Little hand',   speak: 'Little hand',   emoji: '🖐️', color: 'orange-light' },
+        { label: 'Little foot',   speak: 'Little foot',   emoji: '🦶', color: 'orange-light' },
+        { label: 'Little nose',   speak: 'Little nose',   emoji: '👃', color: 'orange-light' },
+        { label: 'Little ear',    speak: 'Little ear',    emoji: '👂', color: 'orange-light' },
+        { label: 'Little mouth',  speak: 'Little mouth',  emoji: '👄', color: 'orange-light' },
+        { label: 'Little smile',  speak: 'Little smile',  emoji: '🙂', color: 'orange-light' },
+        { label: 'Little laugh',  speak: 'Little laugh',  emoji: '😄', color: 'orange-light' },
+        { label: 'Little cry',    speak: 'Little cry',    emoji: '😢', color: 'orange-light' },
+      ],
+
+      good: [
+        { label: 'Good job',      speak: 'Good job',      emoji: '👏', color: 'orange-light' },
+        { label: 'Good work',     speak: 'Good work',     emoji: '💪', color: 'orange-light' },
+        { label: 'Good try',      speak: 'Good try',      emoji: '🌟', color: 'orange-light' },
+        { label: 'Good idea',     speak: 'Good idea',     emoji: '💡', color: 'orange-light' },
+        { label: 'Good morning',  speak: 'Good morning',  emoji: '🌅', color: 'orange-light' },
+        { label: 'Good night',    speak: 'Good night',    emoji: '🌙', color: 'orange-light' },
+        { label: 'Good day',      speak: 'Good day',      emoji: '☀️', color: 'orange-light' },
+        { label: 'Good food',     speak: 'Good food',     emoji: '😋', color: 'orange-light' },
+        { label: 'Good drink',    speak: 'Good drink',    emoji: '💧', color: 'orange-light' },
+        { label: 'Good sleep',    speak: 'Good sleep',    emoji: '😴', color: 'orange-light' },
+        { label: 'Good play',     speak: 'Good play',     emoji: '🎮', color: 'orange-light' },
+        { label: 'Good friend',   speak: 'Good friend',   emoji: '🤝', color: 'orange-light' },
+        { label: 'Good helper',   speak: 'Good helper',   emoji: '🙋', color: 'orange-light' },
+        { label: 'Good listener', speak: 'Good listener', emoji: '👂', color: 'orange-light' },
+        { label: 'Good sharing',  speak: 'Good sharing',  emoji: '🤝', color: 'orange-light' },
+        { label: 'Good waiting',  speak: 'Good waiting',  emoji: '⏰', color: 'orange-light' },
+        { label: 'Good sitting',  speak: 'Good sitting',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Good walking',  speak: 'Good walking',  emoji: '🚶', color: 'orange-light' },
+        { label: 'Good talking',  speak: 'Good talking',  emoji: '💬', color: 'orange-light' },
+        { label: 'Good reading',  speak: 'Good reading',  emoji: '📖', color: 'orange-light' },
+        { label: 'Good drawing',  speak: 'Good drawing',  emoji: '✏️', color: 'orange-light' },
+        { label: 'Good building', speak: 'Good building', emoji: '🏗️', color: 'orange-light' },
+        { label: 'Good singing',  speak: 'Good singing',  emoji: '🎵', color: 'orange-light' },
+        { label: 'Good dancing',  speak: 'Good dancing',  emoji: '💃', color: 'orange-light' },
+        { label: 'Good jumping',  speak: 'Good jumping',  emoji: '🦘', color: 'orange-light' },
+        { label: 'Good running',  speak: 'Good running',  emoji: '🏃', color: 'orange-light' },
+        { label: 'Good catching', speak: 'Good catching', emoji: '🥎', color: 'orange-light' },
+        { label: 'Good throwing', speak: 'Good throwing', emoji: '🤾', color: 'orange-light' },
+        { label: 'Good climbing', speak: 'Good climbing', emoji: '🧗', color: 'orange-light' },
+      ],
+
+      bad: [
+        { label: 'Bad please',    speak: 'Bad please',    emoji: '🙏', color: 'orange-light' },
+        { label: 'Very bad',      speak: 'Very bad',      emoji: '😟', color: 'orange-light' },
+        { label: 'Too bad',       speak: 'Too bad',       emoji: '😤', color: 'orange-light' },
+        { label: 'So bad',        speak: 'So bad',        emoji: '😫', color: 'orange-light' },
+        { label: 'Really bad',    speak: 'Really bad',    emoji: '😱', color: 'orange-light' },
+        { label: 'Feels bad',     speak: 'Feels bad',     emoji: '💔', color: 'orange-light' },
+        { label: 'Tastes bad',    speak: 'Tastes bad',    emoji: '🤢', color: 'orange-light' },
+        { label: 'Smells bad',    speak: 'Smells bad',    emoji: '👃', color: 'orange-light' },
+        { label: 'Looks bad',     speak: 'Looks bad',     emoji: '👁️', color: 'orange-light' },
+        { label: 'Sounds bad',    speak: 'Sounds bad',    emoji: '📢', color: 'orange-light' },
+        { label: 'Yucky food',    speak: 'Yucky food',    emoji: '🤢', color: 'orange-light' },
+        { label: 'Yucky drink',   speak: 'Yucky drink',   emoji: '🤢', color: 'orange-light' },
+        { label: 'Yucky smell',   speak: 'Yucky smell',   emoji: '👃', color: 'orange-light' },
+        { label: 'Yucky taste',   speak: 'Yucky taste',   emoji: '👅', color: 'orange-light' },
+        { label: 'Yucky feeling', speak: 'Yucky feeling', emoji: '🤢', color: 'orange-light' },
+        { label: 'Not good',      speak: 'Not good',      emoji: '👎', color: 'orange-light' },
+        { label: 'Not nice',      speak: 'Not nice',      emoji: '😤', color: 'orange-light' },
+        { label: 'Not fair',      speak: 'Not fair',      emoji: '😢', color: 'orange-light' },
+        { label: 'Not okay',      speak: 'Not okay',      emoji: '❌', color: 'orange-light' },
+        { label: 'Not right',     speak: 'Not right',     emoji: '❌', color: 'orange-light' },
+        { label: 'Not safe',      speak: 'Not safe',      emoji: '⚠️', color: 'orange-light' },
+        { label: 'Hurts bad',     speak: 'Hurts bad',     emoji: '🤕', color: 'orange-light' },
+        { label: 'Too loud',      speak: 'Too loud',      emoji: '📢', color: 'orange-light' },
+        { label: 'Too bright',    speak: 'Too bright',    emoji: '🌟', color: 'orange-light' },
+        { label: 'Too smelly',    speak: 'Too smelly',    emoji: '👃', color: 'orange-light' },
+        { label: 'Too scratchy',  speak: 'Too scratchy',  emoji: '😣', color: 'orange-light' },
+        { label: 'Too tight',     speak: 'Too tight',     emoji: '😣', color: 'orange-light' },
+        { label: 'Too hot',       speak: 'Too hot',       emoji: '🔥', color: 'orange-light' },
+        { label: 'Too cold',      speak: 'Too cold',      emoji: '🧊', color: 'orange-light' },
+      ],
+
+      more: [
+        { label: 'More please',  speak: 'More please',  emoji: '🙏', color: 'orange-light' },
+        { label: 'More food',    speak: 'More food',    emoji: '🍎', color: 'orange-light' },
+        { label: 'More drink',   speak: 'More drink',   emoji: '💧', color: 'orange-light' },
+        { label: 'More play',    speak: 'More play',    emoji: '🎮', color: 'orange-light' },
+        { label: 'More time',    speak: 'More time',    emoji: '⏰', color: 'orange-light' },
+        { label: 'More help',    speak: 'More help',    emoji: '🤝', color: 'orange-light' },
+        { label: 'More hugs',    speak: 'More hugs',    emoji: '🤗', color: 'orange-light' },
+        { label: 'More music',   speak: 'More music',   emoji: '🎵', color: 'orange-light' },
+        { label: 'More TV',      speak: 'More TV',      emoji: '📺', color: 'orange-light' },
+        { label: 'More iPad',    speak: 'More iPad',    emoji: '📱', color: 'orange-light' },
+        { label: 'More games',   speak: 'More games',   emoji: '🎮', color: 'orange-light' },
+        { label: 'More reading', speak: 'More reading', emoji: '📖', color: 'orange-light' },
+        { label: 'More drawing', speak: 'More drawing', emoji: '✏️', color: 'orange-light' },
+        { label: 'More building',speak: 'More building',emoji: '🏗️', color: 'orange-light' },
+        { label: 'More singing', speak: 'More singing', emoji: '🎵', color: 'orange-light' },
+        { label: 'More dancing', speak: 'More dancing', emoji: '💃', color: 'orange-light' },
+        { label: 'More jumping', speak: 'More jumping', emoji: '🦘', color: 'orange-light' },
+        { label: 'More running', speak: 'More running', emoji: '🏃', color: 'orange-light' },
+        { label: 'More swimming',speak: 'More swimming',emoji: '🏊', color: 'orange-light' },
+        { label: 'More outside', speak: 'More outside', emoji: '🌳', color: 'orange-light' },
+        { label: 'More inside',  speak: 'More inside',  emoji: '🏠', color: 'orange-light' },
+        { label: 'More friends', speak: 'More friends', emoji: '🤝', color: 'orange-light' },
+        { label: 'More family',  speak: 'More family',  emoji: '👨‍👩‍👧', color: 'orange-light' },
+        { label: 'More school',  speak: 'More school',  emoji: '🏫', color: 'orange-light' },
+        { label: 'More home',    speak: 'More home',    emoji: '🏡', color: 'orange-light' },
+        { label: 'More sleep',   speak: 'More sleep',   emoji: '😴', color: 'orange-light' },
+        { label: 'More rest',    speak: 'More rest',    emoji: '😌', color: 'orange-light' },
+        { label: 'More quiet',   speak: 'More quiet',   emoji: '🤫', color: 'orange-light' },
+        { label: 'More noise',   speak: 'More noise',   emoji: '📢', color: 'orange-light' },
+      ],
+
+      alldone: [
+        { label: 'Done eating',   speak: 'All done eating',   emoji: '🍽️', color: 'orange-light' },
+        { label: 'Done drinking', speak: 'All done drinking', emoji: '💧', color: 'orange-light' },
+        { label: 'Done playing',  speak: 'All done playing',  emoji: '🎮', color: 'orange-light' },
+        { label: 'Done working',  speak: 'All done working',  emoji: '💼', color: 'orange-light' },
+        { label: 'Done reading',  speak: 'All done reading',  emoji: '📖', color: 'orange-light' },
+        { label: 'Done drawing',  speak: 'All done drawing',  emoji: '✏️', color: 'orange-light' },
+        { label: 'Done building', speak: 'All done building', emoji: '🏗️', color: 'orange-light' },
+        { label: 'Done singing',  speak: 'All done singing',  emoji: '🎵', color: 'orange-light' },
+        { label: 'Done dancing',  speak: 'All done dancing',  emoji: '💃', color: 'orange-light' },
+        { label: 'Done jumping',  speak: 'All done jumping',  emoji: '🦘', color: 'orange-light' },
+        { label: 'Done running',  speak: 'All done running',  emoji: '🏃', color: 'orange-light' },
+        { label: 'Done swimming', speak: 'All done swimming', emoji: '🏊', color: 'orange-light' },
+        { label: 'Done outside',  speak: 'All done outside',  emoji: '🌳', color: 'orange-light' },
+        { label: 'Done inside',   speak: 'All done inside',   emoji: '🏠', color: 'orange-light' },
+        { label: 'Done school',   speak: 'All done school',   emoji: '🏫', color: 'orange-light' },
+        { label: 'Done home',     speak: 'All done home',     emoji: '🏡', color: 'orange-light' },
+        { label: 'Done bath',     speak: 'All done bath',     emoji: '🛁', color: 'orange-light' },
+        { label: 'Done toilet',   speak: 'All done toilet',   emoji: '🚽', color: 'orange-light' },
+        { label: 'Done dressing', speak: 'All done dressing', emoji: '👕', color: 'orange-light' },
+        { label: 'Done cleaning', speak: 'All done cleaning', emoji: '🧹', color: 'orange-light' },
+        { label: 'Done tidying',  speak: 'All done tidying',  emoji: '🗂️', color: 'orange-light' },
+        { label: 'Done helping',  speak: 'All done helping',  emoji: '🤝', color: 'orange-light' },
+        { label: 'Done waiting',  speak: 'All done waiting',  emoji: '⏰', color: 'orange-light' },
+        { label: 'Done sitting',  speak: 'All done sitting',  emoji: '🪑', color: 'orange-light' },
+        { label: 'Done standing', speak: 'All done standing', emoji: '🧍', color: 'orange-light' },
+        { label: 'Done talking',  speak: 'All done talking',  emoji: '💬', color: 'orange-light' },
+        { label: 'Done listening',speak: 'All done listening',emoji: '👂', color: 'orange-light' },
+        { label: 'Done watching', speak: 'All done watching', emoji: '📺', color: 'orange-light' },
+        { label: 'Done sleeping', speak: 'All done sleeping', emoji: '😴', color: 'orange-light' },
+      ],
+    };
 
     /* ═══════════════════════════════════════════════════════════
        APP STATE
     ═══════════════════════════════════════════════════════════ */
-    let sentenceWords = [];   // array of word objects currently in the strip
+    let sentenceWords = [];
+    let currentGrid   = 'home';  // 'home' or a sub-grid key
 
     /* ═══════════════════════════════════════════════════════════
        SPEECH — Web Speech API
     ═══════════════════════════════════════════════════════════ */
     function speak(text) {
       if (!window.speechSynthesis) return;
-      speechSynthesis.cancel();   // prevent queue build-up from rapid taps
+      speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
       utterance.rate  = 1.0;
       utterance.pitch = 1.0;
       speechSynthesis.speak(utterance);
     }
 
-    /* iOS requires a user gesture before audio context is available.
-       Calling cancel() on the first touchstart initialises the context. */
+    /* iOS requires a user gesture to unlock the audio context */
     document.addEventListener('touchstart', function unlockSpeech() {
       if (window.speechSynthesis) speechSynthesis.cancel();
       document.removeEventListener('touchstart', unlockSpeech);
     }, { passive: true });
 
     /* ═══════════════════════════════════════════════════════════
-       SENTENCE STRIP — state and rendering
+       SENTENCE STRIP
     ═══════════════════════════════════════════════════════════ */
     const tilesEl     = document.getElementById('word-tiles');
     const placeholder = document.getElementById('strip-placeholder');
@@ -355,11 +1326,10 @@
         placeholder.style.display = 'none';
         sentenceWords.forEach(word => {
           const tile = document.createElement('div');
-          tile.className = 'word-tile';
+          tile.className  = 'word-tile';
           tile.textContent = word.label;
           tilesEl.appendChild(tile);
         });
-        // Scroll to reveal the most recently added word
         requestAnimationFrame(() => { tilesEl.scrollLeft = tilesEl.scrollWidth; });
       }
     }
@@ -397,54 +1367,137 @@
     });
 
     /* ═══════════════════════════════════════════════════════════
-       TOUCH DEBOUNCE — 100ms guard against double-fires from
-       heavy or sliding touches common in the target population
+       TOUCH / CLICK HANDLING
+       Per-slot handler registry lets us swap handlers on re-render
+       without cloning or removing DOM nodes.
     ═══════════════════════════════════════════════════════════ */
-    let lastTapTime  = 0;
+    let lastTapTime   = 0;
     let isTouchDevice = false;
-
-    // Once we see a touchstart we know this is a touch device and
-    // can suppress the mousedown fallback to prevent double-firing.
     document.addEventListener('touchstart', () => { isTouchDevice = true; }, { once: true, passive: true });
 
-    function handleButtonTap(wordObj) {
-      const now = Date.now();
-      if (now - lastTapTime < 100) return;
-      lastTapTime = now;
-      addWord(wordObj);
-      speak(wordObj.speak);
+    const slotHandlers = new Array(36).fill(null);
+
+    function setSlotHandler(idx, action) {
+      const btn = gridSlots[idx];
+
+      if (slotHandlers[idx]) {
+        btn.removeEventListener('touchstart', slotHandlers[idx]);
+        btn.removeEventListener('mousedown',  slotHandlers[idx]);
+      }
+
+      const handler = (e) => {
+        if (e.type === 'touchstart') {
+          e.preventDefault();
+          btn.classList.add('pressed');
+        } else {
+          if (isTouchDevice) return;  /* block ghost clicks on touch devices */
+        }
+        const now = Date.now();
+        if (now - lastTapTime < 100) return;  /* 100 ms debounce */
+        lastTapTime = now;
+        action();
+      };
+
+      slotHandlers[idx] = handler;
+      btn.addEventListener('touchstart', handler, { passive: false });
+      btn.addEventListener('mousedown',  handler);
     }
 
     /* ═══════════════════════════════════════════════════════════
-       GRID RENDERING — build 36 buttons from CORE_36
+       GRID — 36 persistent DOM slots, created once on boot
     ═══════════════════════════════════════════════════════════ */
-    const gridEl = document.getElementById('grid');
+    const gridEl    = document.getElementById('grid');
+    const gridSlots = [];
 
-    CORE_36.forEach((item) => {
-      const btn = document.createElement('button');
-      btn.className = `btn ${item.color}`;
-      btn.textContent = item.label;
+    function initGrid() {
+      for (let i = 0; i < 36; i++) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'btn';
+        btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
+        btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+        gridEl.appendChild(btn);
+        gridSlots.push(btn);
+      }
+    }
+
+    function updateSlot(idx, item, action, extraClass) {
+      const btn = gridSlots[idx];
+      btn.className = `btn ${item.color}${extraClass ? ' ' + extraClass : ''}`;
       btn.setAttribute('aria-label', item.aria || item.label);
-      btn.setAttribute('type', 'button');
+      btn.innerHTML =
+        `<span class="btn-emoji" aria-hidden="true">${item.emoji}</span>` +
+        `<span class="btn-label">${item.label}</span>`;
+      setSlotHandler(idx, action);
+    }
 
-      /* Fire on touchstart for zero-latency response on touch devices */
-      btn.addEventListener('touchstart', (e) => {
-        e.preventDefault();             // block ghost clicks and browser gestures
-        btn.classList.add('pressed');
-        handleButtonTap(item);
-      }, { passive: false });
+    function clearSlot(idx) {
+      const btn = gridSlots[idx];
+      btn.className = 'btn empty';
+      btn.innerHTML = '';
+      btn.setAttribute('aria-label', '');
+      setSlotHandler(idx, () => {});
+    }
 
-      btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
-      btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+    /* ═══════════════════════════════════════════════════════════
+       RENDER GRID — called on init and on every state change
+    ═══════════════════════════════════════════════════════════ */
+    function renderGrid() {
+      if (currentGrid === 'home') {
 
-      /* mousedown fallback for desktop/laptop — skipped on touch devices */
-      btn.addEventListener('mousedown', () => {
-        if (isTouchDevice) return;
-        handleButtonTap(item);
-      });
+        CORE_36.forEach((item, i) => {
+          updateSlot(i, item, () => {
+            if (item.subGrid) {
+              speak(item.speak);
+              if (item.addToStrip) addWord({ label: item.label, speak: item.speak });
+              currentGrid = item.subGrid;
+              renderGrid();
+            } else {
+              addWord({ label: item.label, speak: item.speak });
+              speak(item.speak);
+            }
+          });
+        });
 
-      gridEl.appendChild(btn);
-    });
+      } else {
+
+        const triggerIdx  = CORE_36.findIndex(c => c.subGrid === currentGrid);
+        const triggerItem = CORE_36[triggerIdx];
+        const words       = SUB_GRIDS[currentGrid];
+        let   wordCursor  = 0;
+
+        for (let i = 0; i < 36; i++) {
+
+          if (i >= 30) {
+            /* Power tool — always active regardless of sub-grid state */
+            const item = CORE_36[i];
+            updateSlot(i, item, () => {
+              addWord({ label: item.label, speak: item.speak });
+              speak(item.speak);
+            });
+
+          } else if (i === triggerIdx) {
+            /* Trigger button becomes the back button with gold border */
+            updateSlot(i, triggerItem, () => {
+              currentGrid = 'home';
+              renderGrid();
+            }, 'active-trigger');
+
+          } else if (wordCursor < words.length) {
+            /* Sub-grid word */
+            const word = words[wordCursor++];
+            updateSlot(i, word, () => {
+              addWord({ label: word.label, speak: word.speak });
+              speak(word.speak);
+            });
+
+          } else {
+            /* No more words — leave slot visually empty */
+            clearSlot(i);
+          }
+        }
+      }
+    }
 
     /* ═══════════════════════════════════════════════════════════
        GESTURE PREVENTION — block pinch-zoom across the whole page
@@ -454,7 +1507,13 @@
     }, { passive: false });
 
     /* ═══════════════════════════════════════════════════════════
-       SERVICE WORKER — register for offline / PWA support
+       BOOT
+    ═══════════════════════════════════════════════════════════ */
+    initGrid();
+    renderGrid();
+
+    /* ═══════════════════════════════════════════════════════════
+       SERVICE WORKER — offline / PWA support
     ═══════════════════════════════════════════════════════════ */
     if ('serviceWorker' in navigator) {
       window.addEventListener('load', () => {
