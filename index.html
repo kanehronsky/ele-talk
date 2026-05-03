@@ -259,6 +259,236 @@
       border: none;
       box-shadow: none;
     }
+
+    /* ═══════════════════════════════════════════════════
+       OVERLAYS — setup (first-run) and settings (PIN-gated)
+       Full-viewport panels. Hidden by default via [hidden].
+    ═══════════════════════════════════════════════════ */
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: #f5f7fb;
+      z-index: 100;
+      display: flex;
+      flex-direction: column;
+      overflow-y: auto;
+      -webkit-overflow-scrolling: touch;
+    }
+
+    .overlay[hidden] { display: none; }
+
+    .overlay-header {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 18px 20px;
+      background: #ffffff;
+      border-bottom: 2px solid #e2e6ee;
+      flex-shrink: 0;
+    }
+
+    .overlay-title {
+      font-size: 20px;
+      font-weight: 700;
+      color: #1a1a1a;
+      margin: 0;
+      flex: 1;
+    }
+
+    .overlay-body {
+      padding: 24px 20px;
+      max-width: 600px;
+      width: 100%;
+      margin: 0 auto;
+      flex: 1;
+    }
+
+    .overlay-section {
+      background: #ffffff;
+      border: 1.5px solid #dde2eb;
+      border-radius: 12px;
+      padding: 18px;
+      margin-bottom: 16px;
+    }
+
+    .overlay-section h2 {
+      font-size: 16px;
+      font-weight: 700;
+      margin: 0 0 12px 0;
+      color: #2a2f3a;
+    }
+
+    .overlay-section p {
+      font-size: 14px;
+      color: #5a6373;
+      margin: 0 0 12px 0;
+      line-height: 1.45;
+    }
+
+    .form-row {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      margin-bottom: 14px;
+    }
+
+    .form-row label {
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5060;
+    }
+
+    .form-row input[type="text"],
+    .form-row input[type="password"],
+    .form-row input[type="tel"] {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1.5px solid #d0d6e2;
+      border-radius: 8px;
+      background: #fafbfd;
+      font-family: inherit;
+    }
+
+    .form-row input:focus {
+      outline: none;
+      border-color: #4A86C8;
+      background: #ffffff;
+    }
+
+    .pin-input {
+      letter-spacing: 8px;
+      text-align: center;
+      font-size: 22px !important;
+      font-weight: 700;
+    }
+
+    .form-error {
+      font-size: 13px;
+      color: #c0392b;
+      margin-top: 4px;
+      min-height: 18px;
+    }
+
+    .btn-primary,
+    .btn-secondary,
+    .btn-danger,
+    .btn-ghost {
+      padding: 12px 18px;
+      font-size: 15px;
+      font-weight: 600;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s, filter 0.08s;
+    }
+
+    .btn-primary:active,
+    .btn-secondary:active,
+    .btn-danger:active,
+    .btn-ghost:active { transform: scale(0.97); filter: brightness(0.92); }
+
+    .btn-primary  { background: #4A86C8; color: #fff; }
+    .btn-secondary { background: #e6ebf3; color: #2a2f3a; border: 1.5px solid #d0d6e2; }
+    .btn-danger    { background: #d94848; color: #fff; }
+    .btn-ghost     { background: transparent; color: #4A86C8; padding: 8px 12px; }
+
+    .btn-row {
+      display: flex;
+      gap: 10px;
+      flex-wrap: wrap;
+    }
+
+    .toggle-row {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+      padding: 8px 0;
+    }
+
+    .toggle-row > label:not(.switch) {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2a2f3a;
+      flex: 1;
+    }
+
+    .switch {
+      display: inline-block;
+      position: relative;
+      width: 52px;
+      height: 30px;
+      flex-shrink: 0;
+    }
+    .switch input { opacity: 0; width: 0; height: 0; }
+    .switch .slider {
+      position: absolute;
+      cursor: pointer;
+      inset: 0;
+      background: #c5cbd6;
+      border-radius: 30px;
+      transition: background 0.18s;
+    }
+    .switch .slider::before {
+      content: '';
+      position: absolute;
+      width: 24px;
+      height: 24px;
+      left: 3px;
+      top: 3px;
+      background: #fff;
+      border-radius: 50%;
+      transition: transform 0.18s;
+    }
+    .switch input:checked + .slider          { background: #5CAF5C; }
+    .switch input:checked + .slider::before  { transform: translateX(22px); }
+
+    /* MY WORDS list inside settings */
+    .myword-list {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      margin-bottom: 14px;
+    }
+    .myword-item {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      padding: 10px 12px;
+      background: #f6f8fc;
+      border: 1.5px solid #dde2eb;
+      border-radius: 8px;
+    }
+    .myword-emoji { font-size: 24px; flex-shrink: 0; }
+    .myword-meta  { flex: 1; min-width: 0; }
+    .myword-label { font-size: 15px; font-weight: 600; color: #2a2f3a; }
+    .myword-speak { font-size: 12px; color: #6a7280; }
+    .myword-empty {
+      font-size: 14px;
+      color: #6a7280;
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+    }
+
+    /* Setup screen specific */
+    #setup-overlay .overlay-body { display: flex; align-items: center; min-height: 100%; }
+    #setup-overlay .setup-card  { width: 100%; }
+    #setup-overlay h1 {
+      font-size: 28px;
+      font-weight: 800;
+      color: #1a1a1a;
+      margin: 0 0 6px 0;
+    }
+    #setup-overlay .subtitle {
+      font-size: 15px;
+      color: #5a6373;
+      margin: 0 0 22px 0;
+    }
   </style>
 </head>
 <body>
@@ -268,7 +498,7 @@
     <!-- ── Sentence Strip ─────────────────────────────── -->
     <div id="sentence-strip" role="region" aria-label="Sentence strip">
 
-      <button id="settings-btn" aria-label="Toggle high contrast mode" title="Toggle high contrast">
+      <button id="settings-btn" aria-label="Open settings" title="Settings">
         ⚙️
       </button>
 
@@ -286,6 +516,176 @@
 
     <!-- ── Main Grid (36 persistent slots built by JS) ── -->
     <div id="grid" role="main" aria-label="Communication grid"></div>
+
+  </div>
+
+  <!-- ── First-run Setup Overlay ──────────────────────── -->
+  <div id="setup-overlay" class="overlay" role="dialog" aria-label="ELE Talk first-run setup" hidden>
+    <div class="overlay-body">
+      <div class="setup-card">
+        <h1>Welcome to ELE Talk</h1>
+        <p class="subtitle">Let's set up this device for the child who'll be using it.</p>
+
+        <div class="overlay-section">
+          <h2>Child's name</h2>
+          <p>This is shown to the teacher/parent in settings. The child never sees it.</p>
+          <div class="form-row">
+            <label for="setup-name">Name</label>
+            <input id="setup-name" type="text" autocomplete="off" maxlength="40" placeholder="e.g. Bob" />
+            <div class="form-error" id="setup-name-error"></div>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h2>Settings PIN (4 digits)</h2>
+          <p>Used to unlock the settings menu so children can't change them. Choose something a child won't guess.</p>
+          <div class="form-row">
+            <label for="setup-pin">Create PIN</label>
+            <input id="setup-pin" class="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" pattern="[0-9]{4}" />
+          </div>
+          <div class="form-row">
+            <label for="setup-pin-confirm">Confirm PIN</label>
+            <input id="setup-pin-confirm" class="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" pattern="[0-9]{4}" />
+            <div class="form-error" id="setup-pin-error"></div>
+          </div>
+        </div>
+
+        <div class="btn-row">
+          <button id="setup-submit" class="btn-primary">Create Profile</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Settings Overlay (PIN-gated) ─────────────────── -->
+  <div id="settings-overlay" class="overlay" role="dialog" aria-label="Settings" hidden>
+
+    <!-- Screen 1: PIN entry -->
+    <div id="settings-pin-screen">
+      <div class="overlay-header">
+        <h1 class="overlay-title">Enter PIN</h1>
+        <button id="settings-pin-cancel" class="btn-ghost" aria-label="Cancel">Cancel</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <p>Enter the 4-digit settings PIN.</p>
+          <div class="form-row">
+            <input id="settings-pin-input" class="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" pattern="[0-9]{4}" />
+            <div class="form-error" id="settings-pin-error"></div>
+          </div>
+          <div class="btn-row">
+            <button id="settings-pin-submit" class="btn-primary">Unlock</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 2: main settings panel -->
+    <div id="settings-main-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title">Settings</h1>
+        <button id="settings-close" class="btn-ghost" aria-label="Close settings">Close</button>
+      </div>
+      <div class="overlay-body">
+
+        <div class="overlay-section">
+          <h2>Profile</h2>
+          <div class="form-row">
+            <label for="settings-name">Child's name</label>
+            <input id="settings-name" type="text" autocomplete="off" maxlength="40" />
+          </div>
+          <div class="btn-row">
+            <button id="settings-save-name" class="btn-secondary">Save name</button>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h2>Display</h2>
+          <div class="toggle-row">
+            <label for="settings-hc">High contrast mode</label>
+            <label class="switch" for="settings-hc">
+              <input id="settings-hc" type="checkbox" />
+              <span class="slider"></span>
+            </label>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h2>MY WORDS</h2>
+          <p>Custom vocabulary for this child. Appears in the MY WORDS sub-grid (Button 25).</p>
+          <div id="myword-list" class="myword-list"></div>
+          <div class="btn-row">
+            <button id="myword-add-btn" class="btn-primary">Add a word</button>
+          </div>
+        </div>
+
+        <div class="overlay-section">
+          <h2>Pathways</h2>
+          <p style="font-style: italic;">Coming soon — the scaffolding engine is the next feature being built.</p>
+        </div>
+
+        <div class="overlay-section">
+          <h2>Security</h2>
+          <div class="btn-row">
+            <button id="settings-change-pin" class="btn-secondary">Change PIN</button>
+          </div>
+        </div>
+
+      </div>
+    </div>
+
+    <!-- Screen 3: add/edit a MY WORDS entry -->
+    <div id="myword-edit-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title" id="myword-edit-title">Add a word</h1>
+        <button id="myword-edit-cancel" class="btn-ghost">Cancel</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <div class="form-row">
+            <label for="myword-label">Word (shown on the button)</label>
+            <input id="myword-label" type="text" autocomplete="off" maxlength="20" placeholder="e.g. Bluey" />
+          </div>
+          <div class="form-row">
+            <label for="myword-speak">Spoken text (what the app says aloud)</label>
+            <input id="myword-speak" type="text" autocomplete="off" maxlength="40" placeholder="e.g. Bluey" />
+          </div>
+          <div class="form-row">
+            <label for="myword-emoji">Icon (single emoji for now)</label>
+            <input id="myword-emoji" type="text" autocomplete="off" maxlength="4" placeholder="🐕" />
+          </div>
+          <div class="form-error" id="myword-edit-error"></div>
+          <div class="btn-row">
+            <button id="myword-save" class="btn-primary">Save</button>
+            <button id="myword-delete" class="btn-danger" hidden>Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 4: change PIN -->
+    <div id="change-pin-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title">Change PIN</h1>
+        <button id="change-pin-cancel" class="btn-ghost">Cancel</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <div class="form-row">
+            <label for="change-pin-new">New PIN (4 digits)</label>
+            <input id="change-pin-new" class="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" />
+          </div>
+          <div class="form-row">
+            <label for="change-pin-confirm">Confirm new PIN</label>
+            <input id="change-pin-confirm" class="pin-input" type="tel" inputmode="numeric" maxlength="4" autocomplete="off" />
+            <div class="form-error" id="change-pin-error"></div>
+          </div>
+          <div class="btn-row">
+            <button id="change-pin-save" class="btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
 
   </div>
 
@@ -328,7 +728,7 @@
       { label: 'All Done',    speak: 'All Done', emoji: '✅', color: 'orange', subGrid: 'alldone'                     },
 
       /* Row 5 — Nouns / Navigation (Yellow) */
-      { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow'                       },
+      { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words'  },
       { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
       { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', subGrid: 'food'      },
       { label: 'Drink',       speak: 'Drink',    emoji: '🥤', color: 'yellow', subGrid: 'drink'     },
@@ -1288,6 +1688,349 @@
     };
 
     /* ═══════════════════════════════════════════════════════════
+       PROFILE — local storage layer (cloud-ready schema)
+       Single profile per device. Schema designed to lift cleanly
+       into a cloud database when login ships in a later step.
+    ═══════════════════════════════════════════════════════════ */
+    const Profile = {
+      STORAGE_KEY:    'eletalk_profile_v1',
+      SCHEMA_VERSION: 1,
+      current:        null,
+
+      load() {
+        const raw = localStorage.getItem(this.STORAGE_KEY);
+        if (!raw) return null;
+        try {
+          const parsed = JSON.parse(raw);
+          if (parsed.schemaVersion !== this.SCHEMA_VERSION) return null;
+          this.current = parsed;
+          return parsed;
+        } catch (_e) {
+          return null;
+        }
+      },
+
+      save() {
+        if (!this.current) return;
+        this.current.meta.updatedAt = new Date().toISOString();
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.current));
+      },
+
+      create({ name, pinHash }) {
+        const now = new Date().toISOString();
+        this.current = {
+          schemaVersion: this.SCHEMA_VERSION,
+          profileId:     crypto.randomUUID(),
+          name:          name,
+          pinHash:       pinHash,
+          preferences: {
+            highContrast: false,
+            voice:        null,
+          },
+          myWords:  [],
+          pathways: [],
+          meta: {
+            createdAt:        now,
+            updatedAt:        now,
+            masteredPathways: [],
+          },
+        };
+        this.save();
+      },
+
+      update(patch) {
+        Object.assign(this.current, patch);
+        this.save();
+      },
+
+      updatePreferences(patch) {
+        Object.assign(this.current.preferences, patch);
+        this.save();
+      },
+    };
+
+    /* ═══════════════════════════════════════════════════════════
+       PIN HASHING — SHA-256 via Web Crypto.
+       Note: this is a child-deterrent, not a security boundary.
+       Anyone with localStorage access can clear the profile.
+    ═══════════════════════════════════════════════════════════ */
+    async function hashPin(pin) {
+      const data   = new TextEncoder().encode(String(pin));
+      const buffer = await crypto.subtle.digest('SHA-256', data);
+      return Array.from(new Uint8Array(buffer))
+        .map(b => b.toString(16).padStart(2, '0'))
+        .join('');
+    }
+
+    function isValidPin(pin) {
+      return typeof pin === 'string' && /^\d{4}$/.test(pin);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       OVERLAY HELPERS
+    ═══════════════════════════════════════════════════════════ */
+    function showOverlay(id) {
+      document.getElementById(id).hidden = false;
+    }
+    function hideOverlay(id) {
+      document.getElementById(id).hidden = true;
+    }
+    function showSettingsScreen(screenId) {
+      const screens = ['settings-pin-screen', 'settings-main-screen', 'myword-edit-screen', 'change-pin-screen'];
+      screens.forEach(s => { document.getElementById(s).hidden = (s !== screenId); });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       FIRST-RUN SETUP
+    ═══════════════════════════════════════════════════════════ */
+    function bindSetupForm() {
+      const nameInput    = document.getElementById('setup-name');
+      const pinInput     = document.getElementById('setup-pin');
+      const pinConfirm   = document.getElementById('setup-pin-confirm');
+      const nameError    = document.getElementById('setup-name-error');
+      const pinError     = document.getElementById('setup-pin-error');
+      const submitBtn    = document.getElementById('setup-submit');
+
+      submitBtn.addEventListener('click', async () => {
+        nameError.textContent = '';
+        pinError.textContent  = '';
+
+        const name = nameInput.value.trim();
+        if (name.length === 0) {
+          nameError.textContent = "Please enter the child's name.";
+          nameInput.focus();
+          return;
+        }
+
+        const pin1 = pinInput.value;
+        const pin2 = pinConfirm.value;
+        if (!isValidPin(pin1)) {
+          pinError.textContent = 'PIN must be exactly 4 digits.';
+          pinInput.focus();
+          return;
+        }
+        if (pin1 !== pin2) {
+          pinError.textContent = 'PINs do not match.';
+          pinConfirm.focus();
+          return;
+        }
+
+        const pinHash = await hashPin(pin1);
+        Profile.create({ name, pinHash });
+        applyPreferences();
+        hideOverlay('setup-overlay');
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       SETTINGS — PIN GATE + PANEL
+    ═══════════════════════════════════════════════════════════ */
+    function openSettings() {
+      showSettingsScreen('settings-pin-screen');
+      document.getElementById('settings-pin-input').value = '';
+      document.getElementById('settings-pin-error').textContent = '';
+      showOverlay('settings-overlay');
+      // small delay so the input is visible before focus on iOS
+      setTimeout(() => document.getElementById('settings-pin-input').focus(), 50);
+    }
+
+    function bindSettingsHandlers() {
+      const pinInput    = document.getElementById('settings-pin-input');
+      const pinError    = document.getElementById('settings-pin-error');
+      const pinSubmit   = document.getElementById('settings-pin-submit');
+      const pinCancel   = document.getElementById('settings-pin-cancel');
+
+      pinSubmit.addEventListener('click', async () => {
+        pinError.textContent = '';
+        const pin = pinInput.value;
+        if (!isValidPin(pin)) {
+          pinError.textContent = 'Enter the 4-digit PIN.';
+          return;
+        }
+        const hash = await hashPin(pin);
+        if (hash !== Profile.current.pinHash) {
+          pinError.textContent = 'Incorrect PIN.';
+          pinInput.value = '';
+          return;
+        }
+        // success → main screen
+        renderMainSettingsScreen();
+        showSettingsScreen('settings-main-screen');
+      });
+
+      pinInput.addEventListener('keydown', (e) => {
+        if (e.key === 'Enter') pinSubmit.click();
+      });
+
+      pinCancel.addEventListener('click', () => hideOverlay('settings-overlay'));
+
+      document.getElementById('settings-close').addEventListener('click', () => hideOverlay('settings-overlay'));
+
+      // Name save
+      document.getElementById('settings-save-name').addEventListener('click', () => {
+        const newName = document.getElementById('settings-name').value.trim();
+        if (newName.length === 0) return;
+        Profile.update({ name: newName });
+      });
+
+      // High contrast toggle
+      const hcToggle = document.getElementById('settings-hc');
+      hcToggle.addEventListener('change', () => {
+        Profile.updatePreferences({ highContrast: hcToggle.checked });
+        applyPreferences();
+      });
+
+      // MY WORDS handlers
+      document.getElementById('myword-add-btn').addEventListener('click', () => openMyWordEdit(null));
+      document.getElementById('myword-edit-cancel').addEventListener('click', () => showSettingsScreen('settings-main-screen'));
+      document.getElementById('myword-save').addEventListener('click', saveMyWordEdit);
+      document.getElementById('myword-delete').addEventListener('click', deleteCurrentMyWord);
+
+      // Change PIN
+      document.getElementById('settings-change-pin').addEventListener('click', () => {
+        document.getElementById('change-pin-new').value = '';
+        document.getElementById('change-pin-confirm').value = '';
+        document.getElementById('change-pin-error').textContent = '';
+        showSettingsScreen('change-pin-screen');
+      });
+      document.getElementById('change-pin-cancel').addEventListener('click', () => showSettingsScreen('settings-main-screen'));
+      document.getElementById('change-pin-save').addEventListener('click', async () => {
+        const errorEl = document.getElementById('change-pin-error');
+        errorEl.textContent = '';
+        const p1 = document.getElementById('change-pin-new').value;
+        const p2 = document.getElementById('change-pin-confirm').value;
+        if (!isValidPin(p1)) { errorEl.textContent = 'PIN must be exactly 4 digits.'; return; }
+        if (p1 !== p2)        { errorEl.textContent = 'PINs do not match.';            return; }
+        const hash = await hashPin(p1);
+        Profile.update({ pinHash: hash });
+        showSettingsScreen('settings-main-screen');
+      });
+    }
+
+    function renderMainSettingsScreen() {
+      document.getElementById('settings-name').value = Profile.current.name;
+      document.getElementById('settings-hc').checked = !!Profile.current.preferences.highContrast;
+      renderMyWordsList();
+    }
+
+    /* ─── MY WORDS CRUD ─────────────────────────────── */
+    let editingMyWordId = null;
+
+    function renderMyWordsList() {
+      const listEl = document.getElementById('myword-list');
+      listEl.innerHTML = '';
+      const words = Profile.current.myWords;
+      if (words.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'myword-empty';
+        empty.textContent = 'No custom words yet. Add the first one below.';
+        listEl.appendChild(empty);
+        return;
+      }
+      words.forEach(mw => {
+        const row = document.createElement('button');
+        row.type = 'button';
+        row.className = 'myword-item';
+        row.style.cssText += 'cursor:pointer; text-align:left; width:100%; font-family:inherit;';
+        row.innerHTML =
+          `<span class="myword-emoji">${mw.emoji || '⭐'}</span>` +
+          `<span class="myword-meta">` +
+            `<div class="myword-label">${escapeHtml(mw.label)}</div>` +
+            `<div class="myword-speak">Speaks: ${escapeHtml(mw.speak)}</div>` +
+          `</span>`;
+        row.addEventListener('click', () => openMyWordEdit(mw.id));
+        listEl.appendChild(row);
+      });
+    }
+
+    function escapeHtml(s) {
+      return String(s).replace(/[&<>"']/g, c => ({
+        '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;',
+      }[c]));
+    }
+
+    function openMyWordEdit(id) {
+      editingMyWordId = id;
+      const titleEl = document.getElementById('myword-edit-title');
+      const labelEl = document.getElementById('myword-label');
+      const speakEl = document.getElementById('myword-speak');
+      const emojiEl = document.getElementById('myword-emoji');
+      const errorEl = document.getElementById('myword-edit-error');
+      const deleteBtn = document.getElementById('myword-delete');
+      errorEl.textContent = '';
+
+      if (id === null) {
+        titleEl.textContent = 'Add a word';
+        labelEl.value = '';
+        speakEl.value = '';
+        emojiEl.value = '';
+        deleteBtn.hidden = true;
+      } else {
+        const mw = Profile.current.myWords.find(w => w.id === id);
+        if (!mw) { showSettingsScreen('settings-main-screen'); return; }
+        titleEl.textContent = 'Edit word';
+        labelEl.value = mw.label;
+        speakEl.value = mw.speak;
+        emojiEl.value = mw.emoji || '';
+        deleteBtn.hidden = false;
+      }
+      showSettingsScreen('myword-edit-screen');
+    }
+
+    function saveMyWordEdit() {
+      const errorEl = document.getElementById('myword-edit-error');
+      errorEl.textContent = '';
+      const label = document.getElementById('myword-label').value.trim();
+      const speak = document.getElementById('myword-speak').value.trim() || label;
+      const emoji = document.getElementById('myword-emoji').value.trim() || '⭐';
+
+      if (label.length === 0) {
+        errorEl.textContent = 'A word label is required.';
+        return;
+      }
+
+      if (editingMyWordId === null) {
+        if (Profile.current.myWords.length >= 29) {
+          errorEl.textContent = 'MY WORDS is full (29 max). Delete one to add another.';
+          return;
+        }
+        Profile.current.myWords.push({
+          id:    'mw_' + crypto.randomUUID(),
+          label, speak, emoji,
+        });
+      } else {
+        const mw = Profile.current.myWords.find(w => w.id === editingMyWordId);
+        if (mw) Object.assign(mw, { label, speak, emoji });
+      }
+      Profile.save();
+      renderMyWordsList();
+      showSettingsScreen('settings-main-screen');
+      // If user is currently viewing my_words sub-grid, refresh it
+      if (currentGrid === 'my_words') renderGrid();
+    }
+
+    function deleteCurrentMyWord() {
+      if (editingMyWordId === null) return;
+      // Future: block deletion if pathway uses this word.
+      Profile.current.myWords = Profile.current.myWords.filter(w => w.id !== editingMyWordId);
+      Profile.save();
+      renderMyWordsList();
+      showSettingsScreen('settings-main-screen');
+      if (currentGrid === 'my_words') renderGrid();
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       APPLY PROFILE PREFERENCES
+    ═══════════════════════════════════════════════════════════ */
+    function applyPreferences() {
+      if (!Profile.current) return;
+      document.documentElement.classList.toggle(
+        'high-contrast',
+        !!Profile.current.preferences.highContrast
+      );
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        APP STATE
     ═══════════════════════════════════════════════════════════ */
     let sentenceWords = [];
@@ -1360,11 +2103,9 @@
     document.getElementById('clear-btn').addEventListener('click', clearSentence);
 
     /* ═══════════════════════════════════════════════════════════
-       HIGH CONTRAST TOGGLE
+       SETTINGS BUTTON — opens the PIN-gated settings overlay
     ═══════════════════════════════════════════════════════════ */
-    document.getElementById('settings-btn').addEventListener('click', () => {
-      document.documentElement.classList.toggle('high-contrast');
-    });
+    document.getElementById('settings-btn').addEventListener('click', openSettings);
 
     /* ═══════════════════════════════════════════════════════════
        TOUCH / CLICK HANDLING
@@ -1463,7 +2204,15 @@
 
         const triggerIdx  = CORE_36.findIndex(c => c.subGrid === currentGrid);
         const triggerItem = CORE_36[triggerIdx];
-        const words       = SUB_GRIDS[currentGrid];
+        // MY WORDS is a dynamic sub-grid sourced from the profile, not SUB_GRIDS.
+        const words = currentGrid === 'my_words'
+          ? (Profile.current?.myWords ?? []).map(mw => ({
+              label: mw.label,
+              speak: mw.speak,
+              emoji: mw.emoji || '⭐',
+              color: 'yellow-light',
+            }))
+          : (SUB_GRIDS[currentGrid] || []);
         let   wordCursor  = 0;
 
         for (let i = 0; i < 36; i++) {
@@ -1511,6 +2260,18 @@
     ═══════════════════════════════════════════════════════════ */
     initGrid();
     renderGrid();
+
+    // Bind setup + settings handlers up front (idempotent).
+    bindSetupForm();
+    bindSettingsHandlers();
+
+    // Load the profile from localStorage. If none, run first-run setup.
+    const loadedProfile = Profile.load();
+    if (!loadedProfile) {
+      showOverlay('setup-overlay');
+    } else {
+      applyPreferences();
+    }
 
     /* ═══════════════════════════════════════════════════════════
        SERVICE WORKER — offline / PWA support

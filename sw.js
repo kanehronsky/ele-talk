@@ -3,7 +3,7 @@
    Cache-first strategy: app works fully offline after first load.
    Bump CACHE_NAME version string whenever app files change.
 ═══════════════════════════════════════════════════════════ */
-const CACHE_NAME = 'ele-talk-v1';
+const CACHE_NAME = 'ele-talk-v4';
 
 const FILES_TO_CACHE = [
   '/',

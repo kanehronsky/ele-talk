@@ -176,38 +176,165 @@ Do not populate this grid with default content — it is intentionally blank.
 
 This is ELE Talk's primary point of clinical differentiation. No major 
 AAC app implements behavioural prompt fading as a first-class UI feature.
-This is built on Functional Communication Training (FCT) and stimulus 
-fading principles from Applied Behaviour Analysis.
+Built on Functional Communication Training (FCT), forward chaining, and 
+stimulus fading principles from Applied Behaviour Analysis.
 
-A User Profile setting controls the global visual state of the entire grid:
+### The Core Principle — Fading Transfers the Chain to the Child
 
-### Level 1 — The Magnet (Stimulus Isolation)
-Only the specific target button (targetId) is rendered and visible.
-All other 36 grid slots are completely blank/empty.
-Use case: Introducing a single new word to an emerging communicator.
+Scaffolding is not just a visual prompt that gets dimmer. As prompts 
+fade, the child progressively takes on more of the real-world 
+communication chain. The engine handles the mechanics at high prompting 
+levels, then hands them back to the child level by level. By Level 4, 
+the child performs the full sequence independently — which is exactly 
+what real, unprompted use looks like. This single principle governs how 
+both navigation and the Speak action are handled across the four levels.
 
-### Level 2 — The Ghost (Stimulus Fading — Step 1)
-All 36 buttons are rendered and visible.
-Non-target buttons are set to opacity: 0.1 and pointer-events: none.
-The target button is fully visible and clickable.
-Use case: Building spatial awareness of the grid while maintaining focus.
+### Pathway Model (Forward Chaining)
 
-### Level 3 — The Guide (Stimulus Fading — Step 2)
-All 36 buttons are fully visible and all are clickable.
-The target button has a high-contrast gold border highlight.
-Use case: Guided practice with full grid access — the child can explore 
-but is visually directed to the target.
+The unit of teaching is a **pathway** — a sequenced series of words the 
+child is being taught to produce in order. Examples: "I want Lego", 
+"Go park", "I need toilet."
 
-### Level 4 — The Pilot (Independent Use)
-Full grid visible. All buttons active. No visual prompts of any kind.
-Use case: Independent communication. This is the goal state.
+Pathway data model rules:
+- Stored per user profile, max 5 active pathways per child (clinical ceiling)
+- Each pathway is a list of **semantic word IDs** (not individual taps)
+- The engine computes the navigation steps between words automatically — 
+  the teacher does not specify "tap the back button" or other mechanics
+- Pathways may cross sub-grid boundaries (e.g., I → Want → Toys/Play → Lego)
+- Pathways may include MY WORDS entries (custom child-specific vocabulary)
+- Each pathway has its own scaffolding level (not a global profile setting), 
+  reflecting that a child's different communication targets are always at 
+  different stages of acquisition
+- One pathway is **active** at a time per session; teacher toggles which 
+  one before handing the device to the child
 
-### Scaffolding implementation notes
-- The scaffolding level is set per user profile, not per session
-- Teachers/parents set the level in a settings panel, not the child
-- The gold border in Level 3 should use box-shadow for visibility:
-  box-shadow: 0 0 15px 5px gold
-- When building, implement Level 4 first, then add the other levels
+### Pathway Authoring — Tap-to-Build
+
+Teachers create pathways by tapping the actual app grid in sequence, 
+exactly as the child will. The engine records the meaningful word taps 
+(not navigation taps) and stores them as the pathway. This guarantees 
+every pathway is buildable in the real app and uses real coordinate IDs.
+
+Pathway label is auto-generated from the recorded words (e.g., 
+"I want Lego") and editable by the teacher.
+
+### The Four Scaffolding Levels — Behaviour by Level
+
+Each level governs three things: **what's visible**, **how navigation is 
+handled**, **how the Speak action is handled**.
+
+| Level | Visible | Navigation | Speak |
+|---|---|---|---|
+| **1 Magnet** | Only the current target button + Power Tools | Engine auto-handles (invisible to child) | Engine auto-speaks the full sentence on completion |
+| **2 Ghost** | Full grid, non-targets at opacity 0.1 + Power Tools full | Engine auto-handles | Engine auto-speaks |
+| **3 Guide** | Full grid, target has gold border | **Scaffolded** — child taps anchor button to close sub-grids | **Scaffolded** — gold border moves to Speak button as final step |
+| **4 Pilot** | Full grid, no prompts | Normal app behaviour | Normal app behaviour (child taps Speak) |
+
+Box-shadow for the Level 3 gold border:
+`box-shadow: 0 0 15px 5px gold`
+
+### Always-On Rules (Override Scaffolding)
+
+Two rules are non-negotiable and override any scaffolding state:
+
+1. **Power Tools (column 6: YES, NO, STOP, GO, WAIT, BREAK) are always 
+   visible and active.** Even at Level 1 with the rest of the grid 
+   blanked out. This is an ethical requirement, not a design choice — 
+   a child must always be able to say BREAK, STOP, or NO during 
+   structured teaching. Removing access to protest or escape 
+   communication during ABA discrete trials is clinically unacceptable.
+
+2. **Wrong taps are silently ignored.** No flash, no shake, no 
+   escalation, no sound. The current target highlight stays. This 
+   matches FCT best practice: don't reinforce errors with any response. 
+   The teacher observes and manually adjusts the scaffolding level — 
+   the app does not perform error correction itself.
+
+### Activation and Trial Flow
+
+When a teacher toggles a pathway active, the engine enters scaffolding 
+mode using that pathway's stored level. The child works through the 
+sequence one step at a time. On the final step:
+- **Levels 1–2:** engine speaks the full sentence immediately (the 
+  spoken sentence IS the natural reinforcer); strip stays populated 
+  until teacher clears manually (teacher controls trial timing).
+- **Level 3:** scaffolding moves to the Speak button as the final 
+  scaffolded step; child taps Speak to complete the trial.
+- **Level 4:** no scaffolding — the pathway is effectively mastered and 
+  the engine is silent. May be silently tracked for generalisation 
+  data later.
+
+### Mastered Pathway Data (Future)
+
+Mastered pathways (those that have advanced to Level 4 and remained 
+there) carry real handover value in the school deployment context, 
+where students change teachers year-to-year. Track and persist this 
+data as part of the profile schema; it strengthens the school-licence 
+proposition (the school owns longitudinal student progress data).
+
+---
+
+## IDENTITY AND PROFILE MODEL
+
+### Deployment context drives the model
+
+In Western Australian education support — ELE Talk's primary market — 
+AAC users have their own dedicated device (NDIS-funded for the student 
+or school-issued 1:1). Devices do **not** rotate between students 
+during a school day. ELE Talk is therefore designed around 
+**one device, one child, one profile, all day, every day** — not 
+shared-device classroom rotation.
+
+### Implications
+
+- **One profile per device** is the default model. Profile-switcher UX 
+  (Netflix-style) is explicitly NOT a v1 feature.
+- **Per-child login** is fine because login persists on the device. The 
+  cross-device-friction problem of shared devices does not apply here.
+- **Cloud auth is deferred** — the local profile schema is designed to 
+  be cloud-syncable later (versioned JSON, UUID-keyed, no device-bound 
+  fields). When auth ships, local profiles lift directly into the 
+  cloud database.
+- **PIN-gating is for settings access, not profile switching.** A 
+  4-digit PIN prevents the child from changing their own scaffolding 
+  level, MY WORDS, or other teacher-controlled settings. The PIN is 
+  not a security boundary against motivated adults — it is a 
+  child-deterrent.
+
+### Profile Schema (current)
+
+```js
+{
+  schemaVersion: 1,
+  profileId:     "uuid",
+  name:          "string",
+  pinHash:       "sha-256 hex",   // child-deterrent only
+  preferences: {
+    highContrast: false,
+    voice:        null            // device default for v1
+  },
+  myWords: [                       // populates Button 25 sub-grid
+    { id, label, speak, emoji, iconPath? }
+  ],
+  pathways: [                      // max 5
+    { id, label, words: [...], scaffoldingLevel: 1-4, isActive }
+  ],
+  meta: {
+    createdAt, updatedAt,
+    masteredPathways: []           // designed in, populated later
+  }
+}
+```
+
+Stored as JSON under localStorage key `eletalk_profile_v1`.
+
+### MY WORDS integration with pathways
+
+Pathways may reference MY WORDS entries. Deletion of a MY WORDS entry 
+that is used in a pathway is **blocked** with an explanatory message; 
+the teacher must remove the pathway first or rename the word. This 
+prevents broken pathways and forces the teacher to make a deliberate 
+clinical decision when they do remove a custom word.
 
 ---
 
@@ -317,20 +444,61 @@ This is also the hook for the school licence model (future).
 
 ---
 
+## SYMBOLS / VISUAL ASSETS
+
+Current state: emoji placeholders. v1 launch will use the 
+**Mulberry Symbol Set** (https://mulberrysymbols.org/, ~3,300 symbols, 
+CC BY-SA — commercial use permitted with attribution).
+
+ARASAAC was evaluated and rejected for v1 because its CC BY-NC-SA 
+licence prohibits commercial use; the paid tier ($5–10/month) is 
+unambiguously commercial. ARASAAC remains a v2 upgrade target pending 
+a written commercial-permission request to the Government of Aragón. 
+Custom commission and pure-AI-generated symbol sets are deferred — 
+custom is post-revenue, and AI generation cannot yet produce a 
+visually consistent set across 1,300+ symbols.
+
+The data structure already supports per-button `iconPath` alongside 
+`emoji`, so swapping symbol sets is a non-breaking change.
+
+Required attribution line in app credits: Mulberry Symbols © Steve Lee, 
+licensed under CC BY-SA 2.0 UK.
+
+---
+
 ## BUILD ORDER
 
+### Done
 1. Core 36 grid as PWA — static, no sub-grids, speech on tap
 2. Sentence strip (accumulate words, speak, clear, backspace)
 3. Fitzgerald Key colour coding
 4. Sub-grid navigation with anchor rule
-5. Scaffolding engine (all 4 levels)
-6. High contrast accessibility toggle
-7. User profiles (saved locally first, then cloud)
-8. MY WORDS custom vocabulary
-9. Login and account system
-10. Stripe subscription and payment tiers
-11. Teacher/admin dashboard
-12. School licence model
+5. High contrast accessibility toggle (v1: global; profile-backed in step 6)
+6. **Local profile + PIN-gated settings + MY WORDS CRUD (Step 1 of 
+   post-grill plan)**
+
+### Next
+7. **Scaffolding engine (all 4 levels) — pathway CRUD, tap-to-build 
+   authoring, engine state machine, level-by-level visual + behavioural 
+   rules.** This is the next major piece of work.
+
+### Continuous (not a discrete step)
+- Polish: real-device testing on iPad / Chromebook / Android tablet, 
+  bug fixes as found
+- Mulberry symbol integration (parallel track, can run alongside 
+  scaffolding work)
+
+### Later (post-scaffolding, in order)
+8. Login and account system (cloud sync of local profiles)
+9. Stripe subscription and payment tiers
+10. Teacher/admin dashboard
+11. School licence model
+
+### Build-order principle (revised post-grill)
+Clinical differentiator before infrastructure. Scaffolding is the 
+product; login is plumbing. Do not build login before scaffolding — 
+showing a teacher a login screen does not validate the clinical pitch; 
+showing them prompt-faded discrete trials does.
 
 ---
 
@@ -347,7 +515,27 @@ This is also the hook for the school licence model (future).
 - PWA manifest and service worker should be added from the start
 
 ## CURRENT GOAL
-Rebuild the existing prototype as a proper 6x6 PWA with the Core 36 
-words, Fitzgerald Key colour coding, sentence strip, and speech. 
-This replaces the earlier Starting 20 prototype entirely.
-Do not add sub-grids or scaffolding yet — get the core grid right first.
+
+Step 1 of the post-grill plan is complete: local profile data layer, 
+first-run setup, PIN-gated settings, MY WORDS CRUD, and a dynamic 
+MY WORDS sub-grid wired to profile data.
+
+**Next: Step 2 — the Scaffolding Engine.** 
+
+This is the largest single piece of clinical value in the entire 
+roadmap and the project's primary differentiator. See "THE 
+SCAFFOLDING/PROMPTING ENGINE" section above for the full 
+post-grill design specification. Build approach:
+
+1. Pathway data model already lives in the profile schema; surface it 
+   in settings — list view, add/edit/delete UI
+2. Tap-to-build authoring mode (record sequence by tapping the real grid)
+3. Pathway activation toggle (one active at a time)
+4. Engine state machine: track current step, advance on correct tap, 
+   silent-ignore wrong taps
+5. Level 4 first (no visual prompts — just track progress and auto-speak 
+   per the level table), then Level 3 (gold border), then Levels 1–2 
+   (visibility/opacity overrides)
+
+Do NOT build login, Stripe, or dashboard before the scaffolding engine 
+is working and demoed to a teacher.
