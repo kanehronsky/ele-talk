@@ -154,6 +154,7 @@
       gap: 3px;
       padding: 3px;
       background: #ffffff;
+      position: relative;          /* anchor for #category-overlay */
     }
 
     /* ═══════════════════════════════════════════════════
@@ -258,6 +259,84 @@
       background: transparent !important;
       border: none;
       box-shadow: none;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       CATEGORY OVERLAY
+       Transparent 5×6 grid laid exactly on top of home rows 1–5.
+       Each word button is placed at an explicit (row, col); the
+       trigger's home cell is left empty so the anchor (the home
+       button itself, z-index-lifted) shows through in its
+       permanent motor-plan position. Row 6 (Power Tools) is
+       physically uncovered and always tappable.
+    ═══════════════════════════════════════════════════ */
+    #category-overlay {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      /* Cover exactly home rows 1–5 + the 4 inner gaps between them */
+      height: calc((500% - 33px) / 6);
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(5, 1fr);
+      gap: 3px;
+      z-index: 5;
+      background: transparent;
+    }
+
+    #category-overlay[hidden] { display: none; }
+
+    /* Silent-abort close button. Sits in the top-LEFT corner of the
+       overlay (NOT the right — that side is the sentence strip's Clear
+       button and visual collision is bad UX). 40×40 for an easier touch
+       target than the prior 36×36. */
+    .cat-close {
+      position: absolute;
+      top: -10px;
+      left: -10px;
+      width: 40px;
+      height: 40px;
+      border: none;
+      background: #2a2f3a;
+      color: #ffffff;
+      font-size: 18px;
+      font-weight: 700;
+      border-radius: 50%;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      transition: transform 0.08s, filter 0.08s;
+      z-index: 7;                  /* above lifted anchor */
+    }
+
+    .cat-close:active { transform: scale(0.88); filter: brightness(0.85); }
+
+    /* The lifted anchor — the trigger's home button shows through the
+       overlay in its permanent X,Y coordinate. Gold glow signals
+       "you are inside this category." position: relative is required
+       for z-index to take effect on a CSS-grid child. Re-tapping the
+       lifted anchor commits + closes; ✕ closes silently. */
+    .btn.is-anchor {
+      position: relative;
+      z-index: 6;
+      box-shadow: 0 0 0 3px gold, 0 0 12px 3px rgba(255, 215, 0, 0.6);
+    }
+
+    html.high-contrast .btn.is-anchor {
+      box-shadow:
+        0 0 0 3px gold,
+        0 0 12px 4px rgba(255, 215, 0, 0.7),
+        0 0 8px var(--neon, #ffffff);
+    }
+
+    html.high-contrast .cat-close {
+      background: #000;
+      border: 2px solid #fff;
     }
 
     /* ═══════════════════════════════════════════════════
@@ -515,7 +594,21 @@
     </div>
 
     <!-- ── Main Grid (36 persistent slots built by JS) ── -->
-    <div id="grid" role="main" aria-label="Communication grid"></div>
+    <div id="grid" role="main" aria-label="Communication grid">
+      <!--
+        Category overlay — a transparent 5×6 grid that lays directly on top
+        of home rows 1–5. Words become direct children, placed via explicit
+        grid-row/-column so we can leave the trigger's cell empty for the
+        anchor (the home button is z-index-lifted into that cell).
+        Row 6 (Power Tools) stays uncovered. The lifted anchor commits and
+        closes; the ✕ in the top-left corner is the silent-abort close
+        (positioned LEFT to keep it well clear of the sentence strip's
+        Clear button on the right).
+      -->
+      <div id="category-overlay" role="dialog" aria-label="Category words" hidden>
+        <button class="cat-close" id="cat-close" aria-label="Close category">✕</button>
+      </div>
+    </div>
 
   </div>
 
@@ -695,13 +788,13 @@
        The position of every word is permanent and must never change.
     ═══════════════════════════════════════════════════════════ */
     const CORE_36 = [
-      /* Row 1 — Pronouns (Blue) */
-      { label: 'I / Me',      speak: 'I',       emoji: '👤', color: 'blue',   aria: 'I or Me', subGrid: 'i_me', addToStrip: true },
-      { label: 'You',         speak: 'You',      emoji: '👉', color: 'blue',   subGrid: 'you',  addToStrip: true },
-      { label: 'It',          speak: 'It',       emoji: '👇', color: 'blue',   subGrid: 'it',   addToStrip: true },
-      { label: 'We',          speak: 'We',       emoji: '👫', color: 'blue',   subGrid: 'we',   addToStrip: true },
-      { label: 'Who',         speak: 'Who',      emoji: '🧑', color: 'blue',   subGrid: 'who'                    },
-      { label: 'What',        speak: 'What',     emoji: '❓', color: 'blue',   subGrid: 'what'                   },
+      /* Row 1 — Pronouns (Blue) — tap-to-speak only, no overlay (SNUG: build sentences via home + Want + noun) */
+      { label: 'I / Me',      speak: 'I',        emoji: '👤', color: 'blue',   aria: 'I or Me' },
+      { label: 'You',         speak: 'You',      emoji: '👉', color: 'blue'                    },
+      { label: 'It',          speak: 'It',       emoji: '👇', color: 'blue'                    },
+      { label: 'We',          speak: 'We',       emoji: '👫', color: 'blue'                    },
+      { label: 'Who',         speak: 'Who',      emoji: '🧑', color: 'blue'                    },
+      { label: 'What',        speak: 'What',     emoji: '❓', color: 'blue'                    },
 
       /* Row 2 — Actions (Green) */
       { label: 'Want',        speak: 'Want',     emoji: '🤲', color: 'green',  subGrid: 'want', addToStrip: true },
@@ -728,7 +821,11 @@
       { label: 'All Done',    speak: 'All Done', emoji: '✅', color: 'orange', subGrid: 'alldone'                     },
 
       /* Row 5 — Nouns / Navigation (Yellow) */
-      { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words'  },
+      /* MY WORDS is a navigation-only folder for the child's custom vocabulary.
+         Unlike Food / People / Drink etc, the label "My Words" is never
+         spoken or added to the sentence strip — silentLabel:true short-
+         circuits both the first-tap and re-tap speak paths. */
+      { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words', silentLabel: true },
       { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
       { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', subGrid: 'food'      },
       { label: 'Drink',       speak: 'Drink',    emoji: '🥤', color: 'yellow', subGrid: 'drink'     },
@@ -1006,200 +1103,6 @@
         { label: 'Water',      speak: 'Water play', emoji: '💧', color: 'yellow-light' },
       ],
 
-      /* ── Pronouns ──────────────────────────────────────── */
-
-      i_me: [
-        { label: 'I want',       speak: 'I want',        emoji: '🤲', color: 'blue-light' },
-        { label: 'I need',       speak: 'I need',        emoji: '❗', color: 'blue-light' },
-        { label: 'I like',       speak: 'I like',        emoji: '👍', color: 'blue-light' },
-        { label: "I don't like", speak: "I don't like",  emoji: '👎', color: 'blue-light' },
-        { label: 'I feel',       speak: 'I feel',        emoji: '💭', color: 'blue-light' },
-        { label: 'I think',      speak: 'I think',       emoji: '🤔', color: 'blue-light' },
-        { label: 'I know',       speak: 'I know',        emoji: '💡', color: 'blue-light' },
-        { label: 'I see',        speak: 'I see',         emoji: '👁️', color: 'blue-light' },
-        { label: 'I hear',       speak: 'I hear',        emoji: '👂', color: 'blue-light' },
-        { label: 'I smell',      speak: 'I smell',       emoji: '👃', color: 'blue-light' },
-        { label: 'I taste',      speak: 'I taste',       emoji: '👅', color: 'blue-light' },
-        { label: 'I touch',      speak: 'I touch',       emoji: '🤏', color: 'blue-light' },
-        { label: 'I can',        speak: 'I can',         emoji: '✅', color: 'blue-light' },
-        { label: "I can't",      speak: "I can't",       emoji: '❌', color: 'blue-light' },
-        { label: 'I will',       speak: 'I will',        emoji: '👍', color: 'blue-light' },
-        { label: "I won't",      speak: "I won't",       emoji: '🚫', color: 'blue-light' },
-        { label: 'I did',        speak: 'I did',         emoji: '✔️', color: 'blue-light' },
-        { label: "I didn't",     speak: "I didn't",      emoji: '❌', color: 'blue-light' },
-        { label: 'I have',       speak: 'I have',        emoji: '🖐️', color: 'blue-light' },
-        { label: "I don't have", speak: "I don't have",  emoji: '🤷', color: 'blue-light' },
-        { label: 'I am',         speak: 'I am',          emoji: '👤', color: 'blue-light' },
-        { label: "I'm not",      speak: "I'm not",       emoji: '🙅', color: 'blue-light' },
-        { label: 'I go',         speak: 'I go',          emoji: '🏃', color: 'blue-light' },
-        { label: 'I stay',       speak: 'I stay',        emoji: '🧍', color: 'blue-light' },
-        { label: 'I help',       speak: 'I help',        emoji: '🤝', color: 'blue-light' },
-        { label: 'I try',        speak: 'I try',         emoji: '🌟', color: 'blue-light' },
-        { label: 'I win',        speak: 'I win',         emoji: '🏆', color: 'blue-light' },
-        { label: 'I lose',       speak: 'I lose',        emoji: '😢', color: 'blue-light' },
-        { label: 'I love',       speak: 'I love',        emoji: '❤️', color: 'blue-light' },
-      ],
-
-      you: [
-        { label: 'You help',     speak: 'You help',      emoji: '🤝', color: 'blue-light' },
-        { label: 'You come',     speak: 'You come',      emoji: '👋', color: 'blue-light' },
-        { label: 'You go',       speak: 'You go',        emoji: '🚶', color: 'blue-light' },
-        { label: 'You stay',     speak: 'You stay',      emoji: '🧍', color: 'blue-light' },
-        { label: 'You stop',     speak: 'You stop',      emoji: '🛑', color: 'blue-light' },
-        { label: 'You wait',     speak: 'You wait',      emoji: '⏰', color: 'blue-light' },
-        { label: 'You look',     speak: 'You look',      emoji: '👀', color: 'blue-light' },
-        { label: 'You listen',   speak: 'You listen',    emoji: '👂', color: 'blue-light' },
-        { label: 'You try',      speak: 'You try',       emoji: '🌟', color: 'blue-light' },
-        { label: 'You can',      speak: 'You can',       emoji: '✅', color: 'blue-light' },
-        { label: 'You will',     speak: 'You will',      emoji: '👍', color: 'blue-light' },
-        { label: 'You did',      speak: 'You did',       emoji: '✔️', color: 'blue-light' },
-        { label: 'You have',     speak: 'You have',      emoji: '🖐️', color: 'blue-light' },
-        { label: 'You are',      speak: 'You are',       emoji: '👤', color: 'blue-light' },
-        { label: "You're good",  speak: "You're good",   emoji: '😊', color: 'blue-light' },
-        { label: "You're kind",  speak: "You're kind",   emoji: '🤗', color: 'blue-light' },
-        { label: "You're funny", speak: "You're funny",  emoji: '😄', color: 'blue-light' },
-        { label: "You're nice",  speak: "You're nice",   emoji: '😊', color: 'blue-light' },
-        { label: "You're smart", speak: "You're smart",  emoji: '🧠', color: 'blue-light' },
-        { label: "You're strong",speak: "You're strong", emoji: '💪', color: 'blue-light' },
-        { label: "You're fast",  speak: "You're fast",   emoji: '💨', color: 'blue-light' },
-        { label: "You're slow",  speak: "You're slow",   emoji: '🐢', color: 'blue-light' },
-        { label: "You're big",   speak: "You're big",    emoji: '🐘', color: 'blue-light' },
-        { label: "You're little",speak: "You're little", emoji: '🐭', color: 'blue-light' },
-        { label: "You're loud",  speak: "You're loud",   emoji: '📢', color: 'blue-light' },
-        { label: "You're quiet", speak: "You're quiet",  emoji: '🤫', color: 'blue-light' },
-        { label: "You're right", speak: "You're right",  emoji: '✅', color: 'blue-light' },
-        { label: "You're wrong", speak: "You're wrong",  emoji: '❌', color: 'blue-light' },
-        { label: "You're here",  speak: "You're here",   emoji: '📍', color: 'blue-light' },
-      ],
-
-      it: [
-        { label: 'It hurts',    speak: 'It hurts',    emoji: '🤕', color: 'blue-light' },
-        { label: "It's good",   speak: "It's good",   emoji: '😊', color: 'blue-light' },
-        { label: "It's bad",    speak: "It's bad",    emoji: '😟', color: 'blue-light' },
-        { label: "It's yucky",  speak: "It's yucky",  emoji: '🤢', color: 'blue-light' },
-        { label: "It's nice",   speak: "It's nice",   emoji: '🥰', color: 'blue-light' },
-        { label: "It's funny",  speak: "It's funny",  emoji: '😄', color: 'blue-light' },
-        { label: "It's scary",  speak: "It's scary",  emoji: '😨', color: 'blue-light' },
-        { label: "It's loud",   speak: "It's loud",   emoji: '📢', color: 'blue-light' },
-        { label: "It's quiet",  speak: "It's quiet",  emoji: '🤫', color: 'blue-light' },
-        { label: "It's hot",    speak: "It's hot",    emoji: '🔥', color: 'blue-light' },
-        { label: "It's cold",   speak: "It's cold",   emoji: '🧊', color: 'blue-light' },
-        { label: "It's big",    speak: "It's big",    emoji: '🐘', color: 'blue-light' },
-        { label: "It's little", speak: "It's little", emoji: '🐭', color: 'blue-light' },
-        { label: "It's heavy",  speak: "It's heavy",  emoji: '⬇️', color: 'blue-light' },
-        { label: "It's light",  speak: "It's light",  emoji: '🪶', color: 'blue-light' },
-        { label: "It's fast",   speak: "It's fast",   emoji: '💨', color: 'blue-light' },
-        { label: "It's slow",   speak: "It's slow",   emoji: '🐢', color: 'blue-light' },
-        { label: "It's hard",   speak: "It's hard",   emoji: '💪', color: 'blue-light' },
-        { label: "It's soft",   speak: "It's soft",   emoji: '🧸', color: 'blue-light' },
-        { label: "It's wet",    speak: "It's wet",    emoji: '💧', color: 'blue-light' },
-        { label: "It's dry",    speak: "It's dry",    emoji: '☀️', color: 'blue-light' },
-        { label: "It's clean",  speak: "It's clean",  emoji: '✨', color: 'blue-light' },
-        { label: "It's dirty",  speak: "It's dirty",  emoji: '🤢', color: 'blue-light' },
-        { label: "It's broken", speak: "It's broken", emoji: '💔', color: 'blue-light' },
-        { label: "It's fixed",  speak: "It's fixed",  emoji: '🔧', color: 'blue-light' },
-        { label: "It's done",   speak: "It's done",   emoji: '✅', color: 'blue-light' },
-        { label: "It's mine",   speak: "It's mine",   emoji: '👤', color: 'blue-light' },
-        { label: "It's yours",  speak: "It's yours",  emoji: '👉', color: 'blue-light' },
-        { label: "It's here",   speak: "It's here",   emoji: '📍', color: 'blue-light' },
-      ],
-
-      we: [
-        { label: 'We go',       speak: 'We go',       emoji: '🏃', color: 'blue-light' },
-        { label: 'We stay',     speak: 'We stay',     emoji: '🧍', color: 'blue-light' },
-        { label: 'We play',     speak: 'We play',     emoji: '🎮', color: 'blue-light' },
-        { label: 'We work',     speak: 'We work',     emoji: '💼', color: 'blue-light' },
-        { label: 'We eat',      speak: 'We eat',      emoji: '🍽️', color: 'blue-light' },
-        { label: 'We drink',    speak: 'We drink',    emoji: '💧', color: 'blue-light' },
-        { label: 'We sleep',    speak: 'We sleep',    emoji: '😴', color: 'blue-light' },
-        { label: 'We read',     speak: 'We read',     emoji: '📖', color: 'blue-light' },
-        { label: 'We sing',     speak: 'We sing',     emoji: '🎵', color: 'blue-light' },
-        { label: 'We dance',    speak: 'We dance',    emoji: '💃', color: 'blue-light' },
-        { label: 'We jump',     speak: 'We jump',     emoji: '🦘', color: 'blue-light' },
-        { label: 'We run',      speak: 'We run',      emoji: '🏃', color: 'blue-light' },
-        { label: 'We swim',     speak: 'We swim',     emoji: '🏊', color: 'blue-light' },
-        { label: 'We build',    speak: 'We build',    emoji: '🏗️', color: 'blue-light' },
-        { label: 'We draw',     speak: 'We draw',     emoji: '✏️', color: 'blue-light' },
-        { label: 'We help',     speak: 'We help',     emoji: '🤝', color: 'blue-light' },
-        { label: 'We try',      speak: 'We try',      emoji: '🌟', color: 'blue-light' },
-        { label: 'We win',      speak: 'We win',      emoji: '🏆', color: 'blue-light' },
-        { label: 'We lose',     speak: 'We lose',     emoji: '😢', color: 'blue-light' },
-        { label: 'We share',    speak: 'We share',    emoji: '🤝', color: 'blue-light' },
-        { label: 'We wait',     speak: 'We wait',     emoji: '⏰', color: 'blue-light' },
-        { label: 'We listen',   speak: 'We listen',   emoji: '👂', color: 'blue-light' },
-        { label: 'We talk',     speak: 'We talk',     emoji: '💬', color: 'blue-light' },
-        { label: 'We laugh',    speak: 'We laugh',    emoji: '😄', color: 'blue-light' },
-        { label: 'We cry',      speak: 'We cry',      emoji: '😢', color: 'blue-light' },
-        { label: 'We hug',      speak: 'We hug',      emoji: '🤗', color: 'blue-light' },
-        { label: 'We learn',    speak: 'We learn',    emoji: '📚', color: 'blue-light' },
-        { label: 'We practice', speak: 'We practice', emoji: '🔄', color: 'blue-light' },
-        { label: 'We finish',   speak: 'We finish',   emoji: '✅', color: 'blue-light' },
-      ],
-
-      who: [
-        { label: 'Mom',       speak: 'Mom',       emoji: '👩',   color: 'blue-light' },
-        { label: 'Dad',       speak: 'Dad',       emoji: '👨',   color: 'blue-light' },
-        { label: 'Grandma',   speak: 'Grandma',   emoji: '👵',   color: 'blue-light' },
-        { label: 'Grandpa',   speak: 'Grandpa',   emoji: '👴',   color: 'blue-light' },
-        { label: 'Brother',   speak: 'Brother',   emoji: '👦',   color: 'blue-light' },
-        { label: 'Sister',    speak: 'Sister',    emoji: '👧',   color: 'blue-light' },
-        { label: 'Baby',      speak: 'Baby',      emoji: '👶',   color: 'blue-light' },
-        { label: 'Me',        speak: 'Me',        emoji: '👤',   color: 'blue-light' },
-        { label: 'Friend',    speak: 'Friend',    emoji: '🤝',   color: 'blue-light' },
-        { label: 'Teacher',   speak: 'Teacher',   emoji: '🍎',   color: 'blue-light' },
-        { label: 'Assistant', speak: 'Assistant', emoji: '🙋',   color: 'blue-light' },
-        { label: 'Principal', speak: 'Principal', emoji: '🏫',   color: 'blue-light' },
-        { label: 'Doctor',    speak: 'Doctor',    emoji: '👨‍⚕️',  color: 'blue-light' },
-        { label: 'Nurse',     speak: 'Nurse',     emoji: '👩‍⚕️',  color: 'blue-light' },
-        { label: 'Dentist',   speak: 'Dentist',   emoji: '🦷',   color: 'blue-light' },
-        { label: 'Therapist', speak: 'Therapist', emoji: '🧑‍⚕️',  color: 'blue-light' },
-        { label: 'Coach',     speak: 'Coach',     emoji: '🏆',   color: 'blue-light' },
-        { label: 'Neighbour', speak: 'Neighbour', emoji: '🏘️',   color: 'blue-light' },
-        { label: 'Stranger',  speak: 'Stranger',  emoji: '🚫',   color: 'blue-light' },
-        { label: 'Everyone',  speak: 'Everyone',  emoji: '🌍',   color: 'blue-light' },
-        { label: 'Someone',   speak: 'Someone',   emoji: '🧑',   color: 'blue-light' },
-        { label: 'Anyone',    speak: 'Anyone',    emoji: '👥',   color: 'blue-light' },
-        { label: 'No one',    speak: 'No one',    emoji: '🚫',   color: 'blue-light' },
-        { label: 'He',        speak: 'He',        emoji: '👦',   color: 'blue-light' },
-        { label: 'She',       speak: 'She',       emoji: '👧',   color: 'blue-light' },
-        { label: 'They',      speak: 'They',      emoji: '👥',   color: 'blue-light' },
-        { label: 'We',        speak: 'We',        emoji: '👫',   color: 'blue-light' },
-        { label: 'Us',        speak: 'Us',        emoji: '👫',   color: 'blue-light' },
-        { label: 'Them',      speak: 'Them',      emoji: '👥',   color: 'blue-light' },
-      ],
-
-      what: [
-        { label: 'What is it',   speak: 'What is it',   emoji: '❓', color: 'blue-light' },
-        { label: 'What happened',speak: 'What happened', emoji: '😮', color: 'blue-light' },
-        { label: 'What now',     speak: 'What now',     emoji: '⏰', color: 'blue-light' },
-        { label: 'What next',    speak: 'What next',    emoji: '➡️', color: 'blue-light' },
-        { label: 'What time',    speak: 'What time',    emoji: '🕐', color: 'blue-light' },
-        { label: 'What day',     speak: 'What day',     emoji: '📅', color: 'blue-light' },
-        { label: 'What food',    speak: 'What food',    emoji: '🍎', color: 'blue-light' },
-        { label: 'What drink',   speak: 'What drink',   emoji: '🥤', color: 'blue-light' },
-        { label: 'What game',    speak: 'What game',    emoji: '🎮', color: 'blue-light' },
-        { label: 'What book',    speak: 'What book',    emoji: '📖', color: 'blue-light' },
-        { label: 'What song',    speak: 'What song',    emoji: '🎵', color: 'blue-light' },
-        { label: 'What show',    speak: 'What show',    emoji: '📺', color: 'blue-light' },
-        { label: 'What class',   speak: 'What class',   emoji: '📝', color: 'blue-light' },
-        { label: 'What work',    speak: 'What work',    emoji: '💼', color: 'blue-light' },
-        { label: 'What play',    speak: 'What play',    emoji: '🎮', color: 'blue-light' },
-        { label: 'What help',    speak: 'What help',    emoji: '🙏', color: 'blue-light' },
-        { label: 'What problem', speak: 'What problem', emoji: '😟', color: 'blue-light' },
-        { label: 'What hurts',   speak: 'What hurts',   emoji: '🤕', color: 'blue-light' },
-        { label: 'What need',    speak: 'What need',    emoji: '❗', color: 'blue-light' },
-        { label: 'What want',    speak: 'What want',    emoji: '🤲', color: 'blue-light' },
-        { label: 'What like',    speak: 'What like',    emoji: '👍', color: 'blue-light' },
-        { label: 'What dislike', speak: 'What dislike', emoji: '👎', color: 'blue-light' },
-        { label: 'What think',   speak: 'What think',   emoji: '💭', color: 'blue-light' },
-        { label: 'What feel',    speak: 'What feel',    emoji: '💭', color: 'blue-light' },
-        { label: 'What see',     speak: 'What see',     emoji: '👁️', color: 'blue-light' },
-        { label: 'What hear',    speak: 'What hear',    emoji: '👂', color: 'blue-light' },
-        { label: 'What smell',   speak: 'What smell',   emoji: '👃', color: 'blue-light' },
-        { label: 'What taste',   speak: 'What taste',   emoji: '👅', color: 'blue-light' },
-        { label: 'What touch',   speak: 'What touch',   emoji: '🤏', color: 'blue-light' },
-      ],
-
       /* ── Actions ───────────────────────────────────────── */
 
       stop: [
@@ -1211,7 +1114,7 @@
         { label: 'Stop please',  speak: 'Stop please',  emoji: '🙏', color: 'green-light' },
         { label: 'Finished',     speak: 'Finished',     emoji: '✅', color: 'green-light' },
         { label: 'Enough',       speak: 'Enough',       emoji: '✋', color: 'green-light' },
-        { label: 'No more',      speak: 'No more',      emoji: '❌', color: 'green-light' },
+        { label: 'Too tired',    speak: 'Too tired',    emoji: '😴', color: 'green-light' },
         { label: 'Too loud',     speak: 'Too loud',     emoji: '📢', color: 'green-light' },
         { label: 'Too much',     speak: 'Too much',     emoji: '😤', color: 'green-light' },
         { label: 'Hurts',        speak: 'Hurts',        emoji: '🤕', color: 'green-light' },
@@ -1346,9 +1249,9 @@
         { label: 'Out of way',  speak: 'Out of way',   emoji: '🚶', color: 'pink-light' },
         { label: 'Out of time', speak: 'Out of time',  emoji: '⏰', color: 'pink-light' },
         { label: 'Out please',  speak: 'Out please',   emoji: '🙏', color: 'pink-light' },
-        { label: 'Go out',      speak: 'Go out',       emoji: '🚪', color: 'pink-light' },
+        { label: 'Reach out',   speak: 'Reach out',    emoji: '🤝', color: 'pink-light' },
         { label: 'Stay out',    speak: 'Stay out',     emoji: '🛑', color: 'pink-light' },
-        { label: 'Look out',    speak: 'Look out',     emoji: '👀', color: 'pink-light' },
+        { label: 'Spread out',  speak: 'Spread out',   emoji: '↔️', color: 'pink-light' },
         { label: 'Watch out',   speak: 'Watch out',    emoji: '⚠️', color: 'pink-light' },
         { label: 'Help out',    speak: 'Help out',     emoji: '🤝', color: 'pink-light' },
         { label: 'Left out',    speak: 'Left out',     emoji: '😢', color: 'pink-light' },
@@ -1375,8 +1278,8 @@
         { label: 'Jump up',    speak: 'Jump up',    emoji: '🦘', color: 'pink-light' },
         { label: 'Lift up',    speak: 'Lift up',    emoji: '💪', color: 'pink-light' },
         { label: 'Hold up',    speak: 'Hold up',    emoji: '✋', color: 'pink-light' },
-        { label: 'Look up',    speak: 'Look up',    emoji: '👀', color: 'pink-light' },
-        { label: 'Go up',      speak: 'Go up',      emoji: '⬆️', color: 'pink-light' },
+        { label: 'Tidy up',    speak: 'Tidy up',    emoji: '🗂️', color: 'pink-light' },
+        { label: 'Wash up',    speak: 'Wash up',    emoji: '🫧', color: 'pink-light' },
         { label: 'Come up',    speak: 'Come up',    emoji: '☝️', color: 'pink-light' },
         { label: 'Up high',    speak: 'Up high',    emoji: '🌟', color: 'pink-light' },
         { label: 'Up there',   speak: 'Up there',   emoji: '☝️', color: 'pink-light' },
@@ -1402,7 +1305,7 @@
         { label: 'Lie down',    speak: 'Lie down',    emoji: '🛏️', color: 'pink-light' },
         { label: 'Get down',    speak: 'Get down',    emoji: '⬇️', color: 'pink-light' },
         { label: 'Come down',   speak: 'Come down',   emoji: '⬇️', color: 'pink-light' },
-        { label: 'Go down',     speak: 'Go down',     emoji: '⬇️', color: 'pink-light' },
+        { label: 'Lay down',    speak: 'Lay down',    emoji: '🛌', color: 'pink-light' },
         { label: 'Calm down',   speak: 'Calm down',   emoji: '😮‍💨', color: 'pink-light' },
         { label: 'Slow down',   speak: 'Slow down',   emoji: '🐢', color: 'pink-light' },
         { label: 'Turn down',   speak: 'Turn down',   emoji: '🔉', color: 'pink-light' },
@@ -1419,9 +1322,9 @@
         { label: 'Cool down',   speak: 'Cool down',   emoji: '🧊', color: 'pink-light' },
         { label: 'Settle down', speak: 'Settle down', emoji: '😌', color: 'pink-light' },
         { label: 'Count down',  speak: 'Count down',  emoji: '🔢', color: 'pink-light' },
-        { label: 'Break down',  speak: 'Break down',  emoji: '😢', color: 'pink-light' },
+        { label: 'Wind down',   speak: 'Wind down',   emoji: '😌', color: 'pink-light' },
         { label: 'Write down',  speak: 'Write down',  emoji: '✍️', color: 'pink-light' },
-        { label: 'Look down',   speak: 'Look down',   emoji: '👇', color: 'pink-light' },
+        { label: 'Hand down',   speak: 'Hand down',   emoji: '👋', color: 'pink-light' },
         { label: 'Bend down',   speak: 'Bend down',   emoji: '🧘', color: 'pink-light' },
         { label: 'Lean down',   speak: 'Lean down',   emoji: '↙️', color: 'pink-light' },
         { label: 'Reach down',  speak: 'Reach down',  emoji: '🖐️', color: 'pink-light' },
@@ -1433,7 +1336,7 @@
         { label: 'Turn on',    speak: 'Turn on',    emoji: '💡', color: 'pink-light' },
         { label: 'Put on',     speak: 'Put on',     emoji: '👕', color: 'pink-light' },
         { label: 'Come on',    speak: 'Come on',    emoji: '👋', color: 'pink-light' },
-        { label: 'Go on',      speak: 'Go on',      emoji: '➡️', color: 'pink-light' },
+        { label: 'Try on',     speak: 'Try on',     emoji: '👕', color: 'pink-light' },
         { label: 'Hold on',    speak: 'Hold on',    emoji: '✋', color: 'pink-light' },
         { label: 'Move on',    speak: 'Move on',    emoji: '🚶', color: 'pink-light' },
         { label: 'On here',    speak: 'On here',    emoji: '📍', color: 'pink-light' },
@@ -1465,7 +1368,7 @@
         { label: 'Turn off',   speak: 'Turn off',   emoji: '🌑', color: 'pink-light' },
         { label: 'Take off',   speak: 'Take off',   emoji: '✈️', color: 'pink-light' },
         { label: 'Get off',    speak: 'Get off',    emoji: '🖐️', color: 'pink-light' },
-        { label: 'Go off',     speak: 'Go off',     emoji: '💥', color: 'pink-light' },
+        { label: 'Show off',   speak: 'Show off',   emoji: '✨', color: 'pink-light' },
         { label: 'Come off',   speak: 'Come off',   emoji: '🔧', color: 'pink-light' },
         { label: 'Back off',   speak: 'Back off',   emoji: '👋', color: 'pink-light' },
         { label: 'Far off',    speak: 'Far off',    emoji: '🌅', color: 'pink-light' },
@@ -1566,10 +1469,10 @@
         { label: 'Good morning',  speak: 'Good morning',  emoji: '🌅', color: 'orange-light' },
         { label: 'Good night',    speak: 'Good night',    emoji: '🌙', color: 'orange-light' },
         { label: 'Good day',      speak: 'Good day',      emoji: '☀️', color: 'orange-light' },
-        { label: 'Good food',     speak: 'Good food',     emoji: '😋', color: 'orange-light' },
-        { label: 'Good drink',    speak: 'Good drink',    emoji: '💧', color: 'orange-light' },
+        { label: 'Good doggy',    speak: 'Good doggy',    emoji: '🐕', color: 'orange-light' },
+        { label: 'Good times',    speak: 'Good times',    emoji: '🎉', color: 'orange-light' },
         { label: 'Good sleep',    speak: 'Good sleep',    emoji: '😴', color: 'orange-light' },
-        { label: 'Good play',     speak: 'Good play',     emoji: '🎮', color: 'orange-light' },
+        { label: 'Good news',     speak: 'Good news',     emoji: '📰', color: 'orange-light' },
         { label: 'Good friend',   speak: 'Good friend',   emoji: '🤝', color: 'orange-light' },
         { label: 'Good helper',   speak: 'Good helper',   emoji: '🙋', color: 'orange-light' },
         { label: 'Good listener', speak: 'Good listener', emoji: '👂', color: 'orange-light' },
@@ -1601,8 +1504,8 @@
         { label: 'Smells bad',    speak: 'Smells bad',    emoji: '👃', color: 'orange-light' },
         { label: 'Looks bad',     speak: 'Looks bad',     emoji: '👁️', color: 'orange-light' },
         { label: 'Sounds bad',    speak: 'Sounds bad',    emoji: '📢', color: 'orange-light' },
-        { label: 'Yucky food',    speak: 'Yucky food',    emoji: '🤢', color: 'orange-light' },
-        { label: 'Yucky drink',   speak: 'Yucky drink',   emoji: '🤢', color: 'orange-light' },
+        { label: 'Bad dream',     speak: 'Bad dream',     emoji: '😱', color: 'orange-light' },
+        { label: 'Bad mood',      speak: 'Bad mood',      emoji: '😤', color: 'orange-light' },
         { label: 'Yucky smell',   speak: 'Yucky smell',   emoji: '👃', color: 'orange-light' },
         { label: 'Yucky taste',   speak: 'Yucky taste',   emoji: '👅', color: 'orange-light' },
         { label: 'Yucky feeling', speak: 'Yucky feeling', emoji: '🤢', color: 'orange-light' },
@@ -1624,9 +1527,9 @@
 
       more: [
         { label: 'More please',  speak: 'More please',  emoji: '🙏', color: 'orange-light' },
-        { label: 'More food',    speak: 'More food',    emoji: '🍎', color: 'orange-light' },
-        { label: 'More drink',   speak: 'More drink',   emoji: '💧', color: 'orange-light' },
-        { label: 'More play',    speak: 'More play',    emoji: '🎮', color: 'orange-light' },
+        { label: 'More turn',    speak: 'More turn',    emoji: '🔄', color: 'orange-light' },
+        { label: 'More tickle',  speak: 'More tickle',  emoji: '🤭', color: 'orange-light' },
+        { label: 'More cuddles', speak: 'More cuddles', emoji: '🤗', color: 'orange-light' },
         { label: 'More time',    speak: 'More time',    emoji: '⏰', color: 'orange-light' },
         { label: 'More help',    speak: 'More help',    emoji: '🤝', color: 'orange-light' },
         { label: 'More hugs',    speak: 'More hugs',    emoji: '🤗', color: 'orange-light' },
@@ -2005,8 +1908,8 @@
       Profile.save();
       renderMyWordsList();
       showSettingsScreen('settings-main-screen');
-      // If user is currently viewing my_words sub-grid, refresh it
-      if (currentGrid === 'my_words') renderGrid();
+      // If MY WORDS overlay is currently open, refresh its contents.
+      if (activeCategory === 'my_words') refreshOverlayWords();
     }
 
     function deleteCurrentMyWord() {
@@ -2016,7 +1919,7 @@
       Profile.save();
       renderMyWordsList();
       showSettingsScreen('settings-main-screen');
-      if (currentGrid === 'my_words') renderGrid();
+      if (activeCategory === 'my_words') refreshOverlayWords();
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -2033,8 +1936,8 @@
     /* ═══════════════════════════════════════════════════════════
        APP STATE
     ═══════════════════════════════════════════════════════════ */
-    let sentenceWords = [];
-    let currentGrid   = 'home';  // 'home' or a sub-grid key
+    let sentenceWords  = [];
+    let activeCategory = null;   // category id (e.g. 'food') when overlay is open, else null
 
     /* ═══════════════════════════════════════════════════════════
        SPEECH — Web Speech API
@@ -2181,72 +2084,182 @@
     }
 
     /* ═══════════════════════════════════════════════════════════
-       RENDER GRID — called on init and on every state change
+       RENDER HOME GRID — called once on boot.
+       Home grid is permanent (motor planning rule); buttons never
+       change identity. Categories open in an overlay (see below)
+       rather than swapping the grid.
     ═══════════════════════════════════════════════════════════ */
     function renderGrid() {
-      if (currentGrid === 'home') {
+      CORE_36.forEach((item, i) => {
+        const isPowerTool = i >= 30;
 
-        CORE_36.forEach((item, i) => {
-          updateSlot(i, item, () => {
-            if (item.subGrid) {
-              speak(item.speak);
-              if (item.addToStrip) addWord({ label: item.label, speak: item.speak });
-              currentGrid = item.subGrid;
-              renderGrid();
-            } else {
+        updateSlot(i, item, () => {
+          // Power tools — always active. Speak + strip + dismiss any open overlay.
+          if (isPowerTool) {
+            addWord({ label: item.label, speak: item.speak });
+            speak(item.speak);
+            if (activeCategory) closeCategoryOverlay();
+            return;
+          }
+
+          // Buttons that open a category overlay
+          if (item.subGrid) {
+            // Re-tap on the lifted anchor (overlay already open for THIS trigger):
+            // speak the category name + add to strip + close. Skip the speak/strip
+            // step if it was already done on first tap (Want / Go / Look — the
+            // SNUG-builder triggers that are spoken on open), OR if the label is
+            // navigation-only (MY WORDS — a folder name, never spoken).
+            if (activeCategory === item.subGrid) {
+              if (!item.addToStrip && !item.silentLabel) {
+                addWord({ label: item.label, speak: item.speak });
+                speak(item.speak);
+              }
+              closeCategoryOverlay();
+              return;
+            }
+
+            // First tap — open the overlay.
+            // Yellow nav (MY WORDS, People, Food…) — silent open. The label
+            // is a category, not a word the child wants to say.
+            // Want / Go / Look (addToStrip) — speak parent + add to strip,
+            // then open. Preserves SNUG construction (e.g. Want + Lego).
+            // Other action / position / descriptor triggers — open silently.
+            if (item.addToStrip) {
               addWord({ label: item.label, speak: item.speak });
               speak(item.speak);
             }
-          });
-        });
-
-      } else {
-
-        const triggerIdx  = CORE_36.findIndex(c => c.subGrid === currentGrid);
-        const triggerItem = CORE_36[triggerIdx];
-        // MY WORDS is a dynamic sub-grid sourced from the profile, not SUB_GRIDS.
-        const words = currentGrid === 'my_words'
-          ? (Profile.current?.myWords ?? []).map(mw => ({
-              label: mw.label,
-              speak: mw.speak,
-              emoji: mw.emoji || '⭐',
-              color: 'yellow-light',
-            }))
-          : (SUB_GRIDS[currentGrid] || []);
-        let   wordCursor  = 0;
-
-        for (let i = 0; i < 36; i++) {
-
-          if (i >= 30) {
-            /* Power tool — always active regardless of sub-grid state */
-            const item = CORE_36[i];
-            updateSlot(i, item, () => {
-              addWord({ label: item.label, speak: item.speak });
-              speak(item.speak);
-            });
-
-          } else if (i === triggerIdx) {
-            /* Trigger button becomes the back button with gold border */
-            updateSlot(i, triggerItem, () => {
-              currentGrid = 'home';
-              renderGrid();
-            }, 'active-trigger');
-
-          } else if (wordCursor < words.length) {
-            /* Sub-grid word */
-            const word = words[wordCursor++];
-            updateSlot(i, word, () => {
-              addWord({ label: word.label, speak: word.speak });
-              speak(word.speak);
-            });
-
-          } else {
-            /* No more words — leave slot visually empty */
-            clearSlot(i);
+            openCategoryOverlay(item.subGrid, item, i);
+            return;
           }
+
+          // Pronouns + any other no-overlay button — speak + add to strip.
+          addWord({ label: item.label, speak: item.speak });
+          speak(item.speak);
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       CATEGORY OVERLAY — open / close / refresh
+       Sits over rows 1–5 of the grid. Row 6 (Power Tools) is
+       physically uncovered and stays tappable. The trigger's
+       home button is z-index-lifted into its permanent cell as
+       the visible anchor; words fill the remaining 29 cells.
+    ═══════════════════════════════════════════════════════════ */
+    const overlayEl       = document.getElementById('category-overlay');
+    const overlayCloseBtn = document.getElementById('cat-close');
+
+    /* Trigger context for the active overlay — kept so MY WORDS edits
+       can re-render without re-deriving from CORE_36. */
+    let activeTriggerItem = null;
+    let activeTriggerIdx  = -1;
+
+    function openCategoryOverlay(categoryId, triggerItem, triggerIdx) {
+      activeCategory    = categoryId;
+      activeTriggerItem = triggerItem;
+      activeTriggerIdx  = triggerIdx;
+
+      // Lift the trigger button: gold glow + z-index above the overlay.
+      gridSlots[triggerIdx].classList.add('is-anchor');
+
+      renderOverlayWords();
+      overlayEl.hidden = false;
+    }
+
+    function closeCategoryOverlay() {
+      if (!activeCategory) return;
+
+      // Drop the gold glow from the home button.
+      if (activeTriggerIdx >= 0) {
+        gridSlots[activeTriggerIdx].classList.remove('is-anchor');
+      }
+
+      activeCategory    = null;
+      activeTriggerItem = null;
+      activeTriggerIdx  = -1;
+
+      overlayEl.hidden = true;
+      // Remove dynamically-created word buttons; preserve the ✕ close button.
+      overlayEl.querySelectorAll('button:not(#cat-close)').forEach(b => b.remove());
+    }
+
+    /* Re-build word buttons in the overlay grid, skipping the trigger's
+       own cell so the lifted anchor shows through. Used on open and on
+       MY WORDS edits while the overlay is showing. */
+    function renderOverlayWords() {
+      const words = activeCategory === 'my_words'
+        ? (Profile.current?.myWords ?? []).map(mw => ({
+            label: mw.label,
+            speak: mw.speak,
+            emoji: mw.emoji || '⭐',
+            color: 'yellow-light',
+          }))
+        : (SUB_GRIDS[activeCategory] || []);
+
+      // Clear any prior word buttons (preserve the ✕ close button).
+      overlayEl.querySelectorAll('button:not(#cat-close)').forEach(b => b.remove());
+
+      // The overlay is a 5×6 grid covering home rows 1–5. The trigger's
+      // home cell maps to (overlayRow, overlayCol) in 0-indexed terms.
+      const triggerRow = Math.floor(activeTriggerIdx / 6);
+      const triggerCol = activeTriggerIdx % 6;
+
+      let wordCursor = 0;
+      for (let row = 0; row < 5; row++) {
+        for (let col = 0; col < 6; col++) {
+          if (row === triggerRow && col === triggerCol) continue; // anchor cell
+          if (wordCursor >= words.length) break;
+          const word = words[wordCursor++];
+
+          const btn = document.createElement('button');
+          btn.type      = 'button';
+          btn.className = `btn ${word.color}`;
+          btn.setAttribute('aria-label', word.aria || word.label);
+          btn.innerHTML =
+            `<span class="btn-emoji" aria-hidden="true">${word.emoji}</span>` +
+            `<span class="btn-label">${word.label}</span>`;
+          // 1-indexed CSS grid placement.
+          btn.style.gridRow    = row + 1;
+          btn.style.gridColumn = col + 1;
+
+          btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
+          btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+
+          const tap = (e) => {
+            if (e.type === 'touchstart') {
+              e.preventDefault();
+              btn.classList.add('pressed');
+            } else {
+              if (isTouchDevice) return;  /* block ghost clicks on touch devices */
+            }
+            const now = Date.now();
+            if (now - lastTapTime < 100) return;
+            lastTapTime = now;
+
+            // Auto-dismiss: speak + strip + close in one step.
+            addWord({ label: word.label, speak: word.speak });
+            speak(word.speak);
+            closeCategoryOverlay();
+          };
+
+          btn.addEventListener('touchstart', tap, { passive: false });
+          btn.addEventListener('mousedown',  tap);
+
+          overlayEl.appendChild(btn);
         }
       }
     }
+
+    function refreshOverlayWords() {
+      if (activeCategory) renderOverlayWords();
+    }
+
+    /* ✕ button — close silently (no speak, no strip add). */
+    overlayCloseBtn.addEventListener('click', closeCategoryOverlay);
+    overlayCloseBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      closeCategoryOverlay();
+    }, { passive: false });
 
     /* ═══════════════════════════════════════════════════════════
        GESTURE PREVENTION — block pinch-zoom across the whole page
