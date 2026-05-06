@@ -334,6 +334,27 @@
         0 0 8px var(--neon, #ffffff);
     }
 
+    /* Level 3 scaffold target — gold border on the next-step cue.
+       Defined AFTER .is-anchor so source order makes it win when a
+       button has both classes (anchor that is also the step target).
+       Applied to home buttons, sub-grid words inside the overlay,
+       and the strip's Speak button at end-of-trial. */
+    .scaffold-target {
+      box-shadow: 0 0 15px 5px gold;
+      position: relative;
+      z-index: 6;
+    }
+    html.high-contrast .scaffold-target {
+      box-shadow:
+        0 0 15px 5px gold,
+        0 0 8px var(--neon, #ffffff);
+    }
+    /* Speak button gets a slightly stronger shadow so the gold is
+       readable on its green background. */
+    #speak-btn.scaffold-target {
+      box-shadow: 0 0 0 3px gold, 0 0 15px 5px gold;
+    }
+
     html.high-contrast .cat-close {
       background: #000;
       border: 2px solid #fff;
@@ -2130,6 +2151,7 @@
         applyPreferences();
         Engine.syncFromProfile();
         renderActivePathwayIndicator();
+        renderScaffoldHighlight();
         hideOverlay('setup-overlay');
       });
     }
@@ -2474,6 +2496,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      renderScaffoldHighlight();
     }
 
     /* Open the edit screen. id === null → blank Add form; otherwise
@@ -2550,6 +2573,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      renderScaffoldHighlight();
       showSettingsScreen('settings-main-screen');
     }
 
@@ -2566,6 +2590,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      renderScaffoldHighlight();
       showSettingsScreen('settings-main-screen');
     }
 
@@ -2624,8 +2649,11 @@
     ═══════════════════════════════════════════════════════════ */
     const Engine = {
       state: {
-        pathwayId: null,
-        stepIndex: 0,
+        pathwayId:   null,
+        stepIndex:   0,
+        speakTapped: false,    // true after the post-completion Speak fires;
+                               // gates the gold-on-Speak cue and prevents
+                               // double-counting the same trial.
       },
 
       /* Sync internal state to the profile's active pathway. Called at
@@ -2634,19 +2662,22 @@
          progress when the same pathway stays active. */
       syncFromProfile() {
         if (!Profile.current) {
-          this.state.pathwayId = null;
-          this.state.stepIndex = 0;
+          this.state.pathwayId   = null;
+          this.state.stepIndex   = 0;
+          this.state.speakTapped = false;
           return;
         }
         const active = Profile.current.pathways.find(p => p.active) || null;
         if (!active) {
-          this.state.pathwayId = null;
-          this.state.stepIndex = 0;
+          this.state.pathwayId   = null;
+          this.state.stepIndex   = 0;
+          this.state.speakTapped = false;
           return;
         }
         if (this.state.pathwayId !== active.id) {
-          this.state.pathwayId = active.id;
-          this.state.stepIndex = 0;
+          this.state.pathwayId   = active.id;
+          this.state.stepIndex   = 0;
+          this.state.speakTapped = false;
         }
         // else: same pathway is still active — keep the in-flight pointer.
       },
@@ -2660,7 +2691,8 @@
          word matches the next expected step. Wrong / out-of-order
          commits leave the pointer alone — at L4 the tap still works
          fully (strip update, speech), the engine just doesn't credit
-         progress. */
+         progress. (At L3 wrong taps are gated upstream and never
+         reach this hook.) */
       onCommit(wordId) {
         const pw = this.activePathway();
         if (!pw || !pw.steps) return;
@@ -2671,30 +2703,142 @@
       },
 
       /* Backspace hook. Decrements the pointer iff the popped word
-         was the most recently credited step — keeps the engine
-         symmetric with the strip. */
+         was the most recently credited step. If we were in a completed
+         state and just dropped below it, also clear speakTapped so a
+         re-completion can be counted again on the next Speak. */
       onBackspace(wordId) {
         const pw = this.activePathway();
         if (!pw || !pw.steps) return;
         if (this.state.stepIndex === 0) return;
         if (pw.steps[this.state.stepIndex - 1] === wordId) {
+          const wasComplete = this.state.stepIndex === pw.steps.length;
           this.state.stepIndex--;
+          if (wasComplete) this.state.speakTapped = false;
         }
       },
 
-      /* Clear = trial boundary. If the trial ended with the pointer
-         at the end of the pathway, count it as a completion. Counting
-         only at trial boundary avoids double-counting when a child
-         backspaces and re-commits the final step. */
+      /* Clear = trial reset. Completion counting moved to onSpeakComplete
+         so the count fires at the moment of the audible utterance (the
+         actual reinforcer for the chain), not at the teacher's reset. */
       onClear() {
+        this.state.stepIndex   = 0;
+        this.state.speakTapped = false;
+      },
+
+      /* Speak hook — fired after speakSentence() actually reads the
+         strip aloud. Counts a completion iff the pathway is in the
+         completed state and we haven't already counted it. The
+         speakTapped flag gates double-counts (re-tapping Speak post-
+         completion, or re-completing without a Clear in between). */
+      onSpeakComplete() {
         const pw = this.activePathway();
-        if (pw && pw.steps && pw.steps.length > 0 &&
-            this.state.stepIndex === pw.steps.length) {
-          pw.completionCount = (pw.completionCount || 0) + 1;
-        }
-        this.state.stepIndex = 0;
+        if (!pw || !pw.steps || pw.steps.length === 0) return;
+        if (this.state.speakTapped) return;
+        if (this.state.stepIndex !== pw.steps.length) return;
+        pw.completionCount = (pw.completionCount || 0) + 1;
+        this.state.speakTapped = true;
       },
     };
+
+    /* ═══════════════════════════════════════════════════════════
+       SCAFFOLD HIGHLIGHT — Level 3+ visual cue
+       Computes which DOM element should currently glow gold based
+       on engine state + current overlay state, then applies the
+       .scaffold-target class to it (removing from the prior target).
+       Returns null when no scaffolding is active or the trial has
+       been speak-tapped (chain complete from child's perspective).
+    ═══════════════════════════════════════════════════════════ */
+    function findCoreIdForSubGrid(subGridKey) {
+      const item = CORE_36.find(it => it.subGrid === subGridKey);
+      return item ? item.id : null;
+    }
+
+    function getScaffoldTargetId() {
+      // Scaffolding is suppressed entirely during authoring.
+      if (isRecording) return null;
+      const pw = Engine.activePathway();
+      if (!pw || !pw.steps) return null;
+      if ((pw.scaffoldingLevel || 0) < 3) return null;     // L1/L2 layer on later
+      if (Engine.state.speakTapped) return null;           // chain complete + spoken
+
+      // Pathway complete but not yet spoken → glow on Speak.
+      if (pw.steps.length === 0) return null;
+      if (Engine.state.stepIndex >= pw.steps.length) return 'speak-btn';
+
+      const targetId = pw.steps[Engine.state.stepIndex];
+
+      // Home-button target.
+      if (targetId.startsWith('core_')) {
+        if (activeCategory === null) return targetId;
+        const idx = parseInt(targetId.slice(5), 10);
+        const item = CORE_36[idx];
+        if (item && item.subGrid === activeCategory) {
+          // Anchor of the open sub-grid IS the target.
+          return targetId;
+        }
+        // A different sub-grid is open — guide the child to close it.
+        return findCoreIdForSubGrid(activeCategory);
+      }
+
+      // MY WORDS entry.
+      if (targetId.startsWith('mw_')) {
+        if (activeCategory === 'my_words') return targetId;
+        if (activeCategory !== null) return findCoreIdForSubGrid(activeCategory);
+        return findCoreIdForSubGrid('my_words');
+      }
+
+      // Sub-grid word: <key>_<slug>.
+      const underscore = targetId.indexOf('_');
+      if (underscore < 0) return null;
+      const key = targetId.slice(0, underscore);
+      if (activeCategory === key) return targetId;
+      if (activeCategory !== null) return findCoreIdForSubGrid(activeCategory);
+      return findCoreIdForSubGrid(key);
+    }
+
+    /* True when scaffolding is active and the given tap is NOT on
+       the current scaffold target. Used to gate wrong taps at L3+
+       so they're silently ignored. Power Tools and recording bypass
+       this check at the call site. */
+    function isWrongTapAt(itemId) {
+      const target = getScaffoldTargetId();
+      if (!target) return false;
+      return target !== itemId;
+    }
+
+    /* Apply the .scaffold-target class to whichever element is the
+       current gold target, removing it from any prior target. Called
+       after every state-changing event (commit, backspace, clear,
+       speak, overlay open/close/re-render, pathway activation). */
+    function renderScaffoldHighlight() {
+      // Strip any prior gold from grid buttons, overlay buttons, Speak.
+      gridSlots.forEach(b => b.classList.remove('scaffold-target'));
+      document.querySelectorAll('#category-overlay .scaffold-target')
+        .forEach(b => b.classList.remove('scaffold-target'));
+      document.getElementById('speak-btn').classList.remove('scaffold-target');
+
+      const targetId = getScaffoldTargetId();
+      if (!targetId) return;
+
+      if (targetId === 'speak-btn') {
+        document.getElementById('speak-btn').classList.add('scaffold-target');
+        return;
+      }
+
+      // core_<idx> → gridSlots[idx]
+      if (targetId.startsWith('core_')) {
+        const idx = parseInt(targetId.slice(5), 10);
+        if (gridSlots[idx]) gridSlots[idx].classList.add('scaffold-target');
+        return;
+      }
+
+      // Sub-grid word or MY WORDS entry — find the matching button
+      // inside the currently-open overlay by data-word-id.
+      const btn = document.querySelector(
+        `#category-overlay button[data-word-id="${targetId}"]`
+      );
+      if (btn) btn.classList.add('scaffold-target');
+    }
 
     /* ═══════════════════════════════════════════════════════════
        TAP-TO-BUILD RECORDER
@@ -2728,6 +2872,8 @@
       document.getElementById('active-pathway-indicator').hidden = true;
 
       renderRecordBanner();
+      // Recording suppresses the gold target — strip any active highlight.
+      renderScaffoldHighlight();
     }
 
     function exitRecordingMode() {
@@ -2745,6 +2891,8 @@
 
       // Restore the active-pathway pill if a pathway is still active.
       renderActivePathwayIndicator();
+      // Restore the gold target if the (still-active) pathway is L3+.
+      renderScaffoldHighlight();
     }
 
     /* Update the banner title + step counter. Called on entry and after
@@ -2856,6 +3004,7 @@
           renderRecordBanner();
         } else {
           Engine.onCommit(wordObj.id);
+          renderScaffoldHighlight();
         }
       }
       renderStrip();
@@ -2866,15 +3015,13 @@
       const popped = sentenceWords.pop();
       if (popped && popped.id) {
         if (isRecording) {
-          // Pop from the recording in lockstep with the strip pop. The
-          // tail should always match (every commit pushes both), but we
-          // guard with an equality check defensively.
           if (recordingSteps[recordingSteps.length - 1] === popped.id) {
             recordingSteps.pop();
             renderRecordBanner();
           }
         } else {
           Engine.onBackspace(popped.id);
+          renderScaffoldHighlight();
         }
       }
       renderStrip();
@@ -2886,6 +3033,7 @@
         renderRecordBanner();
       } else {
         Engine.onClear();
+        renderScaffoldHighlight();
       }
       sentenceWords = [];
       renderStrip();
@@ -2893,7 +3041,18 @@
 
     function speakSentence() {
       if (sentenceWords.length === 0) return;
+      // L3 gate — Speak only fires when the engine has highlighted the
+      // Speak button as the current target (i.e. all steps committed).
+      // Earlier taps are silently ignored. Recording bypasses entirely.
+      if (!isRecording && isWrongTapAt('speak-btn')) return;
       speak(sentenceWords.map(w => w.speak).join(' '));
+      // Completion accounting fires here at every level — the audible
+      // utterance IS the reinforcer for the chain. onSpeakComplete is
+      // a no-op when stepIndex !== steps.length.
+      if (!isRecording) {
+        Engine.onSpeakComplete();
+        renderScaffoldHighlight();
+      }
     }
 
     document.getElementById('backspace-btn').addEventListener('click', removeLastWord);
@@ -2990,12 +3149,19 @@
 
         updateSlot(i, item, () => {
           // Power tools — always active. Speak + strip + dismiss any open overlay.
+          // Power Tools bypass the L3 wrong-tap gate (ethical override per CLAUDE.md).
           if (isPowerTool) {
             addWord({ id: item.id, label: item.label, speak: item.speak });
             speak(item.speak);
             if (activeCategory) closeCategoryOverlay();
             return;
           }
+
+          // L3 wrong-tap gate — silently ignore taps on non-target home
+          // buttons. Recording mode bypasses entirely. The gate returns
+          // false when no scaffolding is active, so this is a no-op at L4
+          // and below.
+          if (!isRecording && isWrongTapAt(item.id)) return;
 
           // Buttons that open a category overlay
           if (item.subGrid) {
@@ -3004,8 +3170,23 @@
             // step if it was already done on first tap (Want / Go / Look — the
             // SNUG-builder triggers that are spoken on open), OR if the label is
             // navigation-only (MY WORDS — a folder name, never spoken).
+            //
+            // L3 close-navigation override: when the engine has highlighted
+            // this anchor for *navigation* (the actual step target lives
+            // elsewhere), the anchor tap should close the overlay WITHOUT
+            // committing the parent label. Without this, navigating away
+            // from a wrongly-opened sub-grid would silently insert the
+            // parent name into the strip.
             if (activeCategory === item.subGrid) {
-              if (!item.addToStrip && !item.silentLabel) {
+              let shouldCommit = !item.addToStrip && !item.silentLabel;
+              if (shouldCommit && !isRecording) {
+                const pw = Engine.activePathway();
+                if (pw && (pw.scaffoldingLevel || 0) >= 3 && pw.steps) {
+                  const stepTargetId = pw.steps[Engine.state.stepIndex];
+                  if (stepTargetId !== item.id) shouldCommit = false;
+                }
+              }
+              if (shouldCommit) {
                 addWord({ id: item.id, label: item.label, speak: item.speak });
                 speak(item.speak);
               }
@@ -3057,8 +3238,17 @@
       // Lift the trigger button: gold glow + z-index above the overlay.
       gridSlots[triggerIdx].classList.add('is-anchor');
 
+      // L3 scaffolding hides the silent-abort ✕ — child must use the
+      // anchor (which the engine guides them to) for close-navigation.
+      // Recording mode keeps the ✕ available — the teacher needs an
+      // unambiguous escape during authoring.
+      const pw = isRecording ? null : Engine.activePathway();
+      const l3Active = pw && (pw.scaffoldingLevel || 0) >= 3;
+      overlayCloseBtn.hidden = !!l3Active;
+
       renderOverlayWords();
       overlayEl.hidden = false;
+      renderScaffoldHighlight();
     }
 
     function closeCategoryOverlay() {
@@ -3076,6 +3266,10 @@
       overlayEl.hidden = true;
       // Remove dynamically-created word buttons; preserve the ✕ close button.
       overlayEl.querySelectorAll('button:not(#cat-close)').forEach(b => b.remove());
+      // Restore ✕ visibility — only ever hidden by openCategoryOverlay
+      // when L3 was active at open-time.
+      overlayCloseBtn.hidden = false;
+      renderScaffoldHighlight();
     }
 
     /* Re-build word buttons in the overlay grid, skipping the trigger's
@@ -3111,6 +3305,7 @@
           btn.type      = 'button';
           btn.className = `btn ${word.color}`;
           btn.setAttribute('aria-label', word.aria || word.label);
+          btn.dataset.wordId = word.id;   // used by renderScaffoldHighlight
           btn.innerHTML =
             `<span class="btn-emoji" aria-hidden="true">${word.emoji}</span>` +
             `<span class="btn-label">${word.label}</span>`;
@@ -3132,6 +3327,10 @@
             if (now - lastTapTime < 100) return;
             lastTapTime = now;
 
+            // L3 wrong-tap gate — silently ignore taps on non-target
+            // sub-grid words. Recording bypasses scaffolding entirely.
+            if (!isRecording && isWrongTapAt(word.id)) return;
+
             // Auto-dismiss: speak + strip + close in one step.
             addWord({ id: word.id, label: word.label, speak: word.speak });
             speak(word.speak);
@@ -3144,6 +3343,8 @@
           overlayEl.appendChild(btn);
         }
       }
+      // Re-apply the gold target after rebuilding the overlay's word buttons.
+      renderScaffoldHighlight();
     }
 
     function refreshOverlayWords() {
@@ -3187,6 +3388,7 @@
     }
     Engine.syncFromProfile();
     renderActivePathwayIndicator();
+    renderScaffoldHighlight();
 
     /* ═══════════════════════════════════════════════════════════
        SERVICE WORKER — offline / PWA support
