@@ -554,6 +554,144 @@
       text-align: center;
     }
 
+    /* ═══════════════════════════════════════════════════
+       PATHWAYS — list, edit form, active indicator
+       Mirrors MY WORDS list patterns; richer rows because
+       a pathway carries a label + level + active toggle +
+       edit/delete affordances in one item.
+    ═══════════════════════════════════════════════════ */
+    .pathway-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .pathway-item {
+      background: #f6f8fc;
+      border: 1.5px solid #dde2eb;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .pathway-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .pathway-item-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2a2f3a;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .pathway-item-meta {
+      font-size: 12px;
+      color: #6a7280;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+    .pathway-item-level {
+      font-weight: 700;
+      color: #4a5060;
+    }
+    .pathway-item-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .pathway-item-actions button {
+      font-size: 13px;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .pathway-item-actions .pathway-edit-btn   { color: #4A86C8; }
+    .pathway-item-actions .pathway-delete-btn { color: #c0392b; }
+    .pathway-item-actions button:active { filter: brightness(0.85); }
+
+    .pathway-empty {
+      font-size: 14px;
+      color: #6a7280;
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+    }
+
+    /* Read-only steps preview inside the edit screen — until tap-to-build
+       ships, this shows a placeholder; later it will render the recorded
+       sequence as word chips. */
+    .pathway-steps-readonly {
+      padding: 12px 14px;
+      background: #f0f2f5;
+      border: 1.5px dashed #c5cbd6;
+      border-radius: 8px;
+      font-size: 14px;
+      color: #6a7280;
+      font-style: italic;
+    }
+
+    /* Scaffolding level dropdown — mirrors form-row input styling */
+    .scaffolding-select {
+      width: 100%;
+      padding: 12px 14px;
+      font-size: 16px;
+      border: 1.5px solid #d0d6e2;
+      border-radius: 8px;
+      background: #fafbfd;
+      font-family: inherit;
+      color: #1a1a1a;
+    }
+    .scaffolding-select:focus {
+      outline: none;
+      border-color: #4A86C8;
+      background: #ffffff;
+    }
+
+    /* Active pathway indicator — small pill in the sentence strip, between
+       the settings button and the word tiles. Matches .word-tile chrome so
+       it reads as part of the strip rather than foreign UI. Hidden via the
+       [hidden] attribute when no pathway is active. */
+    #active-pathway-indicator {
+      flex-shrink: 0;
+      padding: 6px 12px;
+      background: #eef2f8;
+      border: 1.5px solid #c5d0e0;
+      border-radius: 16px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #4a5060;
+      max-width: 160px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    #active-pathway-indicator[hidden] { display: none; }
+
+    /* High-contrast variants for the new pathway elements */
+    html.high-contrast .pathway-item              { background: #1a1a1a; border-color: #555; }
+    html.high-contrast .pathway-item-label        { color: #fff; }
+    html.high-contrast .pathway-item-meta         { color: #aaa; }
+    html.high-contrast .pathway-item-level        { color: #ddd; }
+    html.high-contrast .pathway-empty             { color: #aaa; }
+    html.high-contrast .scaffolding-select        { background: #1a1a1a; color: #fff; border-color: #555; }
+    html.high-contrast .pathway-steps-readonly    { background: #0f0f0f; border-color: #555; color: #aaa; }
+    html.high-contrast #active-pathway-indicator  { background: #1a1a1a; border-color: #555; color: #fff; }
+
     /* Setup screen specific */
     #setup-overlay .overlay-body { display: flex; align-items: center; min-height: 100%; }
     #setup-overlay .setup-card  { width: 100%; }
@@ -580,6 +718,10 @@
       <button id="settings-btn" aria-label="Open settings" title="Settings">
         ⚙️
       </button>
+
+      <!-- Active pathway indicator — appears when scaffolding is active.
+           Decorative this session; the engine will read the same data later. -->
+      <div id="active-pathway-indicator" role="status" aria-live="polite" hidden></div>
 
       <div id="word-tiles" role="log" aria-label="Current sentence" aria-live="polite">
         <span id="strip-placeholder">Tap words to build a sentence…</span>
@@ -714,7 +856,11 @@
 
         <div class="overlay-section">
           <h2>Pathways</h2>
-          <p style="font-style: italic;">Coming soon — the scaffolding engine is the next feature being built.</p>
+          <p>Sequenced word targets the child is being taught to produce. Only one pathway is active at a time.</p>
+          <div id="pathway-list" class="pathway-list"></div>
+          <div class="btn-row">
+            <button id="pathway-add-btn" class="btn-primary">Add pathway</button>
+          </div>
         </div>
 
         <div class="overlay-section">
@@ -775,6 +921,43 @@
           </div>
           <div class="btn-row">
             <button id="change-pin-save" class="btn-primary">Save</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 5: add/edit a pathway -->
+    <div id="pathway-edit-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title" id="pathway-edit-title">Add pathway</h1>
+        <button id="pathway-edit-cancel" class="btn-ghost">Cancel</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <div class="form-row">
+            <label for="pathway-label">Label</label>
+            <input id="pathway-label" type="text" autocomplete="off" maxlength="60" placeholder="e.g. I want food" />
+          </div>
+          <div class="form-row">
+            <label for="pathway-level">Scaffolding level</label>
+            <select id="pathway-level" class="scaffolding-select">
+              <option value="">Select a level…</option>
+              <option value="1">Magnet</option>
+              <option value="2">Ghost</option>
+              <option value="3">Guide</option>
+              <option value="4">Pilot</option>
+            </select>
+          </div>
+          <div class="form-row">
+            <label>Steps</label>
+            <div id="pathway-steps-preview" class="pathway-steps-readonly">
+              No steps recorded yet. Tap-to-build coming soon.
+            </div>
+          </div>
+          <div class="form-error" id="pathway-edit-error"></div>
+          <div class="btn-row">
+            <button id="pathway-save" class="btn-primary">Save</button>
+            <button id="pathway-delete" class="btn-danger" hidden>Delete</button>
           </div>
         </div>
       </div>
@@ -1616,7 +1799,13 @@
       save() {
         if (!this.current) return;
         this.current.meta.updatedAt = new Date().toISOString();
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.current));
+        // Pathways are ephemeral this session — they live on Profile.current
+        // for code-path consistency but are stripped from disk writes until
+        // a later stage formalises pathway persistence. Without this, an
+        // unrelated save (e.g. toggling high contrast) would silently
+        // persist the in-memory pathway array.
+        const toSave = { ...this.current, pathways: [] };
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toSave));
       },
 
       create({ name, pinHash }) {
@@ -1679,7 +1868,13 @@
       document.getElementById(id).hidden = true;
     }
     function showSettingsScreen(screenId) {
-      const screens = ['settings-pin-screen', 'settings-main-screen', 'myword-edit-screen', 'change-pin-screen'];
+      const screens = [
+        'settings-pin-screen',
+        'settings-main-screen',
+        'myword-edit-screen',
+        'change-pin-screen',
+        'pathway-edit-screen',
+      ];
       screens.forEach(s => { document.getElementById(s).hidden = (s !== screenId); });
     }
 
@@ -1721,6 +1916,7 @@
         const pinHash = await hashPin(pin1);
         Profile.create({ name, pinHash });
         applyPreferences();
+        renderActivePathwayIndicator();
         hideOverlay('setup-overlay');
       });
     }
@@ -1789,6 +1985,32 @@
       document.getElementById('myword-save').addEventListener('click', saveMyWordEdit);
       document.getElementById('myword-delete').addEventListener('click', deleteCurrentMyWord);
 
+      // PATHWAYS handlers
+      document.getElementById('pathway-add-btn').addEventListener('click', () => openPathwayEdit(null));
+      document.getElementById('pathway-edit-cancel').addEventListener('click', () => showSettingsScreen('settings-main-screen'));
+      document.getElementById('pathway-save').addEventListener('click', savePathwayEdit);
+      document.getElementById('pathway-delete').addEventListener('click', deleteCurrentPathway);
+
+      // Event delegation on the pathway list — survives re-renders without
+      // needing to detach/reattach per-row listeners.
+      const pathwayListEl = document.getElementById('pathway-list');
+      pathwayListEl.addEventListener('change', (e) => {
+        const t = e.target;
+        if (t.matches('input[type="checkbox"][data-pathway-id]')) {
+          setPathwayActive(t.dataset.pathwayId, t.checked);
+        }
+      });
+      pathwayListEl.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.matches('.pathway-edit-btn')) {
+          openPathwayEdit(t.dataset.pathwayId);
+        } else if (t.matches('.pathway-delete-btn')) {
+          // Set the editing target so deleteCurrentPathway() can resolve it.
+          editingPathwayId = t.dataset.pathwayId;
+          deleteCurrentPathway();
+        }
+      });
+
       // Change PIN
       document.getElementById('settings-change-pin').addEventListener('click', () => {
         document.getElementById('change-pin-new').value = '';
@@ -1814,6 +2036,7 @@
       document.getElementById('settings-name').value = Profile.current.name;
       document.getElementById('settings-hc').checked = !!Profile.current.preferences.highContrast;
       renderMyWordsList();
+      renderPathwayList();
     }
 
     /* ─── MY WORDS CRUD ─────────────────────────────── */
@@ -1920,6 +2143,174 @@
       renderMyWordsList();
       showSettingsScreen('settings-main-screen');
       if (activeCategory === 'my_words') refreshOverlayWords();
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PATHWAYS — CRUD + activation
+       Stage 1 of the scaffolding-engine build: data + UI only. The
+       engine that interprets these pathways arrives in a later stage.
+       Persistence is intentionally deferred — pathways live on
+       Profile.current.pathways but Profile.save() is NOT called for
+       pathway mutations this session, so reloading clears them.
+    ═══════════════════════════════════════════════════════════ */
+    let editingPathwayId = null;
+
+    const SCAFFOLDING_LEVELS = { 1: 'Magnet', 2: 'Ghost', 3: 'Guide', 4: 'Pilot' };
+    function getScaffoldingLevelName(level) {
+      return SCAFFOLDING_LEVELS[level] || '—';
+    }
+
+    /* Render the list of pathways inside the main settings screen.
+       Empty-state message when no pathways exist. */
+    function renderPathwayList() {
+      const listEl = document.getElementById('pathway-list');
+      listEl.innerHTML = '';
+      const pathways = Profile.current?.pathways || [];
+
+      if (pathways.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'pathway-empty';
+        empty.textContent = 'No pathways yet. Tap Add Pathway to create your first one.';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      pathways.forEach(pw => {
+        const item = document.createElement('div');
+        item.className = 'pathway-item';
+        item.innerHTML =
+          `<div class="pathway-item-header">` +
+            `<div class="pathway-item-label">${escapeHtml(pw.label)}</div>` +
+            `<label class="switch" aria-label="Activate pathway">` +
+              `<input type="checkbox" data-pathway-id="${pw.id}" ${pw.active ? 'checked' : ''} />` +
+              `<span class="slider"></span>` +
+            `</label>` +
+          `</div>` +
+          `<div class="pathway-item-meta">` +
+            `<span class="pathway-item-level">${getScaffoldingLevelName(pw.scaffoldingLevel)}</span>` +
+            `<span>·</span>` +
+            `<span class="pathway-item-steps">${escapeHtml(formatStepsPreview(pw.steps))}</span>` +
+          `</div>` +
+          `<div class="pathway-item-actions">` +
+            `<button class="pathway-edit-btn"   data-pathway-id="${pw.id}">Edit</button>` +
+            `<button class="pathway-delete-btn" data-pathway-id="${pw.id}">Delete</button>` +
+          `</div>`;
+        listEl.appendChild(item);
+      });
+    }
+
+    /* Sequence preview for a list row.
+       Until tap-to-build ships, all pathways have steps == []; the
+       ID-resolver that turns step IDs into readable labels arrives
+       alongside the recorder. */
+    function formatStepsPreview(steps) {
+      if (!steps || steps.length === 0) return 'No steps yet';
+      return steps.join(' → ');   // placeholder — resolver lands with tap-to-build
+    }
+
+    /* Activation toggle — exclusive across the whole pathways list.
+       Toggling one ON forces all others OFF; toggling the active one
+       OFF leaves the profile with no active pathway (a valid state). */
+    function setPathwayActive(id, makeActive) {
+      if (!Profile.current) return;
+      Profile.current.pathways.forEach(p => {
+        p.active = !!makeActive && p.id === id;
+      });
+      // no save() — pathway persistence deferred to a later stage
+      renderPathwayList();
+      renderActivePathwayIndicator();
+    }
+
+    /* Open the edit screen. id === null → blank Add form; otherwise
+       loads the existing pathway's values. */
+    function openPathwayEdit(id) {
+      editingPathwayId = id;
+      const titleEl  = document.getElementById('pathway-edit-title');
+      const labelEl  = document.getElementById('pathway-label');
+      const levelEl  = document.getElementById('pathway-level');
+      const errorEl  = document.getElementById('pathway-edit-error');
+      const deleteEl = document.getElementById('pathway-delete');
+      errorEl.textContent = '';
+
+      if (id === null) {
+        titleEl.textContent = 'Add pathway';
+        labelEl.value = '';
+        levelEl.value = '';        // forces the teacher to pick a level
+        deleteEl.hidden = true;
+      } else {
+        const pw = Profile.current.pathways.find(p => p.id === id);
+        if (!pw) { showSettingsScreen('settings-main-screen'); return; }
+        titleEl.textContent = 'Edit pathway';
+        labelEl.value = pw.label;
+        levelEl.value = String(pw.scaffoldingLevel);
+        deleteEl.hidden = false;
+      }
+      showSettingsScreen('pathway-edit-screen');
+    }
+
+    function savePathwayEdit() {
+      const errorEl = document.getElementById('pathway-edit-error');
+      errorEl.textContent = '';
+      const label = document.getElementById('pathway-label').value.trim();
+      const levelRaw = document.getElementById('pathway-level').value;
+
+      if (label.length === 0) {
+        errorEl.textContent = 'A pathway label is required.';
+        return;
+      }
+      const level = parseInt(levelRaw, 10);
+      if (!SCAFFOLDING_LEVELS[level]) {
+        errorEl.textContent = 'Please pick a scaffolding level.';
+        return;
+      }
+
+      if (editingPathwayId === null) {
+        Profile.current.pathways.push({
+          id:               'pw_' + crypto.randomUUID(),
+          label,
+          steps:            [],   // populated by tap-to-build in a later stage
+          scaffoldingLevel: level,
+          active:           false,
+        });
+      } else {
+        const pw = Profile.current.pathways.find(p => p.id === editingPathwayId);
+        if (pw) Object.assign(pw, { label, scaffoldingLevel: level });
+      }
+      // no save() — pathway persistence deferred to a later stage
+
+      renderPathwayList();
+      renderActivePathwayIndicator();
+      showSettingsScreen('settings-main-screen');
+    }
+
+    function deleteCurrentPathway() {
+      if (editingPathwayId === null) return;
+      const pw = Profile.current.pathways.find(p => p.id === editingPathwayId);
+      if (!pw) { showSettingsScreen('settings-main-screen'); return; }
+      // Native confirm — cheapest correct path on iPad / Chromebook / desktop.
+      if (!window.confirm(`Delete pathway "${pw.label}"?`)) return;
+
+      Profile.current.pathways = Profile.current.pathways.filter(p => p.id !== editingPathwayId);
+      // no save() — pathway persistence deferred to a later stage
+
+      renderPathwayList();
+      renderActivePathwayIndicator();
+      showSettingsScreen('settings-main-screen');
+    }
+
+    /* Active-pathway pill in the sentence strip. Decorative this
+       session; the engine will read the same active flag later. */
+    function renderActivePathwayIndicator() {
+      const el = document.getElementById('active-pathway-indicator');
+      const pathways = Profile.current?.pathways || [];
+      const active = pathways.find(p => p.active);
+      if (!active) {
+        el.hidden = true;
+        el.textContent = '';
+        return;
+      }
+      el.hidden = false;
+      el.textContent = `Pathway: ${active.label}`;
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -2285,6 +2676,7 @@
     } else {
       applyPreferences();
     }
+    renderActivePathwayIndicator();
 
     /* ═══════════════════════════════════════════════════════════
        SERVICE WORKER — offline / PWA support
