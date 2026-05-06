@@ -692,6 +692,141 @@
     html.high-contrast .pathway-steps-readonly    { background: #0f0f0f; border-color: #555; color: #aaa; }
     html.high-contrast #active-pathway-indicator  { background: #1a1a1a; border-color: #555; color: #fff; }
 
+    /* ═══════════════════════════════════════════════════
+       RECORD BANNER — shown above the sentence strip while
+       the teacher is in tap-to-build record mode. Coral-red
+       background signals recording (universally red); gold
+       remains reserved for Level 3 scaffolding.
+    ═══════════════════════════════════════════════════ */
+    #record-banner {
+      flex-shrink: 0;
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      padding: 8px 12px;
+      min-height: 52px;
+      background: #fde6e6;
+      border-bottom: 2px solid #d96b6b;
+      color: #5a1a1a;
+    }
+    #record-banner[hidden] { display: none; }
+
+    .record-info {
+      flex: 1;
+      min-width: 0;
+      display: flex;
+      flex-direction: column;
+      justify-content: center;
+      gap: 2px;
+    }
+    .record-title-row {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      min-width: 0;
+    }
+    .record-dot {
+      width: 10px;
+      height: 10px;
+      flex-shrink: 0;
+      border-radius: 50%;
+      background: #d94848;
+      box-shadow: 0 0 6px rgba(217, 72, 72, 0.6);
+      animation: record-pulse 1.4s ease-in-out infinite;
+    }
+    @keyframes record-pulse {
+      0%, 100% { opacity: 1.0; }
+      50%      { opacity: 0.45; }
+    }
+    .record-title {
+      font-size: 15px;
+      font-weight: 700;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      max-width: 250px;
+    }
+    .record-step-counter {
+      font-size: 12px;
+      font-weight: 600;
+      color: #8a3a3a;
+    }
+    .record-error {
+      font-size: 12px;
+      color: #c0392b;
+      font-weight: 600;
+      flex-shrink: 0;
+      max-width: 200px;
+      white-space: nowrap;
+      overflow: hidden;
+      text-overflow: ellipsis;
+    }
+    .record-actions {
+      display: flex;
+      gap: 6px;
+      flex-shrink: 0;
+    }
+    .record-actions button {
+      padding: 8px 14px;
+      font-size: 14px;
+      font-weight: 700;
+      border-radius: 8px;
+      border: none;
+      cursor: pointer;
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s, filter 0.08s;
+    }
+    .record-actions button:active { transform: scale(0.95); filter: brightness(0.88); }
+    #record-cancel-btn { background: #ffffff; color: #5a1a1a; border: 1.5px solid #d96b6b !important; }
+    #record-done-btn   { background: #5CAF5C; color: #ffffff; }
+
+    /* Settings button is disabled during recording — visual state */
+    #settings-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* Step chips on the pathway-edit screen — populated when a pathway
+       has recorded steps. Replaces the dashed placeholder when steps exist. */
+    .pathway-step-chips {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 6px;
+      padding: 12px 14px;
+      background: #f0f7f0;
+      border: 1.5px solid #b0d8b0;
+      border-radius: 8px;
+    }
+    .pathway-step-chip {
+      display: inline-flex;
+      align-items: center;
+      gap: 4px;
+      padding: 5px 10px;
+      background: #ffffff;
+      border: 1.5px solid #c5d0e0;
+      border-radius: 14px;
+      font-size: 13px;
+      font-weight: 600;
+      color: #2a2f3a;
+    }
+    .pathway-step-arrow {
+      font-size: 14px;
+      font-weight: 700;
+      color: #6a7280;
+    }
+
+    /* High-contrast variants for record-mode + step chips */
+    html.high-contrast #record-banner       { background: #2a0000; border-bottom-color: #ff4040; color: #ffd0d0; }
+    html.high-contrast .record-step-counter { color: #ff8a8a; }
+    html.high-contrast #record-cancel-btn   { background: #1a1a1a; color: #fff; border-color: #ff8080 !important; }
+    html.high-contrast #record-done-btn     { background: #2a6e2a; color: #fff; }
+    html.high-contrast .pathway-step-chips  { background: #0d1f0d; border-color: #2a6e2a; }
+    html.high-contrast .pathway-step-chip   { background: #1a1a1a; border-color: #555; color: #fff; }
+    html.high-contrast .pathway-step-arrow  { color: #aaa; }
+
     /* Setup screen specific */
     #setup-overlay .overlay-body { display: flex; align-items: center; min-height: 100%; }
     #setup-overlay .setup-card  { width: 100%; }
@@ -711,6 +846,24 @@
 <body>
 
   <div id="app">
+
+    <!-- ── Record Banner ─────────────────────────────────
+         Shown above the sentence strip during tap-to-build record mode.
+         Hidden by default; toggled by enterRecordingMode / exitRecordingMode. -->
+    <div id="record-banner" role="region" aria-label="Recording pathway" hidden>
+      <div class="record-info">
+        <div class="record-title-row">
+          <span class="record-dot" aria-hidden="true"></span>
+          <span class="record-title" id="record-banner-title">Recording: …</span>
+        </div>
+        <span class="record-step-counter" id="record-step-counter">0 steps</span>
+      </div>
+      <div class="record-error" id="record-banner-error" role="alert"></div>
+      <div class="record-actions">
+        <button id="record-cancel-btn" type="button">Cancel</button>
+        <button id="record-done-btn"   type="button">Done</button>
+      </div>
+    </div>
 
     <!-- ── Sentence Strip ─────────────────────────────── -->
     <div id="sentence-strip" role="region" aria-label="Sentence strip">
@@ -951,8 +1104,9 @@
           <div class="form-row">
             <label>Steps</label>
             <div id="pathway-steps-preview" class="pathway-steps-readonly">
-              No steps recorded yet. Tap-to-build coming soon.
+              No steps recorded yet.
             </div>
+            <button id="pathway-record-btn" class="btn-secondary" type="button" hidden style="margin-top: 10px;">Record steps</button>
           </div>
           <div class="form-error" id="pathway-edit-error"></div>
           <div class="btn-row">
@@ -1808,6 +1962,29 @@
       });
     }
 
+    /* Resolve a stamped pathway-word ID to a renderable record.
+       Returns { label, emoji, color } or null if the word can't be
+       found (e.g. a MY WORDS entry that was deleted after the pathway
+       was recorded). Callers should handle the null case gracefully. */
+    function resolveWord(id) {
+      if (!id) return null;
+      if (id.startsWith('core_')) {
+        const idx = parseInt(id.slice(5), 10);
+        return CORE_36[idx] || null;
+      }
+      if (id.startsWith('mw_')) {
+        const mw = (Profile.current?.myWords || []).find(w => w.id === id);
+        return mw ? { label: mw.label, emoji: mw.emoji || '⭐', color: 'yellow-light' } : null;
+      }
+      // Sub-grid IDs are <key>_<slug>; locate by scanning the matching sub-grid.
+      const underscore = id.indexOf('_');
+      if (underscore < 0) return null;
+      const key = id.slice(0, underscore);
+      const arr = SUB_GRIDS[key];
+      if (!arr) return null;
+      return arr.find(w => w.id === id) || null;
+    }
+
     /* ═══════════════════════════════════════════════════════════
        PROFILE — local storage layer (cloud-ready schema)
        Single profile per device. Schema designed to lift cleanly
@@ -2027,6 +2204,16 @@
       document.getElementById('pathway-save').addEventListener('click', savePathwayEdit);
       document.getElementById('pathway-delete').addEventListener('click', deleteCurrentPathway);
 
+      // Record button on the pathway-edit screen — enters tap-to-build
+      // for the currently-edited pathway.
+      document.getElementById('pathway-record-btn').addEventListener('click', () => {
+        if (editingPathwayId) enterRecordingMode(editingPathwayId);
+      });
+
+      // Record-banner Done / Cancel buttons.
+      document.getElementById('record-done-btn').addEventListener('click', finishRecording);
+      document.getElementById('record-cancel-btn').addEventListener('click', cancelRecording);
+
       // Event delegation on the pathway list — survives re-renders without
       // needing to detach/reattach per-row listeners.
       const pathwayListEl = document.getElementById('pathway-list');
@@ -2235,13 +2422,44 @@
       });
     }
 
-    /* Sequence preview for a list row.
-       Until tap-to-build ships, all pathways have steps == []; the
-       ID-resolver that turns step IDs into readable labels arrives
-       alongside the recorder. */
+    /* Sequence preview for a list row — text-only, truncated by the
+       row's CSS. Resolves each step ID to its display label. */
     function formatStepsPreview(steps) {
       if (!steps || steps.length === 0) return 'No steps yet';
-      return steps.join(' → ');   // placeholder — resolver lands with tap-to-build
+      return steps.map(id => {
+        const w = resolveWord(id);
+        return w ? w.label : '?';
+      }).join(' → ');
+    }
+
+    /* Render the step sequence as a horizontal list of chips inside
+       the pathway-edit screen's steps preview container. Empty steps
+       fall back to the dashed placeholder. */
+    function renderStepChips(steps) {
+      const containerEl = document.getElementById('pathway-steps-preview');
+      containerEl.innerHTML = '';
+
+      if (!steps || steps.length === 0) {
+        containerEl.className = 'pathway-steps-readonly';
+        containerEl.textContent = 'No steps recorded yet.';
+        return;
+      }
+
+      containerEl.className = 'pathway-step-chips';
+      steps.forEach((id, i) => {
+        const w = resolveWord(id);
+        const chip = document.createElement('span');
+        chip.className = 'pathway-step-chip';
+        const emoji = w?.emoji ? `${w.emoji} ` : '';
+        chip.textContent = `${emoji}${w?.label || '?'}`;
+        containerEl.appendChild(chip);
+        if (i < steps.length - 1) {
+          const arrow = document.createElement('span');
+          arrow.className = 'pathway-step-arrow';
+          arrow.textContent = '→';
+          containerEl.appendChild(arrow);
+        }
+      });
     }
 
     /* Activation toggle — exclusive across the whole pathways list.
@@ -2259,21 +2477,29 @@
     }
 
     /* Open the edit screen. id === null → blank Add form; otherwise
-       loads the existing pathway's values. */
+       loads the existing pathway's values, including step chips and
+       the Record button (label flips between "Record steps" and
+       "Re-record" depending on whether steps already exist). */
     function openPathwayEdit(id) {
       editingPathwayId = id;
-      const titleEl  = document.getElementById('pathway-edit-title');
-      const labelEl  = document.getElementById('pathway-label');
-      const levelEl  = document.getElementById('pathway-level');
-      const errorEl  = document.getElementById('pathway-edit-error');
-      const deleteEl = document.getElementById('pathway-delete');
+      const titleEl   = document.getElementById('pathway-edit-title');
+      const labelEl   = document.getElementById('pathway-label');
+      const levelEl   = document.getElementById('pathway-level');
+      const errorEl   = document.getElementById('pathway-edit-error');
+      const deleteEl  = document.getElementById('pathway-delete');
+      const recordEl  = document.getElementById('pathway-record-btn');
       errorEl.textContent = '';
 
       if (id === null) {
+        // Add mode — Record button hidden until the pathway is saved.
+        // The teacher saves with label + level, returns to the list,
+        // then taps Edit on the new row to record.
         titleEl.textContent = 'Add pathway';
         labelEl.value = '';
         levelEl.value = '';        // forces the teacher to pick a level
         deleteEl.hidden = true;
+        recordEl.hidden = true;
+        renderStepChips([]);
       } else {
         const pw = Profile.current.pathways.find(p => p.id === id);
         if (!pw) { showSettingsScreen('settings-main-screen'); return; }
@@ -2281,6 +2507,11 @@
         labelEl.value = pw.label;
         levelEl.value = String(pw.scaffoldingLevel);
         deleteEl.hidden = false;
+        recordEl.hidden = false;
+        recordEl.textContent = (pw.steps && pw.steps.length > 0)
+          ? 'Re-record'
+          : 'Record steps';
+        renderStepChips(pw.steps || []);
       }
       showSettingsScreen('pathway-edit-screen');
     }
@@ -2370,6 +2601,15 @@
     let sentenceWords  = [];
     let activeCategory = null;   // category id (e.g. 'food') when overlay is open, else null
 
+    /* Tap-to-build recording state. While isRecording is true:
+       - the strip doubles as the live recording display
+       - every committed word's ID is pushed onto recordingSteps
+       - the Engine is suppressed (teacher taps must not credit progress)
+       - the settings button is disabled, settings overlay is hidden */
+    let isRecording        = false;
+    let recordingPathwayId = null;
+    let recordingSteps     = [];
+
     /* ═══════════════════════════════════════════════════════════
        SCAFFOLDING ENGINE — Level 4 (Pilot) only this stage
        Pure observer. No visual changes, no override of tap behaviour,
@@ -2457,6 +2697,115 @@
     };
 
     /* ═══════════════════════════════════════════════════════════
+       TAP-TO-BUILD RECORDER
+       Teacher records a pathway by tapping the live grid exactly as
+       the child will. The strip serves as the visible recording; the
+       record banner above it shows title + step count + Done/Cancel.
+       The Engine is suppressed during recording so authoring taps
+       don't falsely credit pathway progress.
+    ═══════════════════════════════════════════════════════════ */
+    function enterRecordingMode(pathwayId) {
+      const pw = Profile.current?.pathways.find(p => p.id === pathwayId);
+      if (!pw) return;
+
+      isRecording        = true;
+      recordingPathwayId = pathwayId;
+      recordingSteps     = [];
+
+      // Clear the strip so it can serve as the live recording display.
+      sentenceWords = [];
+      renderStrip();
+
+      // Hide settings, show banner, disable settings button.
+      hideOverlay('settings-overlay');
+      document.getElementById('settings-btn').disabled = true;
+      document.getElementById('record-banner-error').textContent = '';
+      const banner = document.getElementById('record-banner');
+      banner.hidden = false;
+
+      // Active-pathway pill is hidden during recording — the banner already
+      // names the pathway, two indicators in the strip is noise.
+      document.getElementById('active-pathway-indicator').hidden = true;
+
+      renderRecordBanner();
+    }
+
+    function exitRecordingMode() {
+      isRecording        = false;
+      recordingPathwayId = null;
+      recordingSteps     = [];
+
+      // Tidy the strip on the way out — the child returning to the app
+      // shouldn't see leftover authoring content.
+      sentenceWords = [];
+      renderStrip();
+
+      document.getElementById('record-banner').hidden = true;
+      document.getElementById('settings-btn').disabled = false;
+
+      // Restore the active-pathway pill if a pathway is still active.
+      renderActivePathwayIndicator();
+    }
+
+    /* Update the banner title + step counter. Called on entry and after
+       every recordingSteps mutation (commit / backspace / clear). */
+    function renderRecordBanner() {
+      const pw = Profile.current?.pathways.find(p => p.id === recordingPathwayId);
+      const title = document.getElementById('record-banner-title');
+      const count = document.getElementById('record-step-counter');
+      title.textContent = `Recording: ${pw ? pw.label : '…'}`;
+      const n = recordingSteps.length;
+      count.textContent = n === 1 ? '1 step' : `${n} steps`;
+    }
+
+    /* Done — write the recorded sequence into the pathway, exit
+       recording mode, return to the pathway-edit screen. Empty
+       recordings are blocked with an inline error per spec. */
+    function finishRecording() {
+      const errEl = document.getElementById('record-banner-error');
+      errEl.textContent = '';
+      if (recordingSteps.length === 0) {
+        errEl.textContent = 'Tap at least one word, or Cancel.';
+        return;
+      }
+      const pw = Profile.current?.pathways.find(p => p.id === recordingPathwayId);
+      if (!pw) { exitRecordingMode(); return; }
+      pw.steps = [...recordingSteps];
+      // no save() — pathway persistence deferred to a later stage
+
+      // If the just-rewritten pathway is the active one, the engine's
+      // in-flight stepIndex now points into the OLD steps array. Reset
+      // it so the next child tap is evaluated against the new sequence.
+      // (completionCount also arguably belongs here once mastery
+      // analytics ship — completions of the prior steps are stale
+      // measurements — but that's a clinical policy call we formalise
+      // alongside the mastery promotion logic.)
+      if (Engine.state.pathwayId === pw.id) {
+        Engine.state.stepIndex = 0;
+      }
+
+      const justRecordedId = recordingPathwayId;
+      exitRecordingMode();
+
+      // Re-open the pathway-edit screen so the teacher can see the
+      // recorded chips and Save / further edit.
+      showOverlay('settings-overlay');
+      openPathwayEdit(justRecordedId);
+    }
+
+    /* Cancel — discard the in-flight recording. Confirms when there
+       are tapped steps to lose, silent when nothing was tapped. */
+    function cancelRecording() {
+      if (recordingSteps.length > 0) {
+        if (!window.confirm('Discard recorded steps?')) return;
+      }
+      const cancelledId = recordingPathwayId;
+      exitRecordingMode();
+      showOverlay('settings-overlay');
+      openPathwayEdit(cancelledId);
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        SPEECH — Web Speech API
     ═══════════════════════════════════════════════════════════ */
     function speak(text) {
@@ -2499,19 +2848,45 @@
 
     function addWord(wordObj) {
       sentenceWords.push(wordObj);
-      if (wordObj.id) Engine.onCommit(wordObj.id);
+      if (wordObj.id) {
+        if (isRecording) {
+          recordingSteps.push(wordObj.id);
+          // Clear any prior empty-Done error as soon as the teacher taps.
+          document.getElementById('record-banner-error').textContent = '';
+          renderRecordBanner();
+        } else {
+          Engine.onCommit(wordObj.id);
+        }
+      }
       renderStrip();
     }
 
     function removeLastWord() {
       if (sentenceWords.length === 0) return;
       const popped = sentenceWords.pop();
-      if (popped && popped.id) Engine.onBackspace(popped.id);
+      if (popped && popped.id) {
+        if (isRecording) {
+          // Pop from the recording in lockstep with the strip pop. The
+          // tail should always match (every commit pushes both), but we
+          // guard with an equality check defensively.
+          if (recordingSteps[recordingSteps.length - 1] === popped.id) {
+            recordingSteps.pop();
+            renderRecordBanner();
+          }
+        } else {
+          Engine.onBackspace(popped.id);
+        }
+      }
       renderStrip();
     }
 
     function clearSentence() {
-      Engine.onClear();
+      if (isRecording) {
+        recordingSteps = [];
+        renderRecordBanner();
+      } else {
+        Engine.onClear();
+      }
       sentenceWords = [];
       renderStrip();
     }
