@@ -334,25 +334,48 @@
         0 0 8px var(--neon, #ffffff);
     }
 
-    /* Level 3 scaffold target — gold border on the next-step cue.
+    /* Scaffold target — electric-cyan halo on the next-step cue.
        Defined AFTER .is-anchor so source order makes it win when a
        button has both classes (anchor that is also the step target).
        Applied to home buttons, sub-grid words inside the overlay,
-       and the strip's Speak button at end-of-trial. */
+       and the strip's Speak button at end-of-trial.
+
+       Cyan was chosen over gold because gold blends with the yellow
+       Fitzgerald-Key column. Cyan has high contrast against all six
+       column colours AND keeps the anchor's existing gold halo
+       visually distinct: gold = "you're inside this category",
+       cyan = "tap me next." */
     .scaffold-target {
-      box-shadow: 0 0 15px 5px gold;
+      box-shadow: 0 0 0 3px #00E5FF, 0 0 15px 5px #00E5FF;
       position: relative;
       z-index: 6;
     }
     html.high-contrast .scaffold-target {
       box-shadow:
-        0 0 15px 5px gold,
+        0 0 0 3px #00E5FF,
+        0 0 15px 5px #00E5FF,
         0 0 8px var(--neon, #ffffff);
     }
-    /* Speak button gets a slightly stronger shadow so the gold is
-       readable on its green background. */
+    /* Speak button gets the same solid ring + glow combination so
+       the cue is consistent across grid buttons and the strip. */
     #speak-btn.scaffold-target {
-      box-shadow: 0 0 0 3px gold, 0 0 15px 5px gold;
+      box-shadow: 0 0 0 3px #00E5FF, 0 0 15px 5px #00E5FF;
+    }
+
+    /* Level 2 (Ghost) — non-target buttons reduced to 35% opacity.
+       Visible enough to read at a glance, recessive enough to make
+       the target clearly the salient cue. Power Tools, anchor, and
+       the scaffold target are excluded by the render logic. Buttons
+       stay tappable; the wrong-tap gate suppresses the side effects. */
+    .l2-faded {
+      opacity: 0.35 !important;
+    }
+
+    /* Level 1 (Magnet) — non-target buttons hidden entirely.
+       visibility:hidden preserves grid layout (so the target stays
+       in its motor-planned X,Y) and blocks pointer events natively. */
+    .l1-hidden {
+      visibility: hidden !important;
     }
 
     html.high-contrast .cat-close {
@@ -2151,6 +2174,7 @@
         applyPreferences();
         Engine.syncFromProfile();
         renderActivePathwayIndicator();
+        engineAutoNavigate();
         renderScaffoldHighlight();
         hideOverlay('setup-overlay');
       });
@@ -2496,6 +2520,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      engineAutoNavigate();
       renderScaffoldHighlight();
     }
 
@@ -2573,6 +2598,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      engineAutoNavigate();
       renderScaffoldHighlight();
       showSettingsScreen('settings-main-screen');
     }
@@ -2590,6 +2616,7 @@
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
+      engineAutoNavigate();
       renderScaffoldHighlight();
       showSettingsScreen('settings-main-screen');
     }
@@ -2758,12 +2785,19 @@
       if (isRecording) return null;
       const pw = Engine.activePathway();
       if (!pw || !pw.steps) return null;
-      if ((pw.scaffoldingLevel || 0) < 3) return null;     // L1/L2 layer on later
+      const level = pw.scaffoldingLevel || 0;
+      if (level < 1 || level > 4) return null;
+      if (level === 4) return null;                        // pure observer
       if (Engine.state.speakTapped) return null;           // chain complete + spoken
-
-      // Pathway complete but not yet spoken → glow on Speak.
       if (pw.steps.length === 0) return null;
-      if (Engine.state.stepIndex >= pw.steps.length) return 'speak-btn';
+
+      // Pathway complete: only L3 shows gold-on-Speak (child taps it
+      // to fire). L1/L2 auto-speak runs immediately after the final
+      // commit, so this state is transient and resolves to null via
+      // speakTapped before any human-visible interval.
+      if (Engine.state.stepIndex >= pw.steps.length) {
+        return level === 3 ? 'speak-btn' : null;
+      }
 
       const targetId = pw.steps[Engine.state.stepIndex];
 
@@ -2806,38 +2840,129 @@
       return target !== itemId;
     }
 
+    /* For a given target ID, return the activeCategory that should
+       be open so the child needs only one tap to commit the target.
+       Used by engineAutoNavigate at L1/L2.
+
+       Rules:
+       - Pronouns / Power Tools (no subGrid): no overlay (null).
+       - addToStrip parents (Want/Go/Look): no overlay — the commit
+         happens on first tap of the home button, and the existing
+         overlay-open is intercepted at L1/L2 to avoid a flash.
+       - Non-addToStrip home button targets (Food, Stop, etc.): the
+         commit happens on anchor re-tap, so pre-open the sub-grid.
+       - Sub-grid words: pre-open their parent sub-grid.
+       - MY WORDS entries: pre-open my_words. */
+    function getExpectedCategoryForTarget(targetId) {
+      if (!targetId || targetId === 'speak-btn') return null;
+
+      if (targetId.startsWith('core_')) {
+        const idx = parseInt(targetId.slice(5), 10);
+        const item = CORE_36[idx];
+        if (!item || !item.subGrid) return null;
+        if (item.addToStrip) return null;
+        return item.subGrid;
+      }
+
+      if (targetId.startsWith('mw_')) return 'my_words';
+
+      const u = targetId.indexOf('_');
+      return u > 0 ? targetId.slice(0, u) : null;
+    }
+
+    /* Engine-handled navigation for L1/L2. Adjusts the overlay state
+       so the current target is reachable in one tap. No-op at L3+
+       (where the child performs the navigation themselves) and at L4.
+       Recording mode bypasses entirely. */
+    function engineAutoNavigate() {
+      if (isRecording) return;
+      const pw = Engine.activePathway();
+      if (!pw) return;
+      const level = pw.scaffoldingLevel || 0;
+      if (level < 1 || level > 2) return;
+
+      let expectedCat;
+      if (Engine.state.speakTapped ||
+          Engine.state.stepIndex >= (pw.steps?.length || 0)) {
+        // Trial complete — close any open overlay so the strip is the focus.
+        expectedCat = null;
+      } else {
+        const targetId = pw.steps[Engine.state.stepIndex];
+        expectedCat = getExpectedCategoryForTarget(targetId);
+      }
+
+      if (activeCategory === expectedCat) return;
+
+      if (activeCategory !== null) closeCategoryOverlay();
+      if (expectedCat) {
+        const triggerIdx = CORE_36.findIndex(it => it.subGrid === expectedCat);
+        if (triggerIdx >= 0) {
+          openCategoryOverlay(expectedCat, CORE_36[triggerIdx], triggerIdx);
+        }
+      }
+    }
+
     /* Apply the .scaffold-target class to whichever element is the
-       current gold target, removing it from any prior target. Called
-       after every state-changing event (commit, backspace, clear,
-       speak, overlay open/close/re-render, pathway activation). */
+       current gold target, then layer L1/L2 visibility overrides on
+       top. Called after every state-changing event (commit, backspace,
+       clear, speak, overlay open/close/re-render, pathway activation). */
     function renderScaffoldHighlight() {
-      // Strip any prior gold from grid buttons, overlay buttons, Speak.
-      gridSlots.forEach(b => b.classList.remove('scaffold-target'));
-      document.querySelectorAll('#category-overlay .scaffold-target')
-        .forEach(b => b.classList.remove('scaffold-target'));
+      // 1. Strip prior classes from all relevant elements.
+      gridSlots.forEach(b => {
+        b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded');
+      });
+      document.querySelectorAll('#category-overlay button:not(#cat-close)')
+        .forEach(b => b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded'));
       document.getElementById('speak-btn').classList.remove('scaffold-target');
 
       const targetId = getScaffoldTargetId();
       if (!targetId) return;
 
+      // 2. Apply gold to the target.
       if (targetId === 'speak-btn') {
         document.getElementById('speak-btn').classList.add('scaffold-target');
+        // Speak target only at L3 — no L1/L2 visibility overrides apply.
         return;
       }
 
-      // core_<idx> → gridSlots[idx]
+      let targetEl = null;
       if (targetId.startsWith('core_')) {
         const idx = parseInt(targetId.slice(5), 10);
-        if (gridSlots[idx]) gridSlots[idx].classList.add('scaffold-target');
-        return;
+        targetEl = gridSlots[idx] || null;
+      } else {
+        targetEl = document.querySelector(
+          `#category-overlay button[data-word-id="${targetId}"]`
+        );
       }
+      if (targetEl) targetEl.classList.add('scaffold-target');
 
-      // Sub-grid word or MY WORDS entry — find the matching button
-      // inside the currently-open overlay by data-word-id.
-      const btn = document.querySelector(
-        `#category-overlay button[data-word-id="${targetId}"]`
-      );
-      if (btn) btn.classList.add('scaffold-target');
+      // 3. Layer L1/L2 visibility overrides — fade or hide everything
+      //    that isn't the target, the lifted anchor, or a Power Tool.
+      const pw = Engine.activePathway();
+      const level = pw ? (pw.scaffoldingLevel || 0) : 0;
+      if (level < 1 || level > 2) return;
+
+      const visClass = level === 1 ? 'l1-hidden' : 'l2-faded';
+
+      // Home buttons.
+      gridSlots.forEach((b, i) => {
+        const isPowerTool = i >= 30;
+        const isAnchor    = (i === activeTriggerIdx);
+        const isTarget    = b.classList.contains('scaffold-target');
+        if (!isPowerTool && !isAnchor && !isTarget) {
+          b.classList.add(visClass);
+        }
+      });
+
+      // Sub-grid words inside the open overlay.
+      if (activeCategory) {
+        document.querySelectorAll('#category-overlay button:not(#cat-close)')
+          .forEach(btn => {
+            if (!btn.classList.contains('scaffold-target')) {
+              btn.classList.add(visClass);
+            }
+          });
+      }
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -2891,7 +3016,8 @@
 
       // Restore the active-pathway pill if a pathway is still active.
       renderActivePathwayIndicator();
-      // Restore the gold target if the (still-active) pathway is L3+.
+      // Resume engine-handled navigation (L1/L2) and gold target rendering.
+      engineAutoNavigate();
       renderScaffoldHighlight();
     }
 
@@ -2956,7 +3082,14 @@
     /* ═══════════════════════════════════════════════════════════
        SPEECH — Web Speech API
     ═══════════════════════════════════════════════════════════ */
+    /* When set, speak() is a no-op. Used at L1/L2 around the auto-
+       speak path to suppress the click handler's per-word speech
+       that would otherwise be queued just before the engine's full-
+       sentence speech replaces it. */
+    let suppressSpeak = false;
+
     function speak(text) {
+      if (suppressSpeak) return;
       if (!window.speechSynthesis) return;
       speechSynthesis.cancel();
       const utterance = new SpeechSynthesisUtterance(text);
@@ -3003,8 +3136,32 @@
           document.getElementById('record-banner-error').textContent = '';
           renderRecordBanner();
         } else {
+          const beforeIdx = Engine.state.stepIndex;
           Engine.onCommit(wordObj.id);
-          renderScaffoldHighlight();
+          const pw = Engine.activePathway();
+          const level = pw ? (pw.scaffoldingLevel || 0) : 0;
+          const justCompleted = pw && pw.steps && pw.steps.length > 0 &&
+            beforeIdx < pw.steps.length &&
+            Engine.state.stepIndex === pw.steps.length;
+
+          if (justCompleted && level >= 1 && level <= 2) {
+            // L1/L2 auto-speak. The click handler that called us will
+            // typically speak the just-committed word right after we
+            // return — that per-word speech would queue just before
+            // our full-sentence speech and clutter the trial-end
+            // utterance. Suppress speak() until our microtask runs,
+            // then fire the full-sentence speech (the natural
+            // reinforcer per CLAUDE.md) and close any leftover overlay.
+            suppressSpeak = true;
+            queueMicrotask(() => {
+              suppressSpeak = false;
+              speakSentence();           // calls onSpeakComplete + render
+              engineAutoNavigate();      // closes any leftover overlay
+            });
+          } else {
+            engineAutoNavigate();
+            renderScaffoldHighlight();
+          }
         }
       }
       renderStrip();
@@ -3021,6 +3178,7 @@
           }
         } else {
           Engine.onBackspace(popped.id);
+          engineAutoNavigate();
           renderScaffoldHighlight();
         }
       }
@@ -3033,6 +3191,7 @@
         renderRecordBanner();
       } else {
         Engine.onClear();
+        engineAutoNavigate();
         renderScaffoldHighlight();
       }
       sentenceWords = [];
@@ -3204,7 +3363,19 @@
               addWord({ id: item.id, label: item.label, speak: item.speak });
               speak(item.speak);
             }
-            openCategoryOverlay(item.subGrid, item, i);
+            // L1/L2 intercept: when addWord triggered an auto-nav
+            // (because the freshly-incremented stepIndex points at a
+            // word in a different sub-grid), opening this trigger's
+            // overlay would be immediately undone, producing a visible
+            // flash. Skip the open here for addToStrip parents at
+            // L1/L2 — the auto-nav inside addWord has already set up
+            // the correct overlay for the next target.
+            const pwForOpen = isRecording ? null : Engine.activePathway();
+            const lvl = pwForOpen ? (pwForOpen.scaffoldingLevel || 0) : 0;
+            const skipOpen = item.addToStrip && lvl >= 1 && lvl <= 2;
+            if (!skipOpen) {
+              openCategoryOverlay(item.subGrid, item, i);
+            }
             return;
           }
 
@@ -3238,13 +3409,15 @@
       // Lift the trigger button: gold glow + z-index above the overlay.
       gridSlots[triggerIdx].classList.add('is-anchor');
 
-      // L3 scaffolding hides the silent-abort ✕ — child must use the
-      // anchor (which the engine guides them to) for close-navigation.
-      // Recording mode keeps the ✕ available — the teacher needs an
-      // unambiguous escape during authoring.
+      // Active scaffolding (L1/L2/L3) hides the silent-abort ✕ —
+      // the engine controls navigation and the child shouldn't be
+      // able to break out of the trial. Recording mode keeps the ✕
+      // available — the teacher needs an unambiguous escape during
+      // authoring. L4 (pure observer) leaves ✕ alone.
       const pw = isRecording ? null : Engine.activePathway();
-      const l3Active = pw && (pw.scaffoldingLevel || 0) >= 3;
-      overlayCloseBtn.hidden = !!l3Active;
+      const scaffolded = pw && (pw.scaffoldingLevel || 0) >= 1
+                            && (pw.scaffoldingLevel || 0) <= 3;
+      overlayCloseBtn.hidden = !!scaffolded;
 
       renderOverlayWords();
       overlayEl.hidden = false;
@@ -3388,6 +3561,7 @@
     }
     Engine.syncFromProfile();
     renderActivePathwayIndicator();
+    engineAutoNavigate();
     renderScaffoldHighlight();
 
     /* ═══════════════════════════════════════════════════════════
