@@ -1774,6 +1774,41 @@
     };
 
     /* ═══════════════════════════════════════════════════════════
+       WORD IDs — stamped onto CORE_36 + SUB_GRIDS at boot
+       Pathways reference words by stable IDs, not array positions.
+       Home buttons:  core_<idx>           (positional — home grid is permanent)
+       Sub-grid words: <subGridKey>_<slug> (e.g. want_run, food_apple)
+       MY WORDS:      mw_<uuid>            (already assigned at create time)
+       Treating want.Run vs go.Run as different IDs is deliberate — the
+       motor-planning journey to each is different, so the engine should
+       not collapse them.
+    ═══════════════════════════════════════════════════════════ */
+    function slugify(s) {
+      return String(s).toLowerCase()
+        .replace(/[^a-z0-9]+/g, '_')
+        .replace(/^_+|_+$/g, '');
+    }
+
+    function stampIds() {
+      CORE_36.forEach((item, idx) => { item.id = 'core_' + idx; });
+      Object.entries(SUB_GRIDS).forEach(([key, arr]) => {
+        const seen = new Set();
+        arr.forEach(item => {
+          const slug = slugify(item.label);
+          let id = key + '_' + slug;
+          // Defensive: if two labels happen to slugify identically within
+          // one sub-grid, suffix the second with an index so IDs stay
+          // unique. Shouldn't fire with current data — labels in each
+          // sub-grid are curated to be distinct.
+          let n = 2;
+          while (seen.has(id)) { id = key + '_' + slug + '_' + (n++); }
+          seen.add(id);
+          item.id = id;
+        });
+      });
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        PROFILE — local storage layer (cloud-ready schema)
        Single profile per device. Schema designed to lift cleanly
        into a cloud database when login ships in a later step.
@@ -1916,6 +1951,7 @@
         const pinHash = await hashPin(pin1);
         Profile.create({ name, pinHash });
         applyPreferences();
+        Engine.syncFromProfile();
         renderActivePathwayIndicator();
         hideOverlay('setup-overlay');
       });
@@ -2217,6 +2253,7 @@
         p.active = !!makeActive && p.id === id;
       });
       // no save() — pathway persistence deferred to a later stage
+      Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
     }
@@ -2271,6 +2308,7 @@
           steps:            [],   // populated by tap-to-build in a later stage
           scaffoldingLevel: level,
           active:           false,
+          completionCount:  0,    // engine increments this on successful trial
         });
       } else {
         const pw = Profile.current.pathways.find(p => p.id === editingPathwayId);
@@ -2278,6 +2316,7 @@
       }
       // no save() — pathway persistence deferred to a later stage
 
+      Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
       showSettingsScreen('settings-main-screen');
@@ -2293,6 +2332,7 @@
       Profile.current.pathways = Profile.current.pathways.filter(p => p.id !== editingPathwayId);
       // no save() — pathway persistence deferred to a later stage
 
+      Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
       showSettingsScreen('settings-main-screen');
@@ -2329,6 +2369,92 @@
     ═══════════════════════════════════════════════════════════ */
     let sentenceWords  = [];
     let activeCategory = null;   // category id (e.g. 'food') when overlay is open, else null
+
+    /* ═══════════════════════════════════════════════════════════
+       SCAFFOLDING ENGINE — Level 4 (Pilot) only this stage
+       Pure observer. No visual changes, no override of tap behaviour,
+       no auto-speak. Watches strip commits and tracks whether the
+       child has stepped through the active pathway in order. Trial
+       boundary is Clear; a successful trial increments the pathway's
+       completionCount.
+
+       L1/L2/L3 logic (visibility overrides, navigation auto-handling,
+       gold-border scaffolding, scaffolded Speak) layers on top of this
+       state machine in a later stage.
+    ═══════════════════════════════════════════════════════════ */
+    const Engine = {
+      state: {
+        pathwayId: null,
+        stepIndex: 0,
+      },
+
+      /* Sync internal state to the profile's active pathway. Called at
+         boot, after first-run setup, and after any pathway mutation
+         that could change which pathway is active. Preserves in-flight
+         progress when the same pathway stays active. */
+      syncFromProfile() {
+        if (!Profile.current) {
+          this.state.pathwayId = null;
+          this.state.stepIndex = 0;
+          return;
+        }
+        const active = Profile.current.pathways.find(p => p.active) || null;
+        if (!active) {
+          this.state.pathwayId = null;
+          this.state.stepIndex = 0;
+          return;
+        }
+        if (this.state.pathwayId !== active.id) {
+          this.state.pathwayId = active.id;
+          this.state.stepIndex = 0;
+        }
+        // else: same pathway is still active — keep the in-flight pointer.
+      },
+
+      activePathway() {
+        if (!this.state.pathwayId || !Profile.current) return null;
+        return Profile.current.pathways.find(p => p.id === this.state.pathwayId) || null;
+      },
+
+      /* Strip-commit hook. Advances the pointer iff the committed
+         word matches the next expected step. Wrong / out-of-order
+         commits leave the pointer alone — at L4 the tap still works
+         fully (strip update, speech), the engine just doesn't credit
+         progress. */
+      onCommit(wordId) {
+        const pw = this.activePathway();
+        if (!pw || !pw.steps) return;
+        if (this.state.stepIndex >= pw.steps.length) return;   // already completed
+        if (pw.steps[this.state.stepIndex] === wordId) {
+          this.state.stepIndex++;
+        }
+      },
+
+      /* Backspace hook. Decrements the pointer iff the popped word
+         was the most recently credited step — keeps the engine
+         symmetric with the strip. */
+      onBackspace(wordId) {
+        const pw = this.activePathway();
+        if (!pw || !pw.steps) return;
+        if (this.state.stepIndex === 0) return;
+        if (pw.steps[this.state.stepIndex - 1] === wordId) {
+          this.state.stepIndex--;
+        }
+      },
+
+      /* Clear = trial boundary. If the trial ended with the pointer
+         at the end of the pathway, count it as a completion. Counting
+         only at trial boundary avoids double-counting when a child
+         backspaces and re-commits the final step. */
+      onClear() {
+        const pw = this.activePathway();
+        if (pw && pw.steps && pw.steps.length > 0 &&
+            this.state.stepIndex === pw.steps.length) {
+          pw.completionCount = (pw.completionCount || 0) + 1;
+        }
+        this.state.stepIndex = 0;
+      },
+    };
 
     /* ═══════════════════════════════════════════════════════════
        SPEECH — Web Speech API
@@ -2373,16 +2499,19 @@
 
     function addWord(wordObj) {
       sentenceWords.push(wordObj);
+      if (wordObj.id) Engine.onCommit(wordObj.id);
       renderStrip();
     }
 
     function removeLastWord() {
       if (sentenceWords.length === 0) return;
-      sentenceWords.pop();
+      const popped = sentenceWords.pop();
+      if (popped && popped.id) Engine.onBackspace(popped.id);
       renderStrip();
     }
 
     function clearSentence() {
+      Engine.onClear();
       sentenceWords = [];
       renderStrip();
     }
@@ -2487,7 +2616,7 @@
         updateSlot(i, item, () => {
           // Power tools — always active. Speak + strip + dismiss any open overlay.
           if (isPowerTool) {
-            addWord({ label: item.label, speak: item.speak });
+            addWord({ id: item.id, label: item.label, speak: item.speak });
             speak(item.speak);
             if (activeCategory) closeCategoryOverlay();
             return;
@@ -2502,7 +2631,7 @@
             // navigation-only (MY WORDS — a folder name, never spoken).
             if (activeCategory === item.subGrid) {
               if (!item.addToStrip && !item.silentLabel) {
-                addWord({ label: item.label, speak: item.speak });
+                addWord({ id: item.id, label: item.label, speak: item.speak });
                 speak(item.speak);
               }
               closeCategoryOverlay();
@@ -2516,7 +2645,7 @@
             // then open. Preserves SNUG construction (e.g. Want + Lego).
             // Other action / position / descriptor triggers — open silently.
             if (item.addToStrip) {
-              addWord({ label: item.label, speak: item.speak });
+              addWord({ id: item.id, label: item.label, speak: item.speak });
               speak(item.speak);
             }
             openCategoryOverlay(item.subGrid, item, i);
@@ -2524,7 +2653,7 @@
           }
 
           // Pronouns + any other no-overlay button — speak + add to strip.
-          addWord({ label: item.label, speak: item.speak });
+          addWord({ id: item.id, label: item.label, speak: item.speak });
           speak(item.speak);
         });
       });
@@ -2580,6 +2709,7 @@
     function renderOverlayWords() {
       const words = activeCategory === 'my_words'
         ? (Profile.current?.myWords ?? []).map(mw => ({
+            id:    mw.id,
             label: mw.label,
             speak: mw.speak,
             emoji: mw.emoji || '⭐',
@@ -2628,7 +2758,7 @@
             lastTapTime = now;
 
             // Auto-dismiss: speak + strip + close in one step.
-            addWord({ label: word.label, speak: word.speak });
+            addWord({ id: word.id, label: word.label, speak: word.speak });
             speak(word.speak);
             closeCategoryOverlay();
           };
@@ -2662,6 +2792,10 @@
     /* ═══════════════════════════════════════════════════════════
        BOOT
     ═══════════════════════════════════════════════════════════ */
+    // Stamp pathway-word IDs onto CORE_36 + SUB_GRIDS before any tap
+    // can fire. Must run before renderGrid() binds tap handlers.
+    stampIds();
+
     initGrid();
     renderGrid();
 
@@ -2676,6 +2810,7 @@
     } else {
       applyPreferences();
     }
+    Engine.syncFromProfile();
     renderActivePathwayIndicator();
 
     /* ═══════════════════════════════════════════════════════════
