@@ -603,12 +603,18 @@
       color: #1a1a1a;
       --neon: #FFFFFF;
       padding: 2px 2px;
+      gap: 1px;
     }
+    /* Grammar tiles are narrower than category tiles (7 cols vs 6),
+       so the label and emoji are sized down to keep the longest
+       words ("waiting", "drinking", "sleeping", "watching") sitting
+       on a single line without crowding the emoji above. */
     .grammar-words .btn-label {
-      font-size: clamp(11px, 1.4vw, 16px);
+      font-size: clamp(9px, 1.05vw, 13px);
+      line-height: 1.1;
     }
     .grammar-words .btn-emoji {
-      font-size: clamp(0.9rem, 2vw, 1.4rem);
+      font-size: clamp(0.75rem, 1.4vw, 1.05rem);
     }
 
     /* Sentence-strip 📝 grammar button — sits next to the settings
@@ -3874,6 +3880,13 @@
         { label: '18', speak: 'Eighteen',  visual: 'glyph' },
         { label: '19', speak: 'Nineteen',  visual: 'glyph' },
         { label: '20', speak: 'Twenty',    visual: 'glyph' },
+        // Math operators — grouped with numerals. Glyphs are U+002B (+),
+        // U+2212 (−, true minus not hyphen), U+00D7 (×), U+00F7 (÷) so
+        // they have the visual weight of the surrounding numerals.
+        { label: '+', speak: 'Plus',     visual: 'glyph' },
+        { label: '−', speak: 'Minus',    visual: 'glyph' },
+        { label: '×', speak: 'Multiply', visual: 'glyph' },
+        { label: '÷', speak: 'Divide',   visual: 'glyph' },
         { label: 'first',  speak: 'First',  visual: 'text' },
         { label: 'second', speak: 'Second', visual: 'text' },
         { label: 'third',  speak: 'Third',  visual: 'text' },
