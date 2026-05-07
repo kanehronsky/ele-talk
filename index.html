@@ -1187,6 +1187,14 @@
         ⚙️
       </button>
 
+      <!-- Grammar button — opens the grammar-words panel. Sits next to
+           the settings gear so the strip's left-edge is the "tools"
+           cluster. Disabled during scaffolded trials and tap-to-build
+           recording (see updateGrammarBtnState). -->
+      <button id="grammar-btn" aria-label="Open grammar words" title="Grammar">
+        📝
+      </button>
+
       <!-- Active pathway indicator — appears when scaffolding is active.
            Decorative this session; the engine will read the same data later. -->
       <div id="active-pathway-indicator" role="status" aria-live="polite" hidden></div>
@@ -2911,10 +2919,14 @@
       if (!active) {
         el.hidden = true;
         el.textContent = '';
-        return;
+      } else {
+        el.hidden = false;
+        el.textContent = `Pathway: ${active.label}`;
       }
-      el.hidden = false;
-      el.textContent = `Pathway: ${active.label}`;
+      // Grammar button is gated by the same scaffolding state — keep
+      // it in sync whenever the pathway indicator updates. Guard
+      // against early calls before the grammar wiring is parsed.
+      if (typeof updateGrammarBtnState === 'function') updateGrammarBtnState();
     }
 
     /* ═══════════════════════════════════════════════════════════
@@ -3280,6 +3292,7 @@
       renderRecordBanner();
       // Recording suppresses the gold target — strip any active highlight.
       renderScaffoldHighlight();
+      if (typeof updateGrammarBtnState === 'function') updateGrammarBtnState();
     }
 
     function exitRecordingMode() {
@@ -3300,6 +3313,7 @@
       // Resume engine-handled navigation (L1/L2) and gold target rendering.
       engineAutoNavigate();
       renderScaffoldHighlight();
+      if (typeof updateGrammarBtnState === 'function') updateGrammarBtnState();
     }
 
     /* Update the banner title + step counter. Called on entry and after
@@ -4063,13 +4077,153 @@
     }, { passive: false });
 
     /* ═══════════════════════════════════════════════════════════
-       GRAMMAR PANEL — placeholder; full implementation in a later
-       commit. closeGrammarPanel exists now because the Academic
-       dispatch in renderGrid calls it for mutual exclusion.
+       GRAMMAR PANEL — flat 7×6 grid of grammatical connectors.
+       Like the Academic panel, words carry no IDs (not pathway-
+       targetable). Opened from the 📝 button in the sentence strip.
+
+       Disabled during scaffolded trials (L1–L3) and tap-to-build
+       recording: scaffolding shouldn't be bypassed by reaching for
+       grammar words mid-trial, and recording would capture nothing
+       meaningful (no IDs).
     ═══════════════════════════════════════════════════════════ */
+    const GRAMMAR_WORDS = [
+      // Particles & determiners (text-only — emoji on these would be noise).
+      { label: 'to',    speak: 'to'    },
+      { label: 'is',    speak: 'is'    },
+      { label: 'are',   speak: 'are'   },
+      { label: 'was',   speak: 'was'   },
+      { label: 'were',  speak: 'were'  },
+      { label: 'the',   speak: 'the'   },
+      { label: 'a',     speak: 'a'     },
+      { label: 'an',    speak: 'an'    },
+      { label: 'and',   speak: 'and'   },
+      { label: 'or',    speak: 'or'    },
+      { label: 'but',   speak: 'but'   },
+      { label: 'with',  speak: 'with'  },
+      // Possessives.
+      { label: 'my',    speak: 'my'    },
+      { label: 'your',  speak: 'your'  },
+      { label: 'his',   speak: 'his'   },
+      { label: 'her',   speak: 'her'   },
+      { label: 'their', speak: 'their' },
+      { label: 'our',   speak: 'our'   },
+      // Negation + auxiliaries.
+      { label: 'not',     speak: 'not'      },
+      { label: 'can',     speak: 'can'      },
+      { label: "can't",   speak: "can't"    },
+      { label: 'will',    speak: 'will'     },
+      { label: "won't",   speak: "won't"    },
+      { label: 'do',      speak: 'do'       },
+      { label: "don't",   speak: "don't"    },
+      { label: 'did',     speak: 'did'      },
+      { label: "didn't",  speak: "didn't"   },
+      { label: 'have',    speak: 'have'     },
+      { label: 'has',     speak: 'has'      },
+      { label: 'had',     speak: 'had'      },
+      // -ing forms (emoji where it genuinely aids recognition).
+      { label: 'going',    speak: 'going',    emoji: '🚶'  },
+      { label: 'doing',    speak: 'doing'                  },
+      { label: 'eating',   speak: 'eating',   emoji: '🍽️' },
+      { label: 'drinking', speak: 'drinking', emoji: '💧'  },
+      { label: 'playing',  speak: 'playing',  emoji: '🎮'  },
+      { label: 'sleeping', speak: 'sleeping', emoji: '😴'  },
+      { label: 'running',  speak: 'running',  emoji: '🏃'  },
+      { label: 'jumping',  speak: 'jumping',  emoji: '🦘'  },
+      { label: 'watching', speak: 'watching', emoji: '📺'  },
+      { label: 'reading',  speak: 'reading',  emoji: '📖'  },
+      { label: 'making',   speak: 'making'                 },
+      { label: 'helping',  speak: 'helping',  emoji: '🙏'  },
+      { label: 'waiting',  speak: 'waiting',  emoji: '⏰'  },
+    ];
+
+    const grammarEl       = document.getElementById('grammar-overlay');
+    const grammarWordsEl  = document.getElementById('grammar-words');
+    const grammarCloseBtn = document.getElementById('grammar-close');
+    const grammarBtn      = document.getElementById('grammar-btn');
+
+    function renderGrammarWords() {
+      grammarWordsEl.innerHTML = '';
+      GRAMMAR_WORDS.forEach(w => {
+        const btn = document.createElement('button');
+        btn.type      = 'button';
+        btn.className = 'btn';
+        btn.setAttribute('aria-label', w.label);
+        const emojiHtml = w.emoji
+          ? `<span class="btn-emoji" aria-hidden="true">${w.emoji}</span>`
+          : '';
+        btn.innerHTML = emojiHtml + `<span class="btn-label">${w.label}</span>`;
+
+        btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
+        btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+
+        const tap = (e) => {
+          if (e.type === 'touchstart') {
+            e.preventDefault();
+            btn.classList.add('pressed');
+          } else {
+            if (isTouchDevice) return;
+          }
+          const now = Date.now();
+          if (now - lastTapTime < 100) return;
+          lastTapTime = now;
+          // No id — engine + recorder ignore.
+          addWord({ label: w.label, speak: w.speak });
+          speak(w.speak);
+          closeGrammarPanel();
+        };
+        btn.addEventListener('touchstart', tap, { passive: false });
+        btn.addEventListener('mousedown',  tap);
+
+        grammarWordsEl.appendChild(btn);
+      });
+    }
+
+    function openGrammarPanel() {
+      // Mutual exclusion with other panels.
+      if (activeCategory) closeCategoryOverlay();
+      closeAcademicPanel();
+      grammarEl.hidden = false;
+      // Render lazily — the word set is static, but rendering on
+      // open keeps initial paint cheap.
+      if (grammarWordsEl.childElementCount === 0) renderGrammarWords();
+    }
+
     function closeGrammarPanel() {
-      const el = document.getElementById('grammar-overlay');
-      if (el) el.hidden = true;
+      grammarEl.hidden = true;
+    }
+
+    grammarCloseBtn.addEventListener('click', closeGrammarPanel);
+    grammarCloseBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      closeGrammarPanel();
+    }, { passive: false });
+
+    /* Strip-button handler — open panel unless disabled. */
+    grammarBtn.addEventListener('click', () => {
+      if (grammarBtn.disabled) return;
+      openGrammarPanel();
+    });
+    grammarBtn.addEventListener('touchstart', (e) => {
+      if (grammarBtn.disabled) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastTapTime < 100) return;
+      lastTapTime = now;
+      openGrammarPanel();
+    }, { passive: false });
+
+    /* Computes the disabled state of the strip's grammar button.
+       Disabled when: (a) tap-to-build recording is active, or (b) a
+       scaffolded pathway is at L1–L3. At L4 (or no active pathway)
+       the button stays enabled — L4 is "scaffolding off" by design. */
+    function updateGrammarBtnState() {
+      const pw = Profile.current?.pathways?.find(p => p.active);
+      const lvl = pw ? (pw.scaffoldingLevel || 0) : 0;
+      const scaffolded = lvl >= 1 && lvl <= 3;
+      grammarBtn.disabled = isRecording || scaffolded;
+      // If the panel is open and we're transitioning into a scaffolded
+      // or recording state, close it so the child can't keep using it.
+      if (grammarBtn.disabled && !grammarEl.hidden) closeGrammarPanel();
     }
 
     /* ═══════════════════════════════════════════════════════════
