@@ -1273,6 +1273,13 @@
         <div id="places-words" class="tabbed-words" role="tabpanel"></div>
       </div>
 
+      <!-- Food panel — 4 tabs (Meals / Snacks & Treats / Fruit & Veg / Drinks). -->
+      <div id="food-overlay" class="tabbed-panel" role="dialog" aria-label="Food" hidden>
+        <button class="cat-close" id="food-close" aria-label="Close food">✕</button>
+        <div id="food-tabs" class="tabbed-tabs" role="tablist"></div>
+        <div id="food-words" class="tabbed-words" role="tabpanel"></div>
+      </div>
+
       <!--
         Grammar panel — flat 7×6 grid of grammatical connector words.
         Sits over rows 1–5 like the other panels; row 6 (Power Tools)
@@ -1543,7 +1550,7 @@
          circuits both the first-tap and re-tap speak paths. */
       { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words', silentLabel: true },
       { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
-      { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', subGrid: 'food'      },
+      { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', action: 'openFood', silentLabel: true },
       /* Academic — opens a tabbed panel (Numbers / Colours / Shapes / Letters /
          Academic Actions). Uses action: 'openAcademic' rather than subGrid so
          renderGrid dispatches to openAcademicPanel; the panel is structurally
@@ -1696,45 +1703,10 @@
         { label: 'Police',    speak: 'Police',    emoji: '🚔',   color: 'yellow-light' },
       ],
 
-      food: [
-        { label: 'Apple',     speak: 'Apple',         emoji: '🍎', color: 'yellow-light' },
-        { label: 'Banana',    speak: 'Banana',        emoji: '🍌', color: 'yellow-light' },
-        { label: 'Cracker',   speak: 'Cracker',       emoji: '🍘', color: 'yellow-light' },
-        { label: 'Chip',      speak: 'Chip',          emoji: '🥔', color: 'yellow-light' },
-        { label: 'Cookie',    speak: 'Cookie',        emoji: '🍪', color: 'yellow-light' },
-        { label: 'Pizza',     speak: 'Pizza',         emoji: '🍕', color: 'yellow-light' },
-        { label: 'Nugget',    speak: 'Nugget',        emoji: '🍗', color: 'yellow-light' },
-        { label: 'Pasta',     speak: 'Pasta',         emoji: '🍝', color: 'yellow-light' },
-        { label: 'Bread',     speak: 'Bread',         emoji: '🍞', color: 'yellow-light' },
-        { label: 'Rice',      speak: 'Rice',          emoji: '🍚', color: 'yellow-light' },
-        { label: 'Sandwich',  speak: 'Sandwich',      emoji: '🥪', color: 'yellow-light' },
-        { label: 'Fruit',     speak: 'Fruit',         emoji: '🍇', color: 'yellow-light' },
-        { label: 'Cheese',    speak: 'Cheese',        emoji: '🧀', color: 'yellow-light' },
-        { label: 'Yoghurt',   speak: 'Yoghurt',       emoji: '🥛', color: 'yellow-light' },
-        { label: 'Cake',      speak: 'Cake',          emoji: '🎂', color: 'yellow-light' },
-        { label: 'Meat',      speak: 'Meat',          emoji: '🥩', color: 'yellow-light' },
-        { label: 'Snack',     speak: 'Snack',         emoji: '🍿', color: 'yellow-light' },
-        { label: 'Treat',     speak: 'Treat',         emoji: '🍬', color: 'yellow-light' },
-        { label: 'Hot',       speak: 'Hot',           emoji: '🔥', color: 'yellow-light' },
-        { label: 'Cold',      speak: 'Cold',          emoji: '🧊', color: 'yellow-light' },
-        { label: 'Yummy',     speak: 'Yummy',         emoji: '😋', color: 'yellow-light' },
-        { label: 'Breakfast', speak: 'Breakfast',     emoji: '🌅', color: 'yellow-light' },
-        { label: 'Lunch',     speak: 'Lunch',         emoji: '☀️', color: 'yellow-light' },
-        { label: 'Dinner',    speak: 'Dinner',        emoji: '🌙', color: 'yellow-light' },
-        /* Drinks — kept as the trailing 5 entries so they fall in the
-           bottom-right of the food sub-grid, forming a natural "drinks
-           corner" the teacher can verbally point to. Migrated here when
-           the dedicated Drink home button was replaced by Academic. */
-        { label: 'Water',     speak: 'Water',         emoji: '💧', color: 'yellow-light' },
-        { label: 'Milk',      speak: 'Milk',          emoji: '🥛', color: 'yellow-light' },
-        { label: 'Juice',     speak: 'Juice',         emoji: '🧃', color: 'yellow-light' },
-        { label: 'Cordial',   speak: 'Cordial',       emoji: '🍹', color: 'yellow-light' },
-        { label: 'Hot Choc',  speak: 'Hot Chocolate', emoji: '☕', color: 'yellow-light' },
-      ],
+      /* food sub-grid removed — replaced by tabbed #food-overlay
+         (Meals / Snacks & Treats / Fruit & Veg / Drinks). Vocab
+         redistributed across the four tabs in FOOD_TABS. */
 
-      /* drink sub-grid removed — Drink home button replaced by Academic.
-         The 5 highest-frequency drink words (Water, Milk, Juice, Cordial,
-         Hot Choc) live at the tail of the food sub-grid above. */
 
       /* places sub-grid removed — replaced by tabbed #places-overlay
          (Home / School / Community / Travel). Vocab redistributed
@@ -3629,6 +3601,10 @@
             openPlacesPanel();
             return;
           }
+          if (item.action === 'openFood') {
+            openFoodPanel();
+            return;
+          }
 
           // Buttons that open a category overlay
           if (item.subGrid) {
@@ -4349,6 +4325,129 @@
     });
     function openPlacesPanel()  { TABBED_SURFACES.places.open(); }
     function closePlacesPanel() { TABBED_SURFACES.places.close(); }
+
+    /* ═══════════════════════════════════════════════════════════
+       FOOD — Meals / Snacks & Treats / Fruit & Veg / Drinks
+       Drinks live here (no separate Drink home button — that slot
+       was reclaimed by Academic). The 5 most common drinks moved
+       here from the previous "drink corner" at the tail of the
+       flat food sub-grid.
+    ═══════════════════════════════════════════════════════════ */
+    const FOOD_TABS = [
+      { id: 'meals', label: 'Meals', emoji: '🍽️', words: [
+        { label: 'Breakfast',      speak: 'Breakfast',      emoji: '🌅' },
+        { label: 'Lunch',          speak: 'Lunch',          emoji: '☀️' },
+        { label: 'Dinner',         speak: 'Dinner',         emoji: '🌙' },
+        { label: 'Pizza',          speak: 'Pizza',          emoji: '🍕' },
+        { label: 'Pasta',          speak: 'Pasta',          emoji: '🍝' },
+        { label: 'Rice',           speak: 'Rice',           emoji: '🍚' },
+        { label: 'Bread',          speak: 'Bread',          emoji: '🍞' },
+        { label: 'Sandwich',       speak: 'Sandwich',       emoji: '🥪' },
+        { label: 'Soup',           speak: 'Soup',           emoji: '🍜' },
+        { label: 'Noodles',        speak: 'Noodles',        emoji: '🍜' },
+        { label: 'Burger',         speak: 'Burger',         emoji: '🍔' },
+        { label: 'Hot dog',        speak: 'Hot dog',        emoji: '🌭' },
+        { label: 'Nuggets',        speak: 'Nuggets',        emoji: '🍗' },
+        { label: 'Fish and chips', speak: 'Fish and chips', emoji: '🐟' },
+        { label: 'Chicken',        speak: 'Chicken',        emoji: '🍗' },
+        { label: 'Steak',          speak: 'Steak',          emoji: '🥩' },
+        { label: 'Tacos',          speak: 'Tacos',          emoji: '🌮' },
+        { label: 'Wrap',           speak: 'Wrap',           emoji: '🌯' },
+        { label: 'Salad',          speak: 'Salad',          emoji: '🥗' },
+        { label: 'Stir fry',       speak: 'Stir fry',       emoji: '🥘' },
+        { label: 'Curry',          speak: 'Curry',          emoji: '🍛' },
+        { label: 'Roast',          speak: 'Roast',          emoji: '🍖' },
+        { label: 'Pancakes',       speak: 'Pancakes',       emoji: '🥞' },
+        { label: 'Waffles',        speak: 'Waffles',        emoji: '🧇' },
+        { label: 'Cereal',         speak: 'Cereal',         emoji: '🥣' },
+      ] },
+      { id: 'snacks', label: 'Snacks', emoji: '🍪', words: [
+        { label: 'Snack',         speak: 'Snack',         emoji: '🍿' },
+        { label: 'Treat',         speak: 'Treat',         emoji: '🍬' },
+        { label: 'Cookie',        speak: 'Cookie',        emoji: '🍪' },
+        { label: 'Cake',          speak: 'Cake',          emoji: '🎂' },
+        { label: 'Chips',         speak: 'Chips',         emoji: '🥔' },
+        { label: 'Crackers',      speak: 'Crackers',      emoji: '🍘' },
+        { label: 'Lollies',       speak: 'Lollies',       emoji: '🍬' },
+        { label: 'Chocolate',     speak: 'Chocolate',     emoji: '🍫' },
+        { label: 'Ice cream',     speak: 'Ice cream',     emoji: '🍦' },
+        { label: 'Donut',         speak: 'Donut',         emoji: '🍩' },
+        { label: 'Muffin',        speak: 'Muffin',        emoji: '🧁' },
+        { label: 'Cupcake',       speak: 'Cupcake',       emoji: '🧁' },
+        { label: 'Yoghurt',       speak: 'Yoghurt',       emoji: '🥛' },
+        { label: 'Cheese',        speak: 'Cheese',        emoji: '🧀' },
+        { label: 'Pretzel',       speak: 'Pretzel',       emoji: '🥨' },
+        { label: 'Popcorn',       speak: 'Popcorn',       emoji: '🍿' },
+        { label: 'Jelly',         speak: 'Jelly',         emoji: '🍮' },
+        { label: 'Gummy',         speak: 'Gummy',         emoji: '🍬' },
+        { label: 'Marshmallow',   speak: 'Marshmallow',   emoji: '☁️' },
+        { label: 'Lollipop',      speak: 'Lollipop',      emoji: '🍭' },
+        { label: 'Brownie',       speak: 'Brownie',       emoji: '🍫' },
+        { label: 'Custard',       speak: 'Custard',       emoji: '🍮' },
+        { label: 'Pie',           speak: 'Pie',           emoji: '🥧' },
+        { label: 'Sausage roll',  speak: 'Sausage roll',  emoji: '🥐' },
+        { label: 'Fruit',         speak: 'Fruit',         emoji: '🍇' },
+      ] },
+      { id: 'fruitveg', label: 'Fruit & Veg', emoji: '🥦', words: [
+        { label: 'Apple',       speak: 'Apple',       emoji: '🍎' },
+        { label: 'Banana',      speak: 'Banana',      emoji: '🍌' },
+        { label: 'Orange',      speak: 'Orange',      emoji: '🍊' },
+        { label: 'Strawberry',  speak: 'Strawberry',  emoji: '🍓' },
+        { label: 'Grapes',      speak: 'Grapes',      emoji: '🍇' },
+        { label: 'Watermelon',  speak: 'Watermelon',  emoji: '🍉' },
+        { label: 'Pineapple',   speak: 'Pineapple',   emoji: '🍍' },
+        { label: 'Mango',       speak: 'Mango',       emoji: '🥭' },
+        { label: 'Pear',        speak: 'Pear',        emoji: '🍐' },
+        { label: 'Peach',       speak: 'Peach',       emoji: '🍑' },
+        { label: 'Kiwi',        speak: 'Kiwi',        emoji: '🥝' },
+        { label: 'Cherry',      speak: 'Cherry',      emoji: '🍒' },
+        { label: 'Lemon',       speak: 'Lemon',       emoji: '🍋' },
+        { label: 'Carrot',      speak: 'Carrot',      emoji: '🥕' },
+        { label: 'Broccoli',    speak: 'Broccoli',    emoji: '🥦' },
+        { label: 'Tomato',      speak: 'Tomato',      emoji: '🍅' },
+        { label: 'Cucumber',    speak: 'Cucumber',    emoji: '🥒' },
+        { label: 'Corn',        speak: 'Corn',        emoji: '🌽' },
+        { label: 'Potato',      speak: 'Potato',      emoji: '🥔' },
+        { label: 'Pumpkin',     speak: 'Pumpkin',     emoji: '🎃' },
+        { label: 'Lettuce',     speak: 'Lettuce',     emoji: '🥬' },
+        { label: 'Capsicum',    speak: 'Capsicum',    emoji: '🫑' },
+        { label: 'Mushroom',    speak: 'Mushroom',    emoji: '🍄' },
+        { label: 'Avocado',     speak: 'Avocado',     emoji: '🥑' },
+        { label: 'Onion',       speak: 'Onion',       emoji: '🧅' },
+      ] },
+      { id: 'drinks', label: 'Drinks', emoji: '💧', words: [
+        { label: 'Water',         speak: 'Water',         emoji: '💧' },
+        { label: 'Milk',          speak: 'Milk',          emoji: '🥛' },
+        { label: 'Juice',         speak: 'Juice',         emoji: '🧃' },
+        { label: 'Cordial',       speak: 'Cordial',       emoji: '🍹' },
+        { label: 'Hot Choc',      speak: 'Hot Chocolate', emoji: '☕' },
+        { label: 'Smoothie',      speak: 'Smoothie',      emoji: '🥤' },
+        { label: 'Tea',           speak: 'Tea',           emoji: '🍵' },
+        { label: 'Lemonade',      speak: 'Lemonade',      emoji: '🍋' },
+        { label: 'Fizzy',         speak: 'Fizzy drink',   emoji: '🫧' },
+        { label: 'Apple juice',   speak: 'Apple juice',   emoji: '🍎' },
+        { label: 'Orange juice',  speak: 'Orange juice',  emoji: '🍊' },
+        { label: 'Milo',          speak: 'Milo',          emoji: '🍫' },
+        { label: 'Coconut water', speak: 'Coconut water', emoji: '🥥' },
+        { label: 'Soft drink',    speak: 'Soft drink',    emoji: '🥤' },
+        { label: 'Iced tea',      speak: 'Iced tea',      emoji: '🍵' },
+        { label: 'Iced coffee',   speak: 'Iced coffee',   emoji: '☕' },
+        { label: 'Cup',           speak: 'Cup',           emoji: '🫖' },
+        { label: 'Bottle',        speak: 'Bottle',        emoji: '🍼' },
+        { label: 'Straw',         speak: 'Straw',         emoji: '🥤' },
+        { label: 'Refill',        speak: 'Refill',        emoji: '➕' },
+      ] },
+    ];
+
+    TABBED_SURFACE_NAMES.push('food');
+    TABBED_SURFACES.food = defineTabbedSurface({
+      name:       'food',
+      tabs:       FOOD_TABS,
+      defaultTab: 'meals',
+      tileColor:  'yellow-light',
+    });
+    function openFoodPanel()  { TABBED_SURFACES.food.open(); }
+    function closeFoodPanel() { TABBED_SURFACES.food.close(); }
 
     /* ═══════════════════════════════════════════════════════════
        GRAMMAR PANEL — flat 7×6 grid of grammatical connectors.
