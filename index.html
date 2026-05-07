@@ -1280,6 +1280,13 @@
         <div id="food-words" class="tabbed-words" role="tabpanel"></div>
       </div>
 
+      <!-- People panel — 4 tabs (Family / School / Community / Pronouns & Roles). -->
+      <div id="people-overlay" class="tabbed-panel" role="dialog" aria-label="People" hidden>
+        <button class="cat-close" id="people-close" aria-label="Close people">✕</button>
+        <div id="people-tabs" class="tabbed-tabs" role="tablist"></div>
+        <div id="people-words" class="tabbed-words" role="tabpanel"></div>
+      </div>
+
       <!--
         Grammar panel — flat 7×6 grid of grammatical connector words.
         Sits over rows 1–5 like the other panels; row 6 (Power Tools)
@@ -1549,7 +1556,7 @@
          spoken or added to the sentence strip — silentLabel:true short-
          circuits both the first-tap and re-tap speak paths. */
       { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words', silentLabel: true },
-      { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
+      { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', action: 'openPeople', silentLabel: true },
       { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', action: 'openFood', silentLabel: true },
       /* Academic — opens a tabbed panel (Numbers / Colours / Shapes / Letters /
          Academic Actions). Uses action: 'openAcademic' rather than subGrid so
@@ -1671,37 +1678,9 @@
         { label: 'Here',   speak: 'Here',   emoji: '📍', color: 'green-light' },
       ],
 
-      people: [
-        { label: 'Mum',       speak: 'Mum',       emoji: '👩',   color: 'yellow-light' },
-        { label: 'Dad',       speak: 'Dad',       emoji: '👨',   color: 'yellow-light' },
-        { label: 'Grandma',   speak: 'Grandma',   emoji: '👵',   color: 'yellow-light' },
-        { label: 'Grandpa',   speak: 'Grandpa',   emoji: '👴',   color: 'yellow-light' },
-        { label: 'Brother',   speak: 'Brother',   emoji: '👦',   color: 'yellow-light' },
-        { label: 'Sister',    speak: 'Sister',    emoji: '👧',   color: 'yellow-light' },
-        { label: 'Baby',      speak: 'Baby',      emoji: '👶',   color: 'yellow-light' },
-        { label: 'Teacher',   speak: 'Teacher',   emoji: '🍎',   color: 'yellow-light' },
-        { label: 'Assistant', speak: 'Assistant', emoji: '🙋',   color: 'yellow-light' },
-        { label: 'Friend',    speak: 'Friend',    emoji: '🤝',   color: 'yellow-light' },
-        { label: 'Doctor',    speak: 'Doctor',    emoji: '👨‍⚕️',  color: 'yellow-light' },
-        { label: 'Nurse',     speak: 'Nurse',     emoji: '👩‍⚕️',  color: 'yellow-light' },
-        { label: 'He',        speak: 'He',        emoji: '👦',   color: 'yellow-light' },
-        { label: 'She',       speak: 'She',       emoji: '👧',   color: 'yellow-light' },
-        { label: 'They',      speak: 'They',      emoji: '👥',   color: 'yellow-light' },
-        { label: 'Aunt',      speak: 'Aunt',      emoji: '👩‍🦱',  color: 'yellow-light' },
-        { label: 'Uncle',     speak: 'Uncle',     emoji: '👨‍🦳',  color: 'yellow-light' },
-        { label: 'Cousin',    speak: 'Cousin',    emoji: '🧒',   color: 'yellow-light' },
-        { label: 'Therapist', speak: 'Therapist', emoji: '🧑‍⚕️',  color: 'yellow-light' },
-        { label: 'Principal', speak: 'Principal', emoji: '🏫',   color: 'yellow-light' },
-        { label: 'Boy',       speak: 'Boy',       emoji: '👦',   color: 'yellow-light' },
-        { label: 'Girl',      speak: 'Girl',      emoji: '👧',   color: 'yellow-light' },
-        { label: 'Everyone',  speak: 'Everyone',  emoji: '🌍',   color: 'yellow-light' },
-        { label: 'Coach',     speak: 'Coach',     emoji: '🏆',   color: 'yellow-light' },
-        { label: 'Neighbour', speak: 'Neighbour', emoji: '🏘️',   color: 'yellow-light' },
-        { label: 'Me',        speak: 'Me',        emoji: '👤',   color: 'yellow-light' },
-        { label: 'Us',        speak: 'Us',        emoji: '👫',   color: 'yellow-light' },
-        { label: 'Dentist',   speak: 'Dentist',   emoji: '🦷',   color: 'yellow-light' },
-        { label: 'Police',    speak: 'Police',    emoji: '🚔',   color: 'yellow-light' },
-      ],
+      /* people sub-grid removed — replaced by tabbed #people-overlay
+         (Family / School / Community / Pronouns & Roles). Vocab
+         redistributed across the four tabs in PEOPLE_TABS. */
 
       /* food sub-grid removed — replaced by tabbed #food-overlay
          (Meals / Snacks & Treats / Fruit & Veg / Drinks). Vocab
@@ -3605,6 +3584,10 @@
             openFoodPanel();
             return;
           }
+          if (item.action === 'openPeople') {
+            openPeoplePanel();
+            return;
+          }
 
           // Buttons that open a category overlay
           if (item.subGrid) {
@@ -4448,6 +4431,109 @@
     });
     function openFoodPanel()  { TABBED_SURFACES.food.open(); }
     function closeFoodPanel() { TABBED_SURFACES.food.close(); }
+
+    /* ═══════════════════════════════════════════════════════════
+       PEOPLE — Family / School / Community / Pronouns & Roles
+       Pronouns tab deliberately excludes I / Me / You / We — those
+       have permanent home-grid positions (slots 1, 2, 4). Putting
+       them in a tab would create a competing motor path.
+    ═══════════════════════════════════════════════════════════ */
+    const PEOPLE_TABS = [
+      { id: 'family', label: 'Family', emoji: '👨‍👩‍👧', words: [
+        { label: 'Mum',          speak: 'Mum',          emoji: '👩' },
+        { label: 'Dad',          speak: 'Dad',          emoji: '👨' },
+        { label: 'Mummy',        speak: 'Mummy',        emoji: '👩' },
+        { label: 'Daddy',        speak: 'Daddy',        emoji: '👨' },
+        { label: 'Brother',      speak: 'Brother',      emoji: '👦' },
+        { label: 'Sister',       speak: 'Sister',       emoji: '👧' },
+        { label: 'Baby',         speak: 'Baby',         emoji: '👶' },
+        { label: 'Grandma',      speak: 'Grandma',      emoji: '👵' },
+        { label: 'Grandpa',      speak: 'Grandpa',      emoji: '👴' },
+        { label: 'Nan',          speak: 'Nan',          emoji: '👵' },
+        { label: 'Pop',          speak: 'Pop',          emoji: '👴' },
+        { label: 'Aunty',        speak: 'Aunty',        emoji: '👩‍🦱' },
+        { label: 'Uncle',        speak: 'Uncle',        emoji: '👨‍🦳' },
+        { label: 'Cousin',       speak: 'Cousin',       emoji: '🧒' },
+        { label: 'Stepmum',      speak: 'Stepmum',      emoji: '👩' },
+        { label: 'Stepdad',      speak: 'Stepdad',      emoji: '👨' },
+        { label: 'Halfbrother',  speak: 'Half brother', emoji: '👦' },
+        { label: 'Halfsister',   speak: 'Half sister',  emoji: '👧' },
+        { label: 'Family',       speak: 'Family',       emoji: '👨‍👩‍👧' },
+        { label: 'Twin',         speak: 'Twin',         emoji: '👯' },
+      ] },
+      { id: 'school', label: 'School', emoji: '🍎', words: [
+        { label: 'Teacher',       speak: 'Teacher',        emoji: '🍎' },
+        { label: 'Assistant',     speak: 'Assistant',      emoji: '🙋' },
+        { label: 'Helper',        speak: 'Helper',         emoji: '👋' },
+        { label: 'Principal',     speak: 'Principal',      emoji: '🏫' },
+        { label: 'Deputy',        speak: 'Deputy',         emoji: '🏫' },
+        { label: 'Friend',        speak: 'Friend',         emoji: '🤝' },
+        { label: 'Best friend',   speak: 'Best friend',    emoji: '💕' },
+        { label: 'Classmate',     speak: 'Classmate',      emoji: '🎒' },
+        { label: 'Buddy',         speak: 'Buddy',          emoji: '🤝' },
+        { label: 'Boy',           speak: 'Boy',            emoji: '👦' },
+        { label: 'Girl',          speak: 'Girl',           emoji: '👧' },
+        { label: 'Student',       speak: 'Student',        emoji: '🎒' },
+        { label: 'Coach',         speak: 'Coach',          emoji: '🏆' },
+        { label: 'Therapist',     speak: 'Therapist',      emoji: '🧑‍⚕️' },
+        { label: 'Bus driver',    speak: 'Bus driver',     emoji: '🚌' },
+        { label: 'Cleaner',       speak: 'Cleaner',        emoji: '🧹' },
+        { label: 'Librarian',     speak: 'Librarian',      emoji: '📚' },
+        { label: 'Music teacher', speak: 'Music teacher',  emoji: '🎵' },
+      ] },
+      { id: 'community', label: 'Community', emoji: '🏥', words: [
+        { label: 'Doctor',       speak: 'Doctor',       emoji: '👨‍⚕️' },
+        { label: 'Nurse',        speak: 'Nurse',        emoji: '👩‍⚕️' },
+        { label: 'Dentist',      speak: 'Dentist',      emoji: '🦷' },
+        { label: 'Police',       speak: 'Police',       emoji: '🚔' },
+        { label: 'Firefighter',  speak: 'Firefighter',  emoji: '🚒' },
+        { label: 'Paramedic',    speak: 'Paramedic',    emoji: '🚑' },
+        { label: 'Pharmacist',   speak: 'Pharmacist',   emoji: '💊' },
+        { label: 'Postie',       speak: 'Postie',       emoji: '📬' },
+        { label: 'Driver',       speak: 'Driver',       emoji: '🚗' },
+        { label: 'Shopkeeper',   speak: 'Shopkeeper',   emoji: '🛒' },
+        { label: 'Waiter',       speak: 'Waiter',       emoji: '🍽️' },
+        { label: 'Chef',         speak: 'Chef',         emoji: '👨‍🍳' },
+        { label: 'Hairdresser',  speak: 'Hairdresser',  emoji: '💇' },
+        { label: 'Barista',      speak: 'Barista',      emoji: '☕' },
+        { label: 'Vet',          speak: 'Vet',          emoji: '🐾' },
+        { label: 'Builder',      speak: 'Builder',      emoji: '🔨' },
+        { label: 'Electrician',  speak: 'Electrician',  emoji: '⚡' },
+        { label: 'Plumber',      speak: 'Plumber',      emoji: '🔧' },
+        { label: 'Stranger',     speak: 'Stranger',     emoji: '⚠️' },
+        { label: 'Neighbour',    speak: 'Neighbour',    emoji: '🏘️' },
+        { label: 'Babysitter',   speak: 'Babysitter',   emoji: '👶' },
+      ] },
+      { id: 'roles', label: 'Pronouns', emoji: '👤', words: [
+        { label: 'He',       speak: 'He',       emoji: '👦' },
+        { label: 'She',      speak: 'She',      emoji: '👧' },
+        { label: 'They',     speak: 'They',     emoji: '👥' },
+        { label: 'Him',      speak: 'Him',      emoji: '👦' },
+        { label: 'Her',      speak: 'Her',      emoji: '👧' },
+        { label: 'Them',     speak: 'Them',     emoji: '👥' },
+        { label: 'Us',       speak: 'Us',       emoji: '👫' },
+        { label: 'Lady',     speak: 'Lady',     emoji: '👩' },
+        { label: 'Man',      speak: 'Man',      emoji: '👨' },
+        { label: 'Adult',    speak: 'Adult',    emoji: '👨‍🦱' },
+        { label: 'Kid',      speak: 'Kid',      emoji: '🧒' },
+        { label: 'Person',   speak: 'Person',   emoji: '👤' },
+        { label: 'Everyone', speak: 'Everyone', emoji: '🌍' },
+        { label: 'Nobody',   speak: 'Nobody',   emoji: '🚫' },
+        { label: 'Someone',  speak: 'Someone',  emoji: '👤' },
+        { label: 'Anyone',   speak: 'Anyone',   emoji: '👤' },
+        { label: 'Group',    speak: 'Group',    emoji: '👥' },
+      ] },
+    ];
+
+    TABBED_SURFACE_NAMES.push('people');
+    TABBED_SURFACES.people = defineTabbedSurface({
+      name:       'people',
+      tabs:       PEOPLE_TABS,
+      defaultTab: 'family',
+      tileColor:  'yellow-light',
+    });
+    function openPeoplePanel()  { TABBED_SURFACES.people.open(); }
+    function closePeoplePanel() { TABBED_SURFACES.people.close(); }
 
     /* ═══════════════════════════════════════════════════════════
        GRAMMAR PANEL — flat 7×6 grid of grammatical connectors.
