@@ -602,19 +602,16 @@
       border: 1.5px solid #C8CCD4;
       color: #1a1a1a;
       --neon: #FFFFFF;
-      padding: 2px 2px;
-      gap: 1px;
+      padding: 4px 6px;
     }
-    /* Grammar tiles are narrower than category tiles (7 cols vs 6),
-       so the label and emoji are sized down to keep the longest
-       words ("waiting", "drinking", "sleeping", "watching") sitting
-       on a single line without crowding the emoji above. */
+    /* Grammar tiles are narrower than category tiles (7 cols vs 6).
+       Every tile is now a centered text label (no emoji), so the
+       label sizing only needs to keep the longest words ("drinking",
+       "sleeping", "watching" — 8 chars) on a single line. */
     .grammar-words .btn-label {
-      font-size: clamp(9px, 1.05vw, 13px);
+      font-size: clamp(11px, 1.3vw, 15px);
       line-height: 1.1;
-    }
-    .grammar-words .btn-emoji {
-      font-size: clamp(0.75rem, 1.4vw, 1.05rem);
+      white-space: nowrap;
     }
 
     /* Sentence-strip 📝 grammar button — sits next to the settings
@@ -4133,20 +4130,22 @@
       { label: 'have',    speak: 'have'     },
       { label: 'has',     speak: 'has'      },
       { label: 'had',     speak: 'had'      },
-      // -ing forms (emoji where it genuinely aids recognition).
-      { label: 'going',    speak: 'going',    emoji: '🚶'  },
-      { label: 'doing',    speak: 'doing'                  },
-      { label: 'eating',   speak: 'eating',   emoji: '🍽️' },
-      { label: 'drinking', speak: 'drinking', emoji: '💧'  },
-      { label: 'playing',  speak: 'playing',  emoji: '🎮'  },
-      { label: 'sleeping', speak: 'sleeping', emoji: '😴'  },
-      { label: 'running',  speak: 'running',  emoji: '🏃'  },
-      { label: 'jumping',  speak: 'jumping',  emoji: '🦘'  },
-      { label: 'watching', speak: 'watching', emoji: '📺'  },
-      { label: 'reading',  speak: 'reading',  emoji: '📖'  },
-      { label: 'making',   speak: 'making'                 },
-      { label: 'helping',  speak: 'helping',  emoji: '🙏'  },
-      { label: 'waiting',  speak: 'waiting',  emoji: '⏰'  },
+      // -ing forms — emoji-free for visual uniformity. Mixing some
+      // tiles with emoji and others without produced an inconsistent
+      // grid; pure text labels keep every tile rendering identically.
+      { label: 'going',    speak: 'going'    },
+      { label: 'doing',    speak: 'doing'    },
+      { label: 'eating',   speak: 'eating'   },
+      { label: 'drinking', speak: 'drinking' },
+      { label: 'playing',  speak: 'playing'  },
+      { label: 'sleeping', speak: 'sleeping' },
+      { label: 'running',  speak: 'running'  },
+      { label: 'jumping',  speak: 'jumping'  },
+      { label: 'watching', speak: 'watching' },
+      { label: 'reading',  speak: 'reading'  },
+      { label: 'making',   speak: 'making'   },
+      { label: 'helping',  speak: 'helping'  },
+      { label: 'waiting',  speak: 'waiting'  },
     ];
 
     const grammarEl       = document.getElementById('grammar-overlay');
