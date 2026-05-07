@@ -1287,6 +1287,13 @@
         <div id="people-words" class="tabbed-words" role="tabpanel"></div>
       </div>
 
+      <!-- Toys panel — 5 tabs (Active / Quiet & Art / Sensory / Tech & Media / Animals & Pets). -->
+      <div id="toys-overlay" class="tabbed-panel" role="dialog" aria-label="Toys" hidden>
+        <button class="cat-close" id="toys-close" aria-label="Close toys">✕</button>
+        <div id="toys-tabs" class="tabbed-tabs" role="tablist"></div>
+        <div id="toys-words" class="tabbed-words" role="tabpanel"></div>
+      </div>
+
       <!--
         Grammar panel — flat 7×6 grid of grammatical connector words.
         Sits over rows 1–5 like the other panels; row 6 (Power Tools)
@@ -1565,7 +1572,7 @@
          "Academic" is a folder name, never spoken or added to the strip. */
       { label: 'Academic',    speak: 'Academic', emoji: '📚', color: 'yellow', action: 'openAcademic', silentLabel: true },
       { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', action: 'openPlaces', silentLabel: true },
-      { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', subGrid: 'toys',     aria: 'Toys or Play' },
+      { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', action: 'openToys', silentLabel: true, aria: 'Toys or Play' },
 
       /* Row 6 — Power Tools (Red) — always visible, even in sub-grids */
       { label: 'YES',         speak: 'Yes',      emoji: '✔️', color: 'red'                          },
@@ -1691,36 +1698,9 @@
          (Home / School / Community / Travel). Vocab redistributed
          across the four tabs in PLACES_TABS. */
 
-      toys: [
-        { label: 'Lego',       speak: 'Lego',       emoji: '🧱', color: 'yellow-light' },
-        { label: 'Doll',       speak: 'Doll',       emoji: '🪆', color: 'yellow-light' },
-        { label: 'Car',        speak: 'Car',        emoji: '🚗', color: 'yellow-light' },
-        { label: 'Ball',       speak: 'Ball',       emoji: '⚽', color: 'yellow-light' },
-        { label: 'Book',       speak: 'Book',       emoji: '📖', color: 'yellow-light' },
-        { label: 'iPad',       speak: 'iPad',       emoji: '📱', color: 'yellow-light' },
-        { label: 'TV',         speak: 'TV',         emoji: '📺', color: 'yellow-light' },
-        { label: 'Puzzle',     speak: 'Puzzle',     emoji: '🧩', color: 'yellow-light' },
-        { label: 'Crayon',     speak: 'Crayon',     emoji: '✏️', color: 'yellow-light' },
-        { label: 'Marker',     speak: 'Marker',     emoji: '🖊️', color: 'yellow-light' },
-        { label: 'Paper',      speak: 'Paper',      emoji: '📄', color: 'yellow-light' },
-        { label: 'Clay',       speak: 'Clay',       emoji: '🎨', color: 'yellow-light' },
-        { label: 'Sticker',    speak: 'Sticker',    emoji: '⭐', color: 'yellow-light' },
-        { label: 'Bubbles',    speak: 'Bubbles',    emoji: '🫧', color: 'yellow-light' },
-        { label: 'Sand',       speak: 'Sand',       emoji: '🏖️', color: 'yellow-light' },
-        { label: 'Slime',      speak: 'Slime',      emoji: '🟢', color: 'yellow-light' },
-        { label: 'Fidget',     speak: 'Fidget toy', emoji: '🌀', color: 'yellow-light' },
-        { label: 'Swing',      speak: 'Swing',      emoji: '🎠', color: 'yellow-light' },
-        { label: 'Trampoline', speak: 'Trampoline', emoji: '🤸', color: 'yellow-light' },
-        { label: 'Bike',       speak: 'Bike',       emoji: '🚲', color: 'yellow-light' },
-        { label: 'Scooter',    speak: 'Scooter',    emoji: '🛴', color: 'yellow-light' },
-        { label: 'Game',       speak: 'Game',       emoji: '🎮', color: 'yellow-light' },
-        { label: 'Music',      speak: 'Music',      emoji: '🎵', color: 'yellow-light' },
-        { label: 'Art',        speak: 'Art',        emoji: '🖼️', color: 'yellow-light' },
-        { label: 'Sport',      speak: 'Sport',      emoji: '🏆', color: 'yellow-light' },
-        { label: 'Outside',    speak: 'Outside',    emoji: '🌳', color: 'yellow-light' },
-        { label: 'Blocks',     speak: 'Blocks',     emoji: '🟦', color: 'yellow-light' },
-        { label: 'Water',      speak: 'Water play', emoji: '💧', color: 'yellow-light' },
-      ],
+      /* toys sub-grid removed — replaced by tabbed #toys-overlay
+         (Active / Quiet & Art / Sensory / Tech & Media / Animals & Pets).
+         Vocab redistributed across the five tabs in TOYS_TABS. */
 
       /* ── Actions ───────────────────────────────────────── */
 
@@ -3588,6 +3568,10 @@
             openPeoplePanel();
             return;
           }
+          if (item.action === 'openToys') {
+            openToysPanel();
+            return;
+          }
 
           // Buttons that open a category overlay
           if (item.subGrid) {
@@ -4534,6 +4518,138 @@
     });
     function openPeoplePanel()  { TABBED_SURFACES.people.open(); }
     function closePeoplePanel() { TABBED_SURFACES.people.close(); }
+
+    /* ═══════════════════════════════════════════════════════════
+       TOYS — Active / Quiet & Art / Sensory / Tech & Media / Animals
+       Five tabs. Animals lives here because for young kids, pets
+       and animals share a "things in my world I interact with"
+       mental category with toys; semantically they fit closer here
+       than in People. Animals tab leads with pets, then farm/zoo/
+       Aussie wildlife.
+    ═══════════════════════════════════════════════════════════ */
+    const TOYS_TABS = [
+      { id: 'active', label: 'Active', emoji: '🤸', words: [
+        { label: 'Ball',           speak: 'Ball',           emoji: '⚽' },
+        { label: 'Trampoline',     speak: 'Trampoline',     emoji: '🤸' },
+        { label: 'Bike',           speak: 'Bike',           emoji: '🚲' },
+        { label: 'Scooter',        speak: 'Scooter',        emoji: '🛴' },
+        { label: 'Skateboard',     speak: 'Skateboard',     emoji: '🛹' },
+        { label: 'Swing',          speak: 'Swing',          emoji: '🎠' },
+        { label: 'Slide',          speak: 'Slide',          emoji: '🛝' },
+        { label: 'Hula hoop',      speak: 'Hula hoop',      emoji: '🔄' },
+        { label: 'Skipping rope',  speak: 'Skipping rope',  emoji: '🪢' },
+        { label: 'Frisbee',        speak: 'Frisbee',        emoji: '🥏' },
+        { label: 'Kite',           speak: 'Kite',           emoji: '🪁' },
+        { label: 'Climbing frame', speak: 'Climbing frame', emoji: '🧗' },
+        { label: 'Cubby house',    speak: 'Cubby house',    emoji: '🏚️' },
+        { label: 'Sandpit',        speak: 'Sandpit',        emoji: '🏖️' },
+        { label: 'Pool toy',       speak: 'Pool toy',       emoji: '🏊' },
+        { label: 'Footy',          speak: 'Footy',          emoji: '🏉' },
+        { label: 'Basketball',     speak: 'Basketball',     emoji: '🏀' },
+        { label: 'Tennis',         speak: 'Tennis',         emoji: '🎾' },
+        { label: 'Cricket',        speak: 'Cricket',        emoji: '🏏' },
+        { label: 'Netball',        speak: 'Netball',        emoji: '🏐' },
+      ] },
+      { id: 'quiet', label: 'Quiet & Art', emoji: '🎨', words: [
+        { label: 'Lego',            speak: 'Lego',            emoji: '🧱' },
+        { label: 'Blocks',          speak: 'Blocks',          emoji: '🟦' },
+        { label: 'Puzzle',          speak: 'Puzzle',          emoji: '🧩' },
+        { label: 'Doll',            speak: 'Doll',            emoji: '🪆' },
+        { label: 'Teddy',           speak: 'Teddy',           emoji: '🧸' },
+        { label: 'Action figure',   speak: 'Action figure',   emoji: '🦸' },
+        { label: 'Train set',       speak: 'Train set',       emoji: '🚂' },
+        { label: 'Crayon',          speak: 'Crayon',          emoji: '✏️' },
+        { label: 'Marker',          speak: 'Marker',          emoji: '🖊️' },
+        { label: 'Paper',           speak: 'Paper',           emoji: '📄' },
+        { label: 'Pencil',          speak: 'Pencil',          emoji: '✏️' },
+        { label: 'Paint',           speak: 'Paint',           emoji: '🎨' },
+        { label: 'Paintbrush',      speak: 'Paintbrush',      emoji: '🖌️' },
+        { label: 'Glue',            speak: 'Glue',            emoji: '🧴' },
+        { label: 'Sticker',         speak: 'Sticker',         emoji: '⭐' },
+        { label: 'Clay',            speak: 'Clay',            emoji: '🎨' },
+        { label: 'Playdough',       speak: 'Playdough',       emoji: '🌈' },
+        { label: 'Colouring book',  speak: 'Colouring book',  emoji: '📕' },
+        { label: 'Stamp',           speak: 'Stamp',           emoji: '📩' },
+        { label: 'Scissors',        speak: 'Scissors',        emoji: '✂️' },
+        { label: 'Card game',       speak: 'Card game',       emoji: '🎴' },
+        { label: 'Board game',      speak: 'Board game',      emoji: '🎲' },
+      ] },
+      { id: 'sensory', label: 'Sensory', emoji: '🌀', words: [
+        { label: 'Sand',              speak: 'Sand',              emoji: '🏖️' },
+        { label: 'Water play',        speak: 'Water play',        emoji: '💧' },
+        { label: 'Slime',             speak: 'Slime',             emoji: '🟢' },
+        { label: 'Bubbles',           speak: 'Bubbles',           emoji: '🫧' },
+        { label: 'Fidget',            speak: 'Fidget toy',        emoji: '🌀' },
+        { label: 'Squishy',           speak: 'Squishy',           emoji: '🫥' },
+        { label: 'Stress ball',       speak: 'Stress ball',       emoji: '🤛' },
+        { label: 'Spinner',           speak: 'Spinner',           emoji: '🌀' },
+        { label: 'Weighted blanket',  speak: 'Weighted blanket',  emoji: '🛏️' },
+        { label: 'Body sock',         speak: 'Body sock',         emoji: '🟦' },
+        { label: 'Sensory bottle',    speak: 'Sensory bottle',    emoji: '🍾' },
+        { label: 'Pop tube',          speak: 'Pop tube',          emoji: '🪈' },
+        { label: 'Light up toy',      speak: 'Light up toy',      emoji: '💡' },
+        { label: 'Music toy',         speak: 'Music toy',         emoji: '🎵' },
+      ] },
+      { id: 'tech', label: 'Tech', emoji: '📺', words: [
+        { label: 'iPad',       speak: 'iPad',       emoji: '📱' },
+        { label: 'Phone',      speak: 'Phone',      emoji: '📱' },
+        { label: 'Computer',   speak: 'Computer',   emoji: '💻' },
+        { label: 'Laptop',     speak: 'Laptop',     emoji: '💻' },
+        { label: 'TV',         speak: 'TV',         emoji: '📺' },
+        { label: 'Game',       speak: 'Game',       emoji: '🎮' },
+        { label: 'Video',      speak: 'Video',      emoji: '📹' },
+        { label: 'YouTube',    speak: 'YouTube',    emoji: '📺' },
+        { label: 'Movie',      speak: 'Movie',      emoji: '🎬' },
+        { label: 'Music',      speak: 'Music',      emoji: '🎵' },
+        { label: 'Song',       speak: 'Song',       emoji: '🎤' },
+        { label: 'Headphones', speak: 'Headphones', emoji: '🎧' },
+        { label: 'Speaker',    speak: 'Speaker',    emoji: '🔊' },
+        { label: 'Camera',     speak: 'Camera',     emoji: '📷' },
+        { label: 'Show',       speak: 'Show',       emoji: '📺' },
+        { label: 'Cartoon',    speak: 'Cartoon',    emoji: '🎨' },
+        { label: 'App',        speak: 'App',        emoji: '📱' },
+        { label: 'Photo',      speak: 'Photo',      emoji: '📷' },
+        { label: 'Tablet',     speak: 'Tablet',     emoji: '📱' },
+        { label: 'Remote',     speak: 'Remote',     emoji: '📺' },
+      ] },
+      { id: 'animals', label: 'Animals', emoji: '🐾', words: [
+        { label: 'Dog',       speak: 'Dog',       emoji: '🐕' },
+        { label: 'Cat',       speak: 'Cat',       emoji: '🐈' },
+        { label: 'Bird',      speak: 'Bird',      emoji: '🐦' },
+        { label: 'Fish',      speak: 'Fish',      emoji: '🐠' },
+        { label: 'Rabbit',    speak: 'Rabbit',    emoji: '🐰' },
+        { label: 'Horse',     speak: 'Horse',     emoji: '🐴' },
+        { label: 'Cow',       speak: 'Cow',       emoji: '🐄' },
+        { label: 'Sheep',     speak: 'Sheep',     emoji: '🐑' },
+        { label: 'Pig',       speak: 'Pig',       emoji: '🐷' },
+        { label: 'Chicken',   speak: 'Chicken',   emoji: '🐔' },
+        { label: 'Duck',      speak: 'Duck',      emoji: '🦆' },
+        { label: 'Lion',      speak: 'Lion',      emoji: '🦁' },
+        { label: 'Elephant',  speak: 'Elephant',  emoji: '🐘' },
+        { label: 'Monkey',    speak: 'Monkey',    emoji: '🐵' },
+        { label: 'Bear',      speak: 'Bear',      emoji: '🐻' },
+        { label: 'Penguin',   speak: 'Penguin',   emoji: '🐧' },
+        { label: 'Snake',     speak: 'Snake',     emoji: '🐍' },
+        { label: 'Frog',      speak: 'Frog',      emoji: '🐸' },
+        { label: 'Turtle',    speak: 'Turtle',    emoji: '🐢' },
+        { label: 'Dinosaur',  speak: 'Dinosaur',  emoji: '🦖' },
+        { label: 'Shark',     speak: 'Shark',     emoji: '🦈' },
+        { label: 'Dolphin',   speak: 'Dolphin',   emoji: '🐬' },
+        { label: 'Kangaroo',  speak: 'Kangaroo',  emoji: '🦘' },
+        { label: 'Koala',     speak: 'Koala',     emoji: '🐨' },
+        { label: 'Emu',       speak: 'Emu',       emoji: '🪶' },
+      ] },
+    ];
+
+    TABBED_SURFACE_NAMES.push('toys');
+    TABBED_SURFACES.toys = defineTabbedSurface({
+      name:       'toys',
+      tabs:       TOYS_TABS,
+      defaultTab: 'active',
+      tileColor:  'yellow-light',
+    });
+    function openToysPanel()  { TABBED_SURFACES.toys.open(); }
+    function closeToysPanel() { TABBED_SURFACES.toys.close(); }
 
     /* ═══════════════════════════════════════════════════════════
        GRAMMAR PANEL — flat 7×6 grid of grammatical connectors.
