@@ -384,6 +384,277 @@
     }
 
     /* ═══════════════════════════════════════════════════
+       ACADEMIC PANEL — tabbed overlay
+       Same positioning as #category-overlay (covers home rows 1–5,
+       leaves row 6 Power Tools physically uncovered). Internally
+       split into a tab strip (top, ~64px) and a 6×6 word grid
+       (bottom, fills remainder). Word-area button count varies per
+       tab; unused cells render as .academic-empty placeholders.
+
+       Visual palette: slate teal — chosen to avoid all six Fitzgerald
+       colours so the panel reads as a separate "academic" surface
+       rather than a category. The home Academic button itself is
+       yellow because its position is in the navigation column; the
+       overlay it opens is teal because its content is academic.
+    ═══════════════════════════════════════════════════ */
+    #academic-overlay {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      height: calc((500% - 33px) / 6);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 6px;
+      z-index: 5;
+      background: #F0F5F7;
+      border: 2px solid #B5C8CD;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #academic-overlay[hidden] { display: none; }
+
+    .academic-tabs {
+      flex: 0 0 auto;
+      display: flex;
+      gap: 4px;
+      height: 56px;
+      min-height: 56px;
+    }
+
+    .academic-tab {
+      flex: 1;
+      min-height: 56px;
+      padding: 6px 4px;
+      font-family: inherit;
+      font-size: clamp(12px, 1.6vw, 16px);
+      font-weight: 700;
+      color: #2A4A4F;
+      background: #D8E5E8;
+      border: 1.5px solid #B5C8CD;
+      border-radius: 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s, filter 0.08s;
+    }
+    .academic-tab:active { transform: scale(0.96); filter: brightness(0.92); }
+    .academic-tab.active {
+      background: #2E8B8B;
+      color: #ffffff;
+      border-color: #226666;
+      box-shadow: 0 2px 6px rgba(46, 139, 139, 0.4);
+    }
+
+    .academic-words {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    /* Word buttons inside the academic word area. .btn already has
+       layout for emoji-above-label; we override colour to a neutral
+       white-on-teal-border palette so words don't compete with the
+       Fitzgerald-coded home grid. Internally we still use .btn so
+       press/active states remain consistent. */
+    .academic-words .btn {
+      background: #ffffff;
+      border: 1.5px solid #B5C8CD;
+      color: #1a1a1a;
+      --neon: #00E5FF;
+    }
+
+    /* Letter / numeral "visual" — uppercase glyph filling the slot
+       where the emoji would be. Larger than the text label below
+       because for non-readers, the glyph IS the icon. */
+    .academic-glyph {
+      font-size: clamp(1.4rem, 4vw, 2.4rem);
+      font-weight: 800;
+      line-height: 1;
+      color: #1a3a3f;
+    }
+
+    /* Colour swatch — circle filled with the actual colour. Thin
+       outline keeps White visible against the white panel and gives
+       all swatches a consistent silhouette. */
+    .academic-swatch {
+      width: clamp(28px, 5vw, 44px);
+      height: clamp(28px, 5vw, 44px);
+      border-radius: 50%;
+      border: 2px solid #4A5A5F;
+      flex-shrink: 0;
+    }
+
+    /* CSS-drawn shape glyphs. Using pure CSS keeps the eight shapes
+       internally consistent (no mix of OS emoji styles) and lets us
+       guarantee a square/rectangle/oval/diamond at any size. */
+    .academic-shape {
+      width: clamp(28px, 5vw, 40px);
+      height: clamp(28px, 5vw, 40px);
+      flex-shrink: 0;
+      background: #2E8B8B;
+    }
+    .academic-shape.shape-circle    { border-radius: 50%; }
+    .academic-shape.shape-square    { border-radius: 4px; }
+    .academic-shape.shape-rectangle { width: clamp(40px, 7vw, 56px); height: clamp(22px, 3.5vw, 32px); border-radius: 3px; }
+    .academic-shape.shape-oval      { width: clamp(40px, 7vw, 56px); height: clamp(22px, 3.5vw, 32px); border-radius: 50%; }
+    .academic-shape.shape-triangle {
+      width: 0; height: 0; background: transparent;
+      border-left:  clamp(16px, 2.5vw, 22px) solid transparent;
+      border-right: clamp(16px, 2.5vw, 22px) solid transparent;
+      border-bottom: clamp(28px, 4.5vw, 38px) solid #2E8B8B;
+    }
+    .academic-shape.shape-star {
+      background: #2E8B8B;
+      clip-path: polygon(
+        50% 0%, 61% 35%, 98% 35%, 68% 57%,
+        79% 91%, 50% 70%, 21% 91%, 32% 57%,
+        2% 35%, 39% 35%
+      );
+    }
+    .academic-shape.shape-heart {
+      background: #2E8B8B;
+      clip-path: path('M 20 36 Q 0 20 0 10 Q 0 0 10 0 Q 17 0 20 8 Q 23 0 30 0 Q 40 0 40 10 Q 40 20 20 36 Z');
+    }
+    .academic-shape.shape-diamond {
+      transform: rotate(45deg);
+      width: clamp(22px, 4vw, 32px);
+      height: clamp(22px, 4vw, 32px);
+      border-radius: 3px;
+    }
+
+    /* Empty cells in the word area when the active tab has fewer
+       entries than the 6×6 = 36 grid slots. Faded chrome, no events. */
+    .academic-empty {
+      background: rgba(180, 195, 200, 0.18);
+      border-radius: 6px;
+      pointer-events: none;
+    }
+
+    /* High-contrast variants for the academic panel */
+    html.high-contrast #academic-overlay {
+      background: #000;
+      border-color: #00E5FF;
+    }
+    html.high-contrast .academic-tab {
+      background: #1a1a1a;
+      color: #ddd;
+      border-color: #555;
+    }
+    html.high-contrast .academic-tab.active {
+      background: #00E5FF;
+      color: #000;
+      border-color: #00E5FF;
+    }
+    html.high-contrast .academic-words .btn {
+      background: #000 !important;
+      color: #fff !important;
+      border-color: #00E5FF;
+      box-shadow: 0 0 6px #00E5FF;
+    }
+    html.high-contrast .academic-glyph { color: #00E5FF; }
+    html.high-contrast .academic-shape { background: #00E5FF; }
+    html.high-contrast .academic-shape.shape-triangle {
+      background: transparent;
+      border-bottom-color: #00E5FF;
+    }
+    html.high-contrast .academic-empty { background: transparent; }
+
+    /* ═══════════════════════════════════════════════════
+       GRAMMAR PANEL — flat 7×6 grid (42 cells, exact match
+       to the 42-word grammar list — no scrolling, no empty
+       cells). Same positioning as #category-overlay.
+    ═══════════════════════════════════════════════════ */
+    #grammar-overlay {
+      position: absolute;
+      top: 3px;
+      left: 3px;
+      right: 3px;
+      height: calc((500% - 33px) / 6);
+      display: flex;
+      flex-direction: column;
+      padding: 6px;
+      z-index: 5;
+      background: #F4F5F7;
+      border: 2px solid #C8CCD4;
+      border-radius: 10px;
+      box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
+    }
+
+    #grammar-overlay[hidden] { display: none; }
+
+    .grammar-words {
+      flex: 1;
+      min-height: 0;
+      display: grid;
+      grid-template-columns: repeat(7, 1fr);
+      grid-template-rows: repeat(6, 1fr);
+      gap: 4px;
+    }
+
+    .grammar-words .btn {
+      background: #ffffff;
+      border: 1.5px solid #C8CCD4;
+      color: #1a1a1a;
+      --neon: #FFFFFF;
+      padding: 2px 2px;
+    }
+    .grammar-words .btn-label {
+      font-size: clamp(11px, 1.4vw, 16px);
+    }
+    .grammar-words .btn-emoji {
+      font-size: clamp(0.9rem, 2vw, 1.4rem);
+    }
+
+    /* Sentence-strip 📝 grammar button — sits next to the settings
+       gear (left side of the strip). Same chrome as #settings-btn
+       so it reads as part of the strip's left-edge tool cluster. */
+    #grammar-btn {
+      flex-shrink: 0;
+      width: 48px;
+      height: 48px;
+      background: #f0f2f5;
+      border: 2px solid #d0d4dc;
+      border-radius: 10px;
+      font-size: 18px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      color: #555;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      transition: transform 0.08s, filter 0.08s;
+    }
+    #grammar-btn:active { transform: scale(0.9); filter: brightness(0.88); }
+    #grammar-btn:disabled {
+      opacity: 0.35;
+      cursor: not-allowed;
+    }
+
+    /* High-contrast variants for the grammar panel + strip button */
+    html.high-contrast #grammar-overlay {
+      background: #000;
+      border-color: #ffffff;
+    }
+    html.high-contrast .grammar-words .btn {
+      background: #000 !important;
+      color: #fff !important;
+      border-color: #fff;
+      box-shadow: 0 0 6px #fff;
+    }
+    html.high-contrast #grammar-btn {
+      background: #222;
+      color: #eee;
+      border-color: #555;
+    }
+
+    /* ═══════════════════════════════════════════════════
        OVERLAYS — setup (first-run) and settings (PIN-gated)
        Full-viewport panels. Hidden by default via [hidden].
     ═══════════════════════════════════════════════════ */
@@ -947,6 +1218,35 @@
       <div id="category-overlay" role="dialog" aria-label="Category words" hidden>
         <button class="cat-close" id="cat-close" aria-label="Close category">✕</button>
       </div>
+
+      <!--
+        Academic panel — tabbed overlay for Numbers / Colours / Shapes /
+        Letters / Academic Actions. Sits over rows 1–5 like the category
+        overlay; row 6 (Power Tools) stays uncovered. Internally split
+        into a tab strip (top) and a 6×6 word grid (bottom) — see CSS.
+        Opened via the Academic home button (slot 28).
+      -->
+      <div id="academic-overlay" role="dialog" aria-label="Academic words" hidden>
+        <button class="cat-close" id="academic-close" aria-label="Close academic">✕</button>
+        <div id="academic-tabs" class="academic-tabs" role="tablist">
+          <button class="academic-tab" data-tab="numbers" role="tab" type="button">Numbers</button>
+          <button class="academic-tab" data-tab="colours" role="tab" type="button">Colours</button>
+          <button class="academic-tab" data-tab="shapes"  role="tab" type="button">Shapes</button>
+          <button class="academic-tab" data-tab="letters" role="tab" type="button">Letters</button>
+          <button class="academic-tab" data-tab="actions" role="tab" type="button">Actions</button>
+        </div>
+        <div id="academic-words" class="academic-words" role="tabpanel"></div>
+      </div>
+
+      <!--
+        Grammar panel — flat 7×6 grid of grammatical connector words.
+        Sits over rows 1–5 like the other panels; row 6 (Power Tools)
+        stays uncovered. Opened via the 📝 button in the sentence strip.
+      -->
+      <div id="grammar-overlay" role="dialog" aria-label="Grammar words" hidden>
+        <button class="cat-close" id="grammar-close" aria-label="Close grammar">✕</button>
+        <div id="grammar-words" class="grammar-words"></div>
+      </div>
     </div>
 
   </div>
@@ -1209,7 +1509,12 @@
       { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words', silentLabel: true },
       { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', subGrid: 'people'    },
       { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', subGrid: 'food'      },
-      { label: 'Drink',       speak: 'Drink',    emoji: '🥤', color: 'yellow', subGrid: 'drink'     },
+      /* Academic — opens a tabbed panel (Numbers / Colours / Shapes / Letters /
+         Academic Actions). Uses action: 'openAcademic' rather than subGrid so
+         renderGrid dispatches to openAcademicPanel; the panel is structurally
+         different from a 5×6 sub-grid. silentLabel:true mirrors MY WORDS —
+         "Academic" is a folder name, never spoken or added to the strip. */
+      { label: 'Academic',    speak: 'Academic', emoji: '📚', color: 'yellow', action: 'openAcademic', silentLabel: true },
       { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', subGrid: 'places'    },
       { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', subGrid: 'toys',     aria: 'Toys or Play' },
 
@@ -1357,68 +1662,44 @@
       ],
 
       food: [
-        { label: 'Apple',     speak: 'Apple',     emoji: '🍎', color: 'yellow-light' },
-        { label: 'Banana',    speak: 'Banana',    emoji: '🍌', color: 'yellow-light' },
-        { label: 'Cracker',   speak: 'Cracker',   emoji: '🍘', color: 'yellow-light' },
-        { label: 'Chip',      speak: 'Chip',      emoji: '🥔', color: 'yellow-light' },
-        { label: 'Cookie',    speak: 'Cookie',    emoji: '🍪', color: 'yellow-light' },
-        { label: 'Pizza',     speak: 'Pizza',     emoji: '🍕', color: 'yellow-light' },
-        { label: 'Nugget',    speak: 'Nugget',    emoji: '🍗', color: 'yellow-light' },
-        { label: 'Pasta',     speak: 'Pasta',     emoji: '🍝', color: 'yellow-light' },
-        { label: 'Bread',     speak: 'Bread',     emoji: '🍞', color: 'yellow-light' },
-        { label: 'Rice',      speak: 'Rice',      emoji: '🍚', color: 'yellow-light' },
-        { label: 'Egg',       speak: 'Egg',       emoji: '🥚', color: 'yellow-light' },
-        { label: 'Sandwich',  speak: 'Sandwich',  emoji: '🥪', color: 'yellow-light' },
-        { label: 'Fruit',     speak: 'Fruit',     emoji: '🍇', color: 'yellow-light' },
-        { label: 'Veggie',    speak: 'Veggie',    emoji: '🥦', color: 'yellow-light' },
-        { label: 'Cheese',    speak: 'Cheese',    emoji: '🧀', color: 'yellow-light' },
-        { label: 'Yoghurt',   speak: 'Yoghurt',   emoji: '🥛', color: 'yellow-light' },
-        { label: 'Cake',      speak: 'Cake',      emoji: '🎂', color: 'yellow-light' },
-        { label: 'Soup',      speak: 'Soup',      emoji: '🍜', color: 'yellow-light' },
-        { label: 'Noodle',    speak: 'Noodle',    emoji: '🍜', color: 'yellow-light' },
-        { label: 'Meat',      speak: 'Meat',      emoji: '🥩', color: 'yellow-light' },
-        { label: 'Fish',      speak: 'Fish',      emoji: '🐟', color: 'yellow-light' },
-        { label: 'Snack',     speak: 'Snack',     emoji: '🍿', color: 'yellow-light' },
-        { label: 'Treat',     speak: 'Treat',     emoji: '🍬', color: 'yellow-light' },
-        { label: 'Hot',       speak: 'Hot',       emoji: '🔥', color: 'yellow-light' },
-        { label: 'Cold',      speak: 'Cold',      emoji: '🧊', color: 'yellow-light' },
-        { label: 'Yummy',     speak: 'Yummy',     emoji: '😋', color: 'yellow-light' },
-        { label: 'Breakfast', speak: 'Breakfast', emoji: '🌅', color: 'yellow-light' },
-        { label: 'Lunch',     speak: 'Lunch',     emoji: '☀️', color: 'yellow-light' },
-        { label: 'Dinner',    speak: 'Dinner',    emoji: '🌙', color: 'yellow-light' },
-      ],
-
-      drink: [
+        { label: 'Apple',     speak: 'Apple',         emoji: '🍎', color: 'yellow-light' },
+        { label: 'Banana',    speak: 'Banana',        emoji: '🍌', color: 'yellow-light' },
+        { label: 'Cracker',   speak: 'Cracker',       emoji: '🍘', color: 'yellow-light' },
+        { label: 'Chip',      speak: 'Chip',          emoji: '🥔', color: 'yellow-light' },
+        { label: 'Cookie',    speak: 'Cookie',        emoji: '🍪', color: 'yellow-light' },
+        { label: 'Pizza',     speak: 'Pizza',         emoji: '🍕', color: 'yellow-light' },
+        { label: 'Nugget',    speak: 'Nugget',        emoji: '🍗', color: 'yellow-light' },
+        { label: 'Pasta',     speak: 'Pasta',         emoji: '🍝', color: 'yellow-light' },
+        { label: 'Bread',     speak: 'Bread',         emoji: '🍞', color: 'yellow-light' },
+        { label: 'Rice',      speak: 'Rice',          emoji: '🍚', color: 'yellow-light' },
+        { label: 'Sandwich',  speak: 'Sandwich',      emoji: '🥪', color: 'yellow-light' },
+        { label: 'Fruit',     speak: 'Fruit',         emoji: '🍇', color: 'yellow-light' },
+        { label: 'Cheese',    speak: 'Cheese',        emoji: '🧀', color: 'yellow-light' },
+        { label: 'Yoghurt',   speak: 'Yoghurt',       emoji: '🥛', color: 'yellow-light' },
+        { label: 'Cake',      speak: 'Cake',          emoji: '🎂', color: 'yellow-light' },
+        { label: 'Meat',      speak: 'Meat',          emoji: '🥩', color: 'yellow-light' },
+        { label: 'Snack',     speak: 'Snack',         emoji: '🍿', color: 'yellow-light' },
+        { label: 'Treat',     speak: 'Treat',         emoji: '🍬', color: 'yellow-light' },
+        { label: 'Hot',       speak: 'Hot',           emoji: '🔥', color: 'yellow-light' },
+        { label: 'Cold',      speak: 'Cold',          emoji: '🧊', color: 'yellow-light' },
+        { label: 'Yummy',     speak: 'Yummy',         emoji: '😋', color: 'yellow-light' },
+        { label: 'Breakfast', speak: 'Breakfast',     emoji: '🌅', color: 'yellow-light' },
+        { label: 'Lunch',     speak: 'Lunch',         emoji: '☀️', color: 'yellow-light' },
+        { label: 'Dinner',    speak: 'Dinner',        emoji: '🌙', color: 'yellow-light' },
+        /* Drinks — kept as the trailing 5 entries so they fall in the
+           bottom-right of the food sub-grid, forming a natural "drinks
+           corner" the teacher can verbally point to. Migrated here when
+           the dedicated Drink home button was replaced by Academic. */
         { label: 'Water',     speak: 'Water',         emoji: '💧', color: 'yellow-light' },
         { label: 'Milk',      speak: 'Milk',          emoji: '🥛', color: 'yellow-light' },
         { label: 'Juice',     speak: 'Juice',         emoji: '🧃', color: 'yellow-light' },
         { label: 'Cordial',   speak: 'Cordial',       emoji: '🍹', color: 'yellow-light' },
         { label: 'Hot Choc',  speak: 'Hot Chocolate', emoji: '☕', color: 'yellow-light' },
-        { label: 'Smoothie',  speak: 'Smoothie',      emoji: '🥤', color: 'yellow-light' },
-        { label: 'Tea',       speak: 'Tea',           emoji: '🍵', color: 'yellow-light' },
-        { label: 'Lemonade',  speak: 'Lemonade',      emoji: '🍋', color: 'yellow-light' },
-        { label: 'Fizzy',     speak: 'Fizzy drink',   emoji: '🫧', color: 'yellow-light' },
-        { label: 'Apple Juice', speak: 'Apple Juice', emoji: '🍎', color: 'yellow-light' },
-        { label: 'OJ',        speak: 'Orange Juice',  emoji: '🍊', color: 'yellow-light' },
-        { label: 'Milo',      speak: 'Milo',          emoji: '🍫', color: 'yellow-light' },
-        { label: 'Hot',       speak: 'Hot',           emoji: '🔥', color: 'yellow-light' },
-        { label: 'Cold',      speak: 'Cold',          emoji: '🧊', color: 'yellow-light' },
-        { label: 'Icy',       speak: 'Icy',           emoji: '🧊', color: 'yellow-light' },
-        { label: 'Warm',      speak: 'Warm',          emoji: '🌡️', color: 'yellow-light' },
-        { label: 'Big',       speak: 'Big',           emoji: '🐘', color: 'yellow-light' },
-        { label: 'Little',    speak: 'Little',        emoji: '🐭', color: 'yellow-light' },
-        { label: 'Cup',       speak: 'Cup',           emoji: '🫖', color: 'yellow-light' },
-        { label: 'Bottle',    speak: 'Bottle',        emoji: '🍼', color: 'yellow-light' },
-        { label: 'Straw',     speak: 'Straw',         emoji: '🥤', color: 'yellow-light' },
-        { label: 'Please',    speak: 'Please',        emoji: '🙏', color: 'yellow-light' },
-        { label: 'Sweet',     speak: 'Sweet',         emoji: '🍬', color: 'yellow-light' },
-        { label: 'More',      speak: 'More',          emoji: '➕', color: 'yellow-light' },
-        { label: 'All Gone',  speak: 'All gone',      emoji: '✅', color: 'yellow-light' },
-        { label: 'Bubbly',    speak: 'Bubbly',        emoji: '🫧', color: 'yellow-light' },
-        { label: 'Plain',     speak: 'Plain',         emoji: '💧', color: 'yellow-light' },
-        { label: 'Coconut',   speak: 'Coconut water', emoji: '🥥', color: 'yellow-light' },
-        { label: 'Flavoured', speak: 'Flavoured',     emoji: '🌈', color: 'yellow-light' },
       ],
+
+      /* drink sub-grid removed — Drink home button replaced by Academic.
+         The 5 highest-frequency drink words (Water, Milk, Juice, Cordial,
+         Hot Choc) live at the tail of the food sub-grid above. */
 
       places: [
         { label: 'Home',       speak: 'Home',            emoji: '🏡',  color: 'yellow-light' },
@@ -3313,6 +3594,8 @@
             addWord({ id: item.id, label: item.label, speak: item.speak });
             speak(item.speak);
             if (activeCategory) closeCategoryOverlay();
+            closeAcademicPanel();
+            closeGrammarPanel();
             return;
           }
 
@@ -3321,6 +3604,19 @@
           // false when no scaffolding is active, so this is a no-op at L4
           // and below.
           if (!isRecording && isWrongTapAt(item.id)) return;
+
+          // Academic — opens the tabbed Academic panel. Structurally
+          // distinct from a sub-grid (5 tabs over a 6×6 word area), so
+          // it doesn't go through openCategoryOverlay. Like other yellow
+          // navigation buttons, the label is silent (it's a folder, not
+          // a word the child says).
+          if (item.action === 'openAcademic') {
+            // Closing any other panel first keeps mutual-exclusion clean.
+            if (activeCategory) closeCategoryOverlay();
+            closeGrammarPanel();
+            openAcademicPanel();
+            return;
+          }
 
           // Buttons that open a category overlay
           if (item.subGrid) {
@@ -3530,6 +3826,251 @@
       e.preventDefault();
       closeCategoryOverlay();
     }, { passive: false });
+
+    /* ═══════════════════════════════════════════════════════════
+       ACADEMIC PANEL — tabbed numbers / colours / shapes / letters /
+       academic actions. Structurally distinct from a category overlay
+       (5 tabs over a 6×6 word area), so it gets its own data + render
+       path. Words don't carry IDs — they're not pathway-targetable
+       (the engine has no concept of academic words). Without IDs
+       addWord skips Engine.onCommit and the recorder, so the panel
+       integrates cleanly with both scaffolding and tap-to-build modes
+       without touching pathway infrastructure.
+    ═══════════════════════════════════════════════════════════ */
+    const ACADEMIC_TABS = {
+      // Numbers — 1–20 as numeral glyphs, then ordinals + quantifiers.
+      numbers: [
+        { label: '1',  speak: 'One',    visual: 'glyph' },
+        { label: '2',  speak: 'Two',    visual: 'glyph' },
+        { label: '3',  speak: 'Three',  visual: 'glyph' },
+        { label: '4',  speak: 'Four',   visual: 'glyph' },
+        { label: '5',  speak: 'Five',   visual: 'glyph' },
+        { label: '6',  speak: 'Six',    visual: 'glyph' },
+        { label: '7',  speak: 'Seven',  visual: 'glyph' },
+        { label: '8',  speak: 'Eight',  visual: 'glyph' },
+        { label: '9',  speak: 'Nine',   visual: 'glyph' },
+        { label: '10', speak: 'Ten',    visual: 'glyph' },
+        { label: '11', speak: 'Eleven', visual: 'glyph' },
+        { label: '12', speak: 'Twelve', visual: 'glyph' },
+        { label: '13', speak: 'Thirteen',  visual: 'glyph' },
+        { label: '14', speak: 'Fourteen',  visual: 'glyph' },
+        { label: '15', speak: 'Fifteen',   visual: 'glyph' },
+        { label: '16', speak: 'Sixteen',   visual: 'glyph' },
+        { label: '17', speak: 'Seventeen', visual: 'glyph' },
+        { label: '18', speak: 'Eighteen',  visual: 'glyph' },
+        { label: '19', speak: 'Nineteen',  visual: 'glyph' },
+        { label: '20', speak: 'Twenty',    visual: 'glyph' },
+        { label: 'first',  speak: 'First',  visual: 'text' },
+        { label: 'second', speak: 'Second', visual: 'text' },
+        { label: 'third',  speak: 'Third',  visual: 'text' },
+        { label: 'last',   speak: 'Last',   visual: 'text' },
+        { label: 'next',   speak: 'Next',   visual: 'text' },
+        { label: 'none',   speak: 'None',   visual: 'text' },
+        { label: 'some',   speak: 'Some',   visual: 'text' },
+        { label: 'many',   speak: 'Many',   visual: 'text' },
+        { label: 'few',    speak: 'Few',    visual: 'text' },
+        { label: 'all',    speak: 'All',    visual: 'text' },
+        { label: 'half',   speak: 'Half',   visual: 'text' },
+        { label: 'whole',  speak: 'Whole',  visual: 'text' },
+      ],
+
+      // Colours — coloured circle swatch alongside the label.
+      colours: [
+        { label: 'Red',    speak: 'Red',    visual: 'swatch', swatch: '#E63946' },
+        { label: 'Blue',   speak: 'Blue',   visual: 'swatch', swatch: '#1E6FBA' },
+        { label: 'Green',  speak: 'Green',  visual: 'swatch', swatch: '#2E8B57' },
+        { label: 'Yellow', speak: 'Yellow', visual: 'swatch', swatch: '#F1C40F' },
+        { label: 'Orange', speak: 'Orange', visual: 'swatch', swatch: '#E67E22' },
+        { label: 'Purple', speak: 'Purple', visual: 'swatch', swatch: '#8E44AD' },
+        { label: 'Pink',   speak: 'Pink',   visual: 'swatch', swatch: '#E91E63' },
+        { label: 'Brown',  speak: 'Brown',  visual: 'swatch', swatch: '#8B5E3C' },
+        { label: 'Black',  speak: 'Black',  visual: 'swatch', swatch: '#000000' },
+        { label: 'White',  speak: 'White',  visual: 'swatch', swatch: '#FFFFFF' },
+        { label: 'Grey',   speak: 'Grey',   visual: 'swatch', swatch: '#808080' },
+      ],
+
+      // Shapes — CSS-drawn glyphs for visual consistency across OSes.
+      shapes: [
+        { label: 'Circle',    speak: 'Circle',    visual: 'shape', shape: 'circle'    },
+        { label: 'Square',    speak: 'Square',    visual: 'shape', shape: 'square'    },
+        { label: 'Triangle',  speak: 'Triangle',  visual: 'shape', shape: 'triangle'  },
+        { label: 'Rectangle', speak: 'Rectangle', visual: 'shape', shape: 'rectangle' },
+        { label: 'Star',      speak: 'Star',      visual: 'shape', shape: 'star'      },
+        { label: 'Heart',     speak: 'Heart',     visual: 'shape', shape: 'heart'     },
+        { label: 'Diamond',   speak: 'Diamond',   visual: 'shape', shape: 'diamond'   },
+        { label: 'Oval',      speak: 'Oval',      visual: 'shape', shape: 'oval'      },
+      ],
+
+      // Letters — A–Z. Glyph-only (no separate text label) since the
+      // letter character IS the visual identity; doubling it would
+      // be redundant.
+      letters: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ'.split('').map(c => ({
+        label: c, speak: c, visual: 'glyph', glyphOnly: true
+      })),
+
+      // Academic actions — classroom-context verbs and phrases. Emoji
+      // chosen to aid recognition (icon above label, like the rest of
+      // the app); "Try again", "Help me", etc. use phrasal labels.
+      actions: [
+        { label: 'Write',         speak: 'Write',          emoji: '✍️' },
+        { label: 'Read',          speak: 'Read',           emoji: '📖' },
+        { label: 'Count',         speak: 'Count',          emoji: '🔢' },
+        { label: 'Draw',          speak: 'Draw',           emoji: '✏️' },
+        { label: 'Cut',           speak: 'Cut',            emoji: '✂️' },
+        { label: 'Paste',         speak: 'Paste',          emoji: '📋' },
+        { label: 'Colour',        speak: 'Colour',         emoji: '🖍️' },
+        { label: 'Trace',         speak: 'Trace',          emoji: '✒️' },
+        { label: 'Match',         speak: 'Match',          emoji: '🔗' },
+        { label: 'Sort',          speak: 'Sort',           emoji: '📊' },
+        { label: 'Find',          speak: 'Find',           emoji: '🔍' },
+        { label: 'Point',         speak: 'Point',          emoji: '👆' },
+        { label: 'Show',          speak: 'Show',           emoji: '📌' },
+        { label: 'Tell',          speak: 'Tell',           emoji: '💬' },
+        { label: 'Answer',        speak: 'Answer',         emoji: '💭' },
+        { label: 'Question',      speak: 'Question',       emoji: '❓' },
+        { label: 'Correct',       speak: 'Correct',        emoji: '✅' },
+        { label: 'Wrong',         speak: 'Wrong',          emoji: '❌' },
+        { label: 'Try again',     speak: 'Try again',      emoji: '🔄' },
+        { label: 'Well done',     speak: 'Well done',      emoji: '🌟' },
+        { label: 'Finished',      speak: 'Finished',       emoji: '🏁' },
+        { label: 'Help me',       speak: 'Help me',        emoji: '🆘' },
+        { label: 'I know',        speak: 'I know',         emoji: '💡' },
+        { label: "I don't know",  speak: "I don't know",   emoji: '🤷' },
+        { label: 'My turn',       speak: 'My turn',        emoji: '☝️' },
+        { label: 'Your turn',     speak: 'Your turn',      emoji: '👉' },
+        { label: 'Wait',          speak: 'Wait',           emoji: '⏰' },
+        { label: 'Listen',        speak: 'Listen',         emoji: '👂' },
+        { label: 'Look',          speak: 'Look',           emoji: '👀' },
+        { label: 'Sit down',      speak: 'Sit down',       emoji: '🪑' },
+        { label: 'Stand up',      speak: 'Stand up',       emoji: '🧍' },
+        { label: 'Line up',       speak: 'Line up',        emoji: '🚶' },
+        { label: 'Pack up',       speak: 'Pack up',        emoji: '📦' },
+        { label: 'Come here',     speak: 'Come here',      emoji: '🫸' },
+        { label: 'Go there',      speak: 'Go there',       emoji: '➡️' },
+      ],
+    };
+
+    const academicEl       = document.getElementById('academic-overlay');
+    const academicTabsEl   = document.getElementById('academic-tabs');
+    const academicWordsEl  = document.getElementById('academic-words');
+    const academicCloseBtn = document.getElementById('academic-close');
+
+    // Last-active tab persists across opens — feels less surprising
+    // than always reverting to Numbers, since teachers often work
+    // through a single tab during a lesson.
+    let academicActiveTab = 'numbers';
+
+    function buildAcademicWordButton(w) {
+      const btn = document.createElement('button');
+      btn.type      = 'button';
+      btn.className = 'btn';
+      btn.setAttribute('aria-label', w.label);
+
+      // Visual element — varies by word type. Glyph-only words
+      // (letters / numerals) skip the redundant text label below.
+      let visualHtml = '';
+      if (w.visual === 'swatch') {
+        visualHtml = `<span class="academic-swatch" style="background:${w.swatch}" aria-hidden="true"></span>`;
+      } else if (w.visual === 'shape') {
+        visualHtml = `<span class="academic-shape shape-${w.shape}" aria-hidden="true"></span>`;
+      } else if (w.visual === 'glyph') {
+        visualHtml = `<span class="academic-glyph" aria-hidden="true">${w.label}</span>`;
+      } else if (w.emoji) {
+        visualHtml = `<span class="btn-emoji" aria-hidden="true">${w.emoji}</span>`;
+      }
+      const labelHtml = w.glyphOnly
+        ? ''
+        : `<span class="btn-label">${w.label}</span>`;
+      btn.innerHTML = visualHtml + labelHtml;
+
+      btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
+      btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+
+      const tap = (e) => {
+        if (e.type === 'touchstart') {
+          e.preventDefault();
+          btn.classList.add('pressed');
+        } else {
+          if (isTouchDevice) return;
+        }
+        const now = Date.now();
+        if (now - lastTapTime < 100) return;
+        lastTapTime = now;
+        // No id — engine + recorder ignore. Speak + strip + close.
+        addWord({ label: w.label, speak: w.speak });
+        speak(w.speak);
+        closeAcademicPanel();
+      };
+      btn.addEventListener('touchstart', tap, { passive: false });
+      btn.addEventListener('mousedown',  tap);
+
+      return btn;
+    }
+
+    function renderAcademicTab(tabId) {
+      academicActiveTab = tabId;
+      // Tab strip active state.
+      academicTabsEl.querySelectorAll('.academic-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tabId);
+      });
+      // Word area rebuild.
+      academicWordsEl.innerHTML = '';
+      const words = ACADEMIC_TABS[tabId] || [];
+      words.forEach(w => academicWordsEl.appendChild(buildAcademicWordButton(w)));
+      // Pad remainder of the 6×6 area with empty placeholder cells so
+      // the grid stays visually balanced when a tab has < 36 entries.
+      const empty = 36 - words.length;
+      for (let i = 0; i < empty; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'academic-empty';
+        academicWordsEl.appendChild(cell);
+      }
+    }
+
+    function openAcademicPanel() {
+      academicEl.hidden = false;
+      renderAcademicTab(academicActiveTab);
+    }
+
+    function closeAcademicPanel() {
+      academicEl.hidden = true;
+    }
+
+    // Tab switching — instant DOM swap, no transition.
+    academicTabsEl.addEventListener('click', (e) => {
+      const tab = e.target.closest('.academic-tab');
+      if (!tab) return;
+      const now = Date.now();
+      if (now - lastTapTime < 100) return;
+      lastTapTime = now;
+      renderAcademicTab(tab.dataset.tab);
+    });
+    academicTabsEl.addEventListener('touchstart', (e) => {
+      const tab = e.target.closest('.academic-tab');
+      if (!tab) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastTapTime < 100) return;
+      lastTapTime = now;
+      renderAcademicTab(tab.dataset.tab);
+    }, { passive: false });
+
+    // ✕ — silent close.
+    academicCloseBtn.addEventListener('click', closeAcademicPanel);
+    academicCloseBtn.addEventListener('touchstart', (e) => {
+      e.preventDefault();
+      closeAcademicPanel();
+    }, { passive: false });
+
+    /* ═══════════════════════════════════════════════════════════
+       GRAMMAR PANEL — placeholder; full implementation in a later
+       commit. closeGrammarPanel exists now because the Academic
+       dispatch in renderGrid calls it for mutual exclusion.
+    ═══════════════════════════════════════════════════════════ */
+    function closeGrammarPanel() {
+      const el = document.getElementById('grammar-overlay');
+      if (el) el.hidden = true;
+    }
 
     /* ═══════════════════════════════════════════════════════════
        GESTURE PREVENTION — block pinch-zoom across the whole page
