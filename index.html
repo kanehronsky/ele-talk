@@ -593,7 +593,12 @@
       min-height: 0;
       display: grid;
       grid-template-columns: repeat(7, 1fr);
-      grid-template-rows: repeat(6, 1fr);
+      /* 7 rows (not 6) — the word list is 43 entries, so a 6×7 = 42
+         explicit grid leaves the 43rd item ("waiting") in an implicit
+         row sized to content rather than 1fr, producing a short,
+         visually mismatched tile. An explicit 7th row gives it a
+         proper 1fr × 1fr cell, identical to every other tile. */
+      grid-template-rows: repeat(7, 1fr);
       gap: 4px;
     }
 
