@@ -384,20 +384,19 @@
     }
 
     /* ═══════════════════════════════════════════════════
-       ACADEMIC PANEL — tabbed overlay
-       Same positioning as #category-overlay (covers home rows 1–5,
-       leaves row 6 Power Tools physically uncovered). Internally
-       split into a tab strip (top, ~64px) and a 6×6 word grid
-       (bottom, fills remainder). Word-area button count varies per
-       tab; unused cells render as .academic-empty placeholders.
+       TABBED-PANEL INFRASTRUCTURE (shared)
+       Used by Academic, Places, Food, People, Toys. Each panel
+       covers home rows 1–5; row 6 (Power Tools) is physically
+       uncovered. Internally each is a flex column with a tab
+       strip on top and a 6×6 word grid below.
 
-       Visual palette: slate teal — chosen to avoid all six Fitzgerald
-       colours so the panel reads as a separate "academic" surface
-       rather than a category. The home Academic button itself is
-       yellow because its position is in the navigation column; the
-       overlay it opens is teal because its content is academic.
+       Visual palette: slate teal — chosen to avoid all six
+       Fitzgerald colours so any tabbed panel reads as a separate
+       surface from the home grid. Per-surface tile colour is set
+       by the tile data (yellow-light for nav categories, white
+       for Academic via a specific override below).
     ═══════════════════════════════════════════════════ */
-    #academic-overlay {
+    .tabbed-panel {
       position: absolute;
       top: 3px;
       left: 3px;
@@ -414,9 +413,9 @@
       box-shadow: 0 4px 16px rgba(0, 0, 0, 0.15);
     }
 
-    #academic-overlay[hidden] { display: none; }
+    .tabbed-panel[hidden] { display: none; }
 
-    .academic-tabs {
+    .tabbed-tabs {
       flex: 0 0 auto;
       display: flex;
       gap: 4px;
@@ -424,12 +423,12 @@
       min-height: 56px;
     }
 
-    .academic-tab {
+    .tabbed-tab {
       flex: 1;
       min-height: 56px;
       padding: 6px 4px;
       font-family: inherit;
-      font-size: clamp(12px, 1.6vw, 16px);
+      font-size: clamp(11px, 1.5vw, 16px);
       font-weight: 700;
       color: #2A4A4F;
       background: #D8E5E8;
@@ -439,16 +438,27 @@
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.08s, filter 0.08s;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 4px;
     }
-    .academic-tab:active { transform: scale(0.96); filter: brightness(0.92); }
-    .academic-tab.active {
+    .tabbed-tab:active { transform: scale(0.96); filter: brightness(0.92); }
+    .tabbed-tab.active {
       background: #2E8B8B;
       color: #ffffff;
       border-color: #226666;
       box-shadow: 0 2px 6px rgba(46, 139, 139, 0.4);
     }
+    /* Optional emoji prefix on a tab button — sized smaller than tile
+       emoji so it doesn't crowd the tab label on narrow screens. */
+    .tabbed-tab-emoji {
+      font-size: clamp(0.85rem, 1.6vw, 1.15rem);
+      line-height: 1;
+      flex-shrink: 0;
+    }
 
-    .academic-words {
+    .tabbed-words {
       flex: 1;
       min-height: 0;
       display: grid;
@@ -457,12 +467,10 @@
       gap: 4px;
     }
 
-    /* Word buttons inside the academic word area. .btn already has
-       layout for emoji-above-label; we override colour to a neutral
-       white-on-teal-border palette so words don't compete with the
-       Fitzgerald-coded home grid. Internally we still use .btn so
-       press/active states remain consistent. */
-    .academic-words .btn {
+    /* Academic-specific tile palette — white background on teal
+       border. Other tabbed surfaces use the parent yellow nav's
+       yellow-light tile colour (set per-tile via the data). */
+    #academic-overlay .tabbed-words .btn {
       background: #ffffff;
       border: 1.5px solid #B5C8CD;
       color: #1a1a1a;
@@ -530,28 +538,28 @@
 
     /* Empty cells in the word area when the active tab has fewer
        entries than the 6×6 = 36 grid slots. Faded chrome, no events. */
-    .academic-empty {
+    .tabbed-empty {
       background: rgba(180, 195, 200, 0.18);
       border-radius: 6px;
       pointer-events: none;
     }
 
-    /* High-contrast variants for the academic panel */
-    html.high-contrast #academic-overlay {
+    /* High-contrast variants for tabbed panels */
+    html.high-contrast .tabbed-panel {
       background: #000;
       border-color: #00E5FF;
     }
-    html.high-contrast .academic-tab {
+    html.high-contrast .tabbed-tab {
       background: #1a1a1a;
       color: #ddd;
       border-color: #555;
     }
-    html.high-contrast .academic-tab.active {
+    html.high-contrast .tabbed-tab.active {
       background: #00E5FF;
       color: #000;
       border-color: #00E5FF;
     }
-    html.high-contrast .academic-words .btn {
+    html.high-contrast #academic-overlay .tabbed-words .btn {
       background: #000 !important;
       color: #fff !important;
       border-color: #00E5FF;
@@ -563,7 +571,7 @@
       background: transparent;
       border-bottom-color: #00E5FF;
     }
-    html.high-contrast .academic-empty { background: transparent; }
+    html.high-contrast .tabbed-empty { background: transparent; }
 
     /* ═══════════════════════════════════════════════════
        GRAMMAR PANEL — flat 7×6 grid (42 cells, exact match
@@ -1242,16 +1250,27 @@
         into a tab strip (top) and a 6×6 word grid (bottom) — see CSS.
         Opened via the Academic home button (slot 28).
       -->
-      <div id="academic-overlay" role="dialog" aria-label="Academic words" hidden>
+      <div id="academic-overlay" class="tabbed-panel" role="dialog" aria-label="Academic words" hidden>
         <button class="cat-close" id="academic-close" aria-label="Close academic">✕</button>
-        <div id="academic-tabs" class="academic-tabs" role="tablist">
-          <button class="academic-tab" data-tab="numbers" role="tab" type="button">Numbers</button>
-          <button class="academic-tab" data-tab="colours" role="tab" type="button">Colours</button>
-          <button class="academic-tab" data-tab="shapes"  role="tab" type="button">Shapes</button>
-          <button class="academic-tab" data-tab="letters" role="tab" type="button">Letters</button>
-          <button class="academic-tab" data-tab="actions" role="tab" type="button">Actions</button>
+        <div id="academic-tabs" class="tabbed-tabs" role="tablist">
+          <button class="tabbed-tab" data-tab="numbers" role="tab" type="button">Numbers</button>
+          <button class="tabbed-tab" data-tab="colours" role="tab" type="button">Colours</button>
+          <button class="tabbed-tab" data-tab="shapes"  role="tab" type="button">Shapes</button>
+          <button class="tabbed-tab" data-tab="letters" role="tab" type="button">Letters</button>
+          <button class="tabbed-tab" data-tab="actions" role="tab" type="button">Actions</button>
         </div>
-        <div id="academic-words" class="academic-words" role="tabpanel"></div>
+        <div id="academic-words" class="tabbed-words" role="tabpanel"></div>
+      </div>
+
+      <!--
+        Places panel — 4 tabs (Home / School / Community / Travel).
+        Tabs and content rendered by defineTabbedSurface(). Shares
+        the .tabbed-panel chrome but uses yellow-light tile colour.
+      -->
+      <div id="places-overlay" class="tabbed-panel" role="dialog" aria-label="Places" hidden>
+        <button class="cat-close" id="places-close" aria-label="Close places">✕</button>
+        <div id="places-tabs" class="tabbed-tabs" role="tablist"></div>
+        <div id="places-words" class="tabbed-words" role="tabpanel"></div>
       </div>
 
       <!--
@@ -1531,7 +1550,7 @@
          different from a 5×6 sub-grid. silentLabel:true mirrors MY WORDS —
          "Academic" is a folder name, never spoken or added to the strip. */
       { label: 'Academic',    speak: 'Academic', emoji: '📚', color: 'yellow', action: 'openAcademic', silentLabel: true },
-      { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', subGrid: 'places'    },
+      { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', action: 'openPlaces', silentLabel: true },
       { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', subGrid: 'toys',     aria: 'Toys or Play' },
 
       /* Row 6 — Power Tools (Red) — always visible, even in sub-grids */
@@ -1717,37 +1736,9 @@
          The 5 highest-frequency drink words (Water, Milk, Juice, Cordial,
          Hot Choc) live at the tail of the food sub-grid above. */
 
-      places: [
-        { label: 'Home',       speak: 'Home',            emoji: '🏡',  color: 'yellow-light' },
-        { label: 'School',     speak: 'School',          emoji: '🏫',  color: 'yellow-light' },
-        { label: 'Park',       speak: 'Park',            emoji: '🌳',  color: 'yellow-light' },
-        { label: 'Beach',      speak: 'Beach',           emoji: '🏖️',  color: 'yellow-light' },
-        { label: 'Pool',       speak: 'Pool',            emoji: '🏊',  color: 'yellow-light' },
-        { label: 'Zoo',        speak: 'Zoo',             emoji: '🦁',  color: 'yellow-light' },
-        { label: 'Farm',       speak: 'Farm',            emoji: '🌾',  color: 'yellow-light' },
-        { label: 'Shop',       speak: 'Shop',            emoji: '🛒',  color: 'yellow-light' },
-        { label: 'Hospital',   speak: 'Hospital',        emoji: '🏥',  color: 'yellow-light' },
-        { label: 'Therapy',    speak: 'Therapy',         emoji: '🧑‍⚕️', color: 'yellow-light' },
-        { label: 'Bedroom',    speak: 'Bedroom',         emoji: '🛏️',  color: 'yellow-light' },
-        { label: 'Bathroom',   speak: 'Bathroom',        emoji: '🚿',  color: 'yellow-light' },
-        { label: 'Kitchen',    speak: 'Kitchen',         emoji: '🍳',  color: 'yellow-light' },
-        { label: 'Playground', speak: 'Playground',      emoji: '🛝',  color: 'yellow-light' },
-        { label: 'Library',    speak: 'Library',         emoji: '📚',  color: 'yellow-light' },
-        { label: 'Gym',        speak: 'Gym',             emoji: '🏋️',  color: 'yellow-light' },
-        { label: 'Outside',    speak: 'Outside',         emoji: '🌳',  color: 'yellow-light' },
-        { label: 'Garden',     speak: 'Garden',          emoji: '🌺',  color: 'yellow-light' },
-        { label: 'Restaurant', speak: 'Restaurant',      emoji: '🍽️',  color: 'yellow-light' },
-        { label: 'Cinema',     speak: 'Cinema',          emoji: '🎬',  color: 'yellow-light' },
-        { label: 'Car',        speak: 'Car',             emoji: '🚗',  color: 'yellow-light' },
-        { label: 'Bus',        speak: 'Bus',             emoji: '🚌',  color: 'yellow-light' },
-        { label: "Grandma's",  speak: "Grandma's house", emoji: '🏠',  color: 'yellow-light' },
-        { label: 'Inside',     speak: 'Inside',          emoji: '🏠',  color: 'yellow-light' },
-        { label: 'Classroom',  speak: 'Classroom',       emoji: '📝',  color: 'yellow-light' },
-        { label: 'Church',     speak: 'Church',          emoji: '⛪',  color: 'yellow-light' },
-        { label: "Friend's",   speak: "Friend's house",  emoji: '🤝',  color: 'yellow-light' },
-        { label: 'Upstairs',   speak: 'Upstairs',        emoji: '🆙',  color: 'yellow-light' },
-        { label: 'Town',       speak: 'Town',            emoji: '🏙️',  color: 'yellow-light' },
-      ],
+      /* places sub-grid removed — replaced by tabbed #places-overlay
+         (Home / School / Community / Travel). Vocab redistributed
+         across the four tabs in PLACES_TABS. */
 
       toys: [
         { label: 'Lego',       speak: 'Lego',       emoji: '🧱', color: 'yellow-light' },
@@ -3613,6 +3604,7 @@
             if (activeCategory) closeCategoryOverlay();
             closeAcademicPanel();
             closeGrammarPanel();
+            for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
             return;
           }
 
@@ -3622,16 +3614,19 @@
           // and below.
           if (!isRecording && isWrongTapAt(item.id)) return;
 
-          // Academic — opens the tabbed Academic panel. Structurally
-          // distinct from a sub-grid (5 tabs over a 6×6 word area), so
-          // it doesn't go through openCategoryOverlay. Like other yellow
-          // navigation buttons, the label is silent (it's a folder, not
-          // a word the child says).
+          // Academic / Places / Food / People / Toys — open a tabbed
+          // panel. Structurally distinct from a sub-grid, so they don't
+          // route through openCategoryOverlay. Like other yellow nav
+          // buttons their labels are silent (folders, not words).
           if (item.action === 'openAcademic') {
-            // Closing any other panel first keeps mutual-exclusion clean.
             if (activeCategory) closeCategoryOverlay();
             closeGrammarPanel();
+            for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
             openAcademicPanel();
+            return;
+          }
+          if (item.action === 'openPlaces') {
+            openPlacesPanel();
             return;
           }
 
@@ -4034,7 +4029,7 @@
     function renderAcademicTab(tabId) {
       academicActiveTab = tabId;
       // Tab strip active state.
-      academicTabsEl.querySelectorAll('.academic-tab').forEach(b => {
+      academicTabsEl.querySelectorAll('.tabbed-tab').forEach(b => {
         b.classList.toggle('active', b.dataset.tab === tabId);
       });
       // Word area rebuild.
@@ -4046,12 +4041,16 @@
       const empty = 36 - words.length;
       for (let i = 0; i < empty; i++) {
         const cell = document.createElement('div');
-        cell.className = 'academic-empty';
+        cell.className = 'tabbed-empty';
         academicWordsEl.appendChild(cell);
       }
     }
 
     function openAcademicPanel() {
+      // Mutual exclusion: close any other tabbed surface first.
+      // Safe to reference the registry — this only runs on user tap,
+      // by which time all top-level const declarations have run.
+      for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
       academicEl.hidden = false;
       renderAcademicTab(academicActiveTab);
     }
@@ -4062,7 +4061,7 @@
 
     // Tab switching — instant DOM swap, no transition.
     academicTabsEl.addEventListener('click', (e) => {
-      const tab = e.target.closest('.academic-tab');
+      const tab = e.target.closest('.tabbed-tab');
       if (!tab) return;
       const now = Date.now();
       if (now - lastTapTime < 100) return;
@@ -4070,7 +4069,7 @@
       renderAcademicTab(tab.dataset.tab);
     });
     academicTabsEl.addEventListener('touchstart', (e) => {
-      const tab = e.target.closest('.academic-tab');
+      const tab = e.target.closest('.tabbed-tab');
       if (!tab) return;
       e.preventDefault();
       const now = Date.now();
@@ -4085,6 +4084,271 @@
       e.preventDefault();
       closeAcademicPanel();
     }, { passive: false });
+
+    /* ═══════════════════════════════════════════════════════════
+       GENERIC TABBED-SURFACE HELPER
+       Used by Places, Food, People, Toys. Each surface supplies a
+       data shape: [ { id, label, emoji, words: [...] }, ... ].
+
+       Tiles are simple emoji+label buttons (no swatches/shapes/
+       glyphs — those stay specific to Academic). Words carry no
+       IDs, mirroring Academic: engine + recorder ignore them so
+       scaffolding/recording stay untouched.
+
+       Returns { open, close } so each surface gets its own pair
+       without the caller having to wire DOM handlers manually.
+    ═══════════════════════════════════════════════════════════ */
+    function defineTabbedSurface({ name, tabs, defaultTab, tileColor }) {
+      const overlayEl = document.getElementById(name + '-overlay');
+      const tabsEl    = document.getElementById(name + '-tabs');
+      const wordsEl   = document.getElementById(name + '-words');
+      const closeBtn  = document.getElementById(name + '-close');
+
+      // Internal state — last tab persists across opens.
+      let activeTab = defaultTab;
+
+      // Build tab strip from config.
+      tabs.forEach(t => {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = 'tabbed-tab';
+        btn.dataset.tab = t.id;
+        btn.setAttribute('role', 'tab');
+        btn.setAttribute('aria-label', t.label);
+        const emojiHtml = t.emoji
+          ? `<span class="tabbed-tab-emoji" aria-hidden="true">${t.emoji}</span>`
+          : '';
+        btn.innerHTML = emojiHtml + `<span>${t.label}</span>`;
+        tabsEl.appendChild(btn);
+      });
+
+      function buildTile(w) {
+        const btn = document.createElement('button');
+        btn.type = 'button';
+        btn.className = `btn ${tileColor}`;
+        btn.setAttribute('aria-label', w.label);
+        btn.innerHTML =
+          `<span class="btn-emoji" aria-hidden="true">${w.emoji || ''}</span>` +
+          `<span class="btn-label">${w.label}</span>`;
+
+        btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
+        btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
+
+        const tap = (e) => {
+          if (e.type === 'touchstart') {
+            e.preventDefault();
+            btn.classList.add('pressed');
+          } else {
+            if (isTouchDevice) return;
+          }
+          const now = Date.now();
+          if (now - lastTapTime < 100) return;
+          lastTapTime = now;
+          // No id — engine + recorder ignore. Speak + strip + close.
+          addWord({ label: w.label, speak: w.speak });
+          speak(w.speak);
+          close();
+        };
+        btn.addEventListener('touchstart', tap, { passive: false });
+        btn.addEventListener('mousedown',  tap);
+        return btn;
+      }
+
+      function renderTab(tabId) {
+        activeTab = tabId;
+        tabsEl.querySelectorAll('.tabbed-tab').forEach(b => {
+          b.classList.toggle('active', b.dataset.tab === tabId);
+        });
+        wordsEl.innerHTML = '';
+        const tab = tabs.find(t => t.id === tabId);
+        const words = tab ? tab.words : [];
+        words.forEach(w => wordsEl.appendChild(buildTile(w)));
+        // Pad to 36 cells with empty placeholders.
+        const empty = 36 - words.length;
+        for (let i = 0; i < empty; i++) {
+          const cell = document.createElement('div');
+          cell.className = 'tabbed-empty';
+          wordsEl.appendChild(cell);
+        }
+      }
+
+      function open() {
+        // Mutual exclusion: close every other surface first.
+        if (activeCategory) closeCategoryOverlay();
+        closeAcademicPanel();
+        closeGrammarPanel();
+        for (const otherName of TABBED_SURFACE_NAMES) {
+          if (otherName !== name) closeTabbedSurface(otherName);
+        }
+        overlayEl.hidden = false;
+        renderTab(activeTab);
+      }
+
+      function close() {
+        overlayEl.hidden = true;
+      }
+
+      // Wire the tab strip — single delegated handler, instant switch.
+      tabsEl.addEventListener('click', (e) => {
+        const tabBtn = e.target.closest('.tabbed-tab');
+        if (!tabBtn) return;
+        const now = Date.now();
+        if (now - lastTapTime < 100) return;
+        lastTapTime = now;
+        renderTab(tabBtn.dataset.tab);
+      });
+      tabsEl.addEventListener('touchstart', (e) => {
+        const tabBtn = e.target.closest('.tabbed-tab');
+        if (!tabBtn) return;
+        e.preventDefault();
+        const now = Date.now();
+        if (now - lastTapTime < 100) return;
+        lastTapTime = now;
+        renderTab(tabBtn.dataset.tab);
+      }, { passive: false });
+
+      // ✕ — silent close.
+      closeBtn.addEventListener('click', close);
+      closeBtn.addEventListener('touchstart', (e) => {
+        e.preventDefault();
+        close();
+      }, { passive: false });
+
+      return { open, close };
+    }
+
+    // Registry of tabbed-surface names — let mutual-exclusion close the
+    // others without each surface having to know about its siblings.
+    const TABBED_SURFACE_NAMES = [];
+    const TABBED_SURFACES = {};
+    function closeTabbedSurface(name) {
+      const s = TABBED_SURFACES[name];
+      if (s) s.close();
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       PLACES — Home / School / Community / Travel
+    ═══════════════════════════════════════════════════════════ */
+    const PLACES_TABS = [
+      { id: 'home', label: 'Home', emoji: '🏠', words: [
+        { label: 'Bedroom',     speak: 'Bedroom',      emoji: '🛏️' },
+        { label: 'Bathroom',    speak: 'Bathroom',     emoji: '🚿' },
+        { label: 'Kitchen',     speak: 'Kitchen',      emoji: '🍳' },
+        { label: 'Lounge',      speak: 'Lounge',       emoji: '🛋️' },
+        { label: 'Dining Room', speak: 'Dining Room',  emoji: '🍽️' },
+        { label: 'Hallway',     speak: 'Hallway',      emoji: '🚪' },
+        { label: 'Stairs',      speak: 'Stairs',       emoji: '🪜' },
+        { label: 'Garden',      speak: 'Garden',       emoji: '🌺' },
+        { label: 'Backyard',    speak: 'Backyard',     emoji: '🌳' },
+        { label: 'Front yard',  speak: 'Front yard',   emoji: '🏡' },
+        { label: 'Driveway',    speak: 'Driveway',     emoji: '🚗' },
+        { label: 'Garage',      speak: 'Garage',       emoji: '🏠' },
+        { label: 'Shed',        speak: 'Shed',         emoji: '🛖' },
+        { label: 'Laundry',     speak: 'Laundry',      emoji: '🧺' },
+        { label: 'Pantry',      speak: 'Pantry',       emoji: '🥫' },
+        { label: 'Office',      speak: 'Office',       emoji: '💻' },
+        { label: 'Study',       speak: 'Study',        emoji: '📚' },
+        { label: 'Playroom',    speak: 'Playroom',     emoji: '🎲' },
+        { label: 'Toilet',      speak: 'Toilet',       emoji: '🚽' },
+        { label: 'Shower',      speak: 'Shower',       emoji: '🚿' },
+        { label: 'Bath',        speak: 'Bath',         emoji: '🛁' },
+        { label: 'Couch',       speak: 'Couch',        emoji: '🛋️' },
+        { label: 'Bed',         speak: 'Bed',          emoji: '🛏️' },
+        { label: 'Table',       speak: 'Table',        emoji: '🪑' },
+        { label: 'Door',        speak: 'Door',         emoji: '🚪' },
+      ] },
+      { id: 'school', label: 'School', emoji: '🏫', words: [
+        { label: 'Classroom',     speak: 'Classroom',     emoji: '📝' },
+        { label: 'Library',       speak: 'Library',       emoji: '📚' },
+        { label: 'Gym',           speak: 'Gym',           emoji: '🏋️' },
+        { label: 'Music Room',    speak: 'Music Room',    emoji: '🎵' },
+        { label: 'Art Room',      speak: 'Art Room',      emoji: '🎨' },
+        { label: 'Hall',          speak: 'Hall',          emoji: '🏛️' },
+        { label: 'Canteen',       speak: 'Canteen',       emoji: '🥪' },
+        { label: 'Tuckshop',      speak: 'Tuckshop',      emoji: '🍪' },
+        { label: 'Playground',    speak: 'Playground',    emoji: '🛝' },
+        { label: 'Oval',          speak: 'Oval',          emoji: '⚽' },
+        { label: 'Sandpit',       speak: 'Sandpit',       emoji: '🏖️' },
+        { label: 'Sports court',  speak: 'Sports court',  emoji: '🏀' },
+        { label: 'Therapy room',  speak: 'Therapy room',  emoji: '🧑‍⚕️' },
+        { label: 'Sensory room',  speak: 'Sensory room',  emoji: '💡' },
+        { label: 'Quiet room',    speak: 'Quiet room',    emoji: '🤫' },
+        { label: 'Bathroom',      speak: 'Bathroom',      emoji: '🚻' },
+        { label: 'Sick bay',      speak: 'Sick bay',      emoji: '🩹' },
+        { label: 'Bus stop',      speak: 'Bus stop',      emoji: '🚏' },
+        { label: 'Carpark',       speak: 'Carpark',       emoji: '🅿️' },
+        { label: 'Front gate',    speak: 'Front gate',    emoji: '🚪' },
+        { label: 'Reception',     speak: 'Reception',     emoji: '👋' },
+        { label: 'Staff room',    speak: 'Staff room',    emoji: '👥' },
+        { label: 'Assembly',      speak: 'Assembly',      emoji: '🏛️' },
+        { label: 'Office',        speak: 'Office',        emoji: '🏢' },
+        { label: 'School bus',    speak: 'School bus',    emoji: '🚌' },
+      ] },
+      { id: 'community', label: 'Community', emoji: '🏘️', words: [
+        { label: 'Park',              speak: 'Park',              emoji: '🌳' },
+        { label: 'Beach',             speak: 'Beach',             emoji: '🏖️' },
+        { label: 'Pool',              speak: 'Pool',              emoji: '🏊' },
+        { label: 'Zoo',               speak: 'Zoo',               emoji: '🦁' },
+        { label: 'Farm',              speak: 'Farm',              emoji: '🌾' },
+        { label: 'Shop',              speak: 'Shop',              emoji: '🛒' },
+        { label: 'Supermarket',       speak: 'Supermarket',       emoji: '🛒' },
+        { label: 'Mall',              speak: 'Mall',              emoji: '🏬' },
+        { label: 'Cafe',              speak: 'Cafe',              emoji: '☕' },
+        { label: 'Restaurant',        speak: 'Restaurant',        emoji: '🍽️' },
+        { label: "McDonald's",        speak: "McDonald's",        emoji: '🍔' },
+        { label: 'Hospital',          speak: 'Hospital',          emoji: '🏥' },
+        { label: 'Doctor',            speak: 'Doctor',            emoji: '👨‍⚕️' },
+        { label: 'Dentist',           speak: 'Dentist',           emoji: '🦷' },
+        { label: 'Therapy',           speak: 'Therapy',           emoji: '🧑‍⚕️' },
+        { label: 'Church',            speak: 'Church',            emoji: '⛪' },
+        { label: 'Library',           speak: 'Library',           emoji: '📚' },
+        { label: 'Cinema',            speak: 'Cinema',            emoji: '🎬' },
+        { label: 'Aquarium',          speak: 'Aquarium',          emoji: '🐠' },
+        { label: 'Museum',            speak: 'Museum',            emoji: '🏛️' },
+        { label: 'Bowling',           speak: 'Bowling',           emoji: '🎳' },
+        { label: 'Mini golf',         speak: 'Mini golf',         emoji: '⛳' },
+        { label: 'Trampoline park',   speak: 'Trampoline park',   emoji: '🤸' },
+        { label: "Friend's house",    speak: "Friend's house",    emoji: '🤝' },
+        { label: "Grandma's",         speak: "Grandma's house",   emoji: '🏠' },
+      ] },
+      { id: 'travel', label: 'Travel', emoji: '🚗', words: [
+        { label: 'Car',             speak: 'Car',             emoji: '🚗' },
+        { label: 'Bus',             speak: 'Bus',             emoji: '🚌' },
+        { label: 'Train',           speak: 'Train',           emoji: '🚆' },
+        { label: 'Tram',            speak: 'Tram',            emoji: '🚊' },
+        { label: 'Plane',           speak: 'Plane',           emoji: '✈️' },
+        { label: 'Boat',            speak: 'Boat',            emoji: '🚤' },
+        { label: 'Ferry',           speak: 'Ferry',           emoji: '⛴️' },
+        { label: 'Bike',            speak: 'Bike',            emoji: '🚲' },
+        { label: 'Scooter',         speak: 'Scooter',         emoji: '🛴' },
+        { label: 'Skateboard',      speak: 'Skateboard',      emoji: '🛹' },
+        { label: 'Truck',           speak: 'Truck',           emoji: '🚛' },
+        { label: 'Helicopter',      speak: 'Helicopter',      emoji: '🚁' },
+        { label: 'Motorbike',       speak: 'Motorbike',       emoji: '🏍️' },
+        { label: 'Taxi',            speak: 'Taxi',            emoji: '🚕' },
+        { label: 'Train station',   speak: 'Train station',   emoji: '🚉' },
+        { label: 'Airport',         speak: 'Airport',         emoji: '✈️' },
+        { label: 'Petrol station',  speak: 'Petrol station',  emoji: '⛽' },
+        { label: 'Trip',            speak: 'Trip',            emoji: '🗺️' },
+        { label: 'Holiday',         speak: 'Holiday',         emoji: '⛱️' },
+        { label: 'Camping',         speak: 'Camping',         emoji: '🏕️' },
+        { label: 'Caravan',         speak: 'Caravan',         emoji: '🚐' },
+        { label: 'Hotel',           speak: 'Hotel',           emoji: '🏨' },
+        { label: 'Long way',        speak: 'Long way',        emoji: '🛣️' },
+        { label: 'Short way',       speak: 'Short way',       emoji: '📍' },
+        { label: 'Roadtrip',        speak: 'Roadtrip',        emoji: '🚗' },
+      ] },
+    ];
+
+    TABBED_SURFACE_NAMES.push('places');
+    TABBED_SURFACES.places = defineTabbedSurface({
+      name:       'places',
+      tabs:       PLACES_TABS,
+      defaultTab: 'home',
+      tileColor:  'yellow-light',
+    });
+    function openPlacesPanel()  { TABBED_SURFACES.places.open(); }
+    function closePlacesPanel() { TABBED_SURFACES.places.close(); }
 
     /* ═══════════════════════════════════════════════════════════
        GRAMMAR PANEL — flat 7×6 grid of grammatical connectors.
