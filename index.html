@@ -1264,6 +1264,7 @@
           <button class="tabbed-tab" data-tab="shapes"  role="tab" type="button">Shapes</button>
           <button class="tabbed-tab" data-tab="letters" role="tab" type="button">Letters</button>
           <button class="tabbed-tab" data-tab="actions" role="tab" type="button">Actions</button>
+          <button class="tabbed-tab" data-tab="body"    role="tab" type="button">Body</button>
         </div>
         <div id="academic-words" class="tabbed-words" role="tabpanel"></div>
       </div>
@@ -3915,6 +3916,44 @@
         { label: 'Pack up',       speak: 'Pack up',        emoji: '📦' },
         { label: 'Come here',     speak: 'Come here',      emoji: '🫸' },
         { label: 'Go there',      speak: 'Go there',       emoji: '➡️' },
+      ],
+
+      // Body parts — emoji where one cleanly represents the part
+      // (Eye 👁️, Ear 👂, Mouth 👄, etc.). Parts without a natural
+      // emoji (Cheek, Chin, Neck, Shoulder…) render text-only;
+      // forcing a 🧍 silhouette on every label-only tile would add
+      // noise without aiding recognition. Same precedent as the
+      // Actions tab. Future Mulberry integration replaces all of
+      // these with proper anatomical line drawings.
+      body: [
+        { label: 'Body',     speak: 'Body',     emoji: '🧍' },
+        { label: 'Head',     speak: 'Head'                  },
+        { label: 'Hair',     speak: 'Hair',     emoji: '💇' },
+        { label: 'Face',     speak: 'Face',     emoji: '😀' },
+        { label: 'Eye',      speak: 'Eye',      emoji: '👁️' },
+        { label: 'Ear',      speak: 'Ear',      emoji: '👂' },
+        { label: 'Nose',     speak: 'Nose',     emoji: '👃' },
+        { label: 'Mouth',    speak: 'Mouth',    emoji: '👄' },
+        { label: 'Tongue',   speak: 'Tongue',   emoji: '👅' },
+        { label: 'Teeth',    speak: 'Teeth',    emoji: '🦷' },
+        { label: 'Lips',     speak: 'Lips',     emoji: '💋' },
+        { label: 'Cheek',    speak: 'Cheek'                 },
+        { label: 'Chin',     speak: 'Chin'                  },
+        { label: 'Neck',     speak: 'Neck'                  },
+        { label: 'Shoulder', speak: 'Shoulder'              },
+        { label: 'Arm',      speak: 'Arm',      emoji: '💪' },
+        { label: 'Elbow',    speak: 'Elbow'                 },
+        { label: 'Hand',     speak: 'Hand',     emoji: '✋' },
+        { label: 'Finger',   speak: 'Finger',   emoji: '☝️' },
+        { label: 'Thumb',    speak: 'Thumb',    emoji: '👍' },
+        { label: 'Chest',    speak: 'Chest'                 },
+        { label: 'Tummy',    speak: 'Tummy'                 },
+        { label: 'Back',     speak: 'Back'                  },
+        { label: 'Leg',      speak: 'Leg',      emoji: '🦵' },
+        { label: 'Knee',     speak: 'Knee'                  },
+        { label: 'Foot',     speak: 'Foot',     emoji: '🦶' },
+        { label: 'Toe',      speak: 'Toe'                   },
+        { label: 'Bottom',   speak: 'Bottom'                },
       ],
     };
 
