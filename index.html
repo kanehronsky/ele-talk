@@ -1311,12 +1311,13 @@
       <div id="academic-overlay" class="tabbed-panel" role="dialog" aria-label="Academic words" hidden>
         <button class="cat-close" id="academic-close" aria-label="Close academic">✕</button>
         <div id="academic-tabs" class="tabbed-tabs" role="tablist">
-          <button class="tabbed-tab" data-tab="numbers" role="tab" type="button">Numbers</button>
-          <button class="tabbed-tab" data-tab="colours" role="tab" type="button">Colours</button>
-          <button class="tabbed-tab" data-tab="shapes"  role="tab" type="button">Shapes</button>
-          <button class="tabbed-tab" data-tab="letters" role="tab" type="button">Letters</button>
-          <button class="tabbed-tab" data-tab="actions" role="tab" type="button">Actions</button>
-          <button class="tabbed-tab" data-tab="body"    role="tab" type="button">Body</button>
+          <button class="tabbed-tab" data-tab="numbers"  role="tab" type="button">Numbers</button>
+          <button class="tabbed-tab" data-tab="colours"  role="tab" type="button">Colours</button>
+          <button class="tabbed-tab" data-tab="shapes"   role="tab" type="button">Shapes</button>
+          <button class="tabbed-tab" data-tab="letters"  role="tab" type="button">Letters</button>
+          <button class="tabbed-tab" data-tab="actions"  role="tab" type="button">Actions</button>
+          <button class="tabbed-tab" data-tab="body"     role="tab" type="button">Body</button>
+          <button class="tabbed-tab" data-tab="clothing" role="tab" type="button">Clothing</button>
         </div>
         <div id="academic-words" class="tabbed-words" role="tabpanel"></div>
       </div>
@@ -4037,6 +4038,42 @@
         { label: 'Foot',     speak: 'Foot',     emoji: '🦶' },
         { label: 'Toe',      speak: 'Toe'                   },
         { label: 'Bottom',   speak: 'Bottom'                },
+      ],
+
+      // Clothing — high-frequency dressing/changing/sport-day
+      // vocab. Australian terms: Jumper (sweater), Thongs (flip-flops),
+      // Bathers (swimwear), Runners (sneakers), Singlet (undershirt),
+      // Undies. Same emoji-where-natural / text-only-otherwise
+      // policy as Body and Actions tabs.
+      clothing: [
+        { label: 'Shirt',     speak: 'Shirt',     emoji: '👕' },
+        { label: 'T-shirt',   speak: 'T-shirt',   emoji: '👕' },
+        { label: 'Jumper',    speak: 'Jumper',    emoji: '🧥' },
+        { label: 'Jacket',    speak: 'Jacket',    emoji: '🧥' },
+        { label: 'Pants',     speak: 'Pants',     emoji: '👖' },
+        { label: 'Shorts',    speak: 'Shorts',    emoji: '🩳' },
+        { label: 'Skirt',     speak: 'Skirt'                  },
+        { label: 'Dress',     speak: 'Dress',     emoji: '👗' },
+        { label: 'Tracksuit', speak: 'Tracksuit'              },
+        { label: 'Shoes',     speak: 'Shoes',     emoji: '👟' },
+        { label: 'Runners',   speak: 'Runners',   emoji: '👟' },
+        { label: 'Socks',     speak: 'Socks',     emoji: '🧦' },
+        { label: 'Boots',     speak: 'Boots',     emoji: '🥾' },
+        { label: 'Thongs',    speak: 'Thongs'                 },
+        { label: 'Hat',       speak: 'Hat',       emoji: '🎩' },
+        { label: 'Cap',       speak: 'Cap',       emoji: '🧢' },
+        { label: 'Beanie',    speak: 'Beanie'                 },
+        { label: 'Pyjamas',   speak: 'Pyjamas'                },
+        { label: 'Undies',    speak: 'Undies',    emoji: '🩲' },
+        { label: 'Singlet',   speak: 'Singlet'                },
+        { label: 'Uniform',   speak: 'Uniform'                },
+        { label: 'Bathers',   speak: 'Bathers'                },
+        { label: 'Raincoat',  speak: 'Raincoat'               },
+        { label: 'Umbrella',  speak: 'Umbrella',  emoji: '☂️' },
+        { label: 'Glasses',   speak: 'Glasses',   emoji: '👓' },
+        { label: 'Backpack',  speak: 'Backpack',  emoji: '🎒' },
+        { label: 'Tie',       speak: 'Tie',       emoji: '👔' },
+        { label: 'Scarf',     speak: 'Scarf',     emoji: '🧣' },
       ],
     };
 
