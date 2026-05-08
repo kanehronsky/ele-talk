@@ -1082,6 +1082,155 @@
     html.high-contrast #active-pathway-indicator  { background: #1a1a1a; border-color: #555; color: #fff; }
 
     /* ═══════════════════════════════════════════════════
+       MASTERED PATHWAYS — list, summary card, detail screen
+       Visually distinct from active pathways: muted neutral
+       palette signals "longitudinal record" rather than
+       "currently teaching". Inline Un-master action mirrors
+       the active list's edit/delete affordances.
+    ═══════════════════════════════════════════════════ */
+    .mastered-list {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 14px;
+    }
+    .mastered-item {
+      background: #f4f6f9;
+      border: 1.5px solid #d6dde7;
+      border-radius: 8px;
+      padding: 12px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      cursor: pointer;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .mastered-item:active { filter: brightness(0.97); }
+    .mastered-item-header {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 12px;
+    }
+    .mastered-item-label {
+      font-size: 15px;
+      font-weight: 600;
+      color: #2a2f3a;
+      flex: 1;
+      min-width: 0;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mastered-item-meta {
+      font-size: 12px;
+      color: #6a7280;
+      display: flex;
+      gap: 6px;
+      flex-wrap: wrap;
+      align-items: baseline;
+    }
+    .mastered-item-date {
+      color: #6a7280;
+    }
+    .mastered-item-note {
+      font-size: 13px;
+      color: #4a5060;
+      font-style: italic;
+      overflow: hidden;
+      text-overflow: ellipsis;
+      white-space: nowrap;
+    }
+    .mastered-item-note-empty {
+      color: #aab2bf;
+      font-style: italic;
+    }
+    .mastered-item-actions {
+      display: flex;
+      gap: 4px;
+      justify-content: flex-end;
+    }
+    .mastered-item-actions button {
+      font-size: 13px;
+      padding: 6px 10px;
+      background: transparent;
+      border: none;
+      border-radius: 6px;
+      font-weight: 600;
+      cursor: pointer;
+      font-family: inherit;
+      touch-action: manipulation;
+      -webkit-tap-highlight-color: transparent;
+      color: #c0392b;
+    }
+    .mastered-item-actions button:active { filter: brightness(0.85); }
+
+    .mastered-empty {
+      font-size: 14px;
+      color: #6a7280;
+      font-style: italic;
+      padding: 12px;
+      text-align: center;
+    }
+
+    /* Summary card — used on both confirm-mastered and mastered-detail
+       screens to render the read-only pathway snapshot. */
+    .mastered-summary {
+      background: #f0f2f5;
+      border: 1.5px solid #d6dde7;
+      border-radius: 8px;
+      padding: 12px 14px;
+      margin-bottom: 14px;
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+    }
+    .mastered-summary-label {
+      font-size: 16px;
+      font-weight: 700;
+      color: #2a2f3a;
+    }
+    .mastered-summary-meta {
+      font-size: 12px;
+      color: #6a7280;
+      display: flex;
+      gap: 8px;
+      flex-wrap: wrap;
+    }
+    .mastered-summary-chips {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      align-items: center;
+    }
+    .mastered-confirm-help {
+      font-size: 13px;
+      color: #6a7280;
+      margin: 4px 0 14px;
+    }
+    .mastered-note-stamp {
+      font-size: 12px;
+      color: #6a7280;
+      margin-top: 4px;
+      font-style: italic;
+    }
+
+    /* High-contrast variants */
+    html.high-contrast .mastered-item               { background: #181818; border-color: #555; }
+    html.high-contrast .mastered-item-label         { color: #fff; }
+    html.high-contrast .mastered-item-meta          { color: #aaa; }
+    html.high-contrast .mastered-item-date          { color: #aaa; }
+    html.high-contrast .mastered-item-note          { color: #ccc; }
+    html.high-contrast .mastered-item-note-empty    { color: #777; }
+    html.high-contrast .mastered-empty              { color: #aaa; }
+    html.high-contrast .mastered-summary            { background: #0f0f0f; border-color: #555; }
+    html.high-contrast .mastered-summary-label      { color: #fff; }
+    html.high-contrast .mastered-summary-meta       { color: #aaa; }
+    html.high-contrast .mastered-confirm-help       { color: #aaa; }
+    html.high-contrast .mastered-note-stamp         { color: #888; }
+
+    /* ═══════════════════════════════════════════════════
        RECORD BANNER — shown above the sentence strip while
        the teacher is in tap-to-build record mode. Coral-red
        background signals recording (universally red); gold
@@ -1477,6 +1626,12 @@
         </div>
 
         <div class="overlay-section">
+          <h2>Mastered Pathways</h2>
+          <p>Pathways the child has acquired, signed off by the teacher. The longitudinal record a receiving teacher inherits.</p>
+          <div id="mastered-list" class="mastered-list"></div>
+        </div>
+
+        <div class="overlay-section">
           <h2>Security</h2>
           <div class="btn-row">
             <button id="settings-change-pin" class="btn-secondary">Change PIN</button>
@@ -1564,7 +1719,6 @@
               <option value="1">Magnet</option>
               <option value="2">Ghost</option>
               <option value="3">Guide</option>
-              <option value="4">Pilot</option>
             </select>
           </div>
           <div class="form-row">
@@ -1577,7 +1731,53 @@
           <div class="form-error" id="pathway-edit-error"></div>
           <div class="btn-row">
             <button id="pathway-save" class="btn-primary">Save</button>
+            <button id="pathway-mastered-btn" class="btn-secondary" hidden>Mark as mastered</button>
             <button id="pathway-delete" class="btn-danger" hidden>Delete</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 6: confirm mark-as-mastered -->
+    <div id="mastered-confirm-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title">Mark as mastered</h1>
+        <button id="mastered-confirm-cancel" class="btn-ghost">Cancel</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <div id="mastered-confirm-summary" class="mastered-summary"></div>
+          <div class="form-row">
+            <label for="mastered-confirm-note">Note (optional)</label>
+            <textarea id="mastered-confirm-note" rows="4" maxlength="600"
+              placeholder="e.g. Observed unprompted at canteen, classroom, and home over 2 weeks. Used with novel food items."></textarea>
+          </div>
+          <p class="mastered-confirm-help">This pathway will move out of the active list and into the Mastered Pathways record. The note can be edited later.</p>
+          <div class="btn-row">
+            <button id="mastered-confirm-save" class="btn-primary">Confirm mastered</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Screen 7: mastered pathway detail (note editing) -->
+    <div id="mastered-detail-screen" hidden>
+      <div class="overlay-header">
+        <h1 class="overlay-title" id="mastered-detail-title">Mastered pathway</h1>
+        <button id="mastered-detail-cancel" class="btn-ghost">Close</button>
+      </div>
+      <div class="overlay-body">
+        <div class="overlay-section">
+          <div id="mastered-detail-summary" class="mastered-summary"></div>
+          <div class="form-row">
+            <label for="mastered-detail-note">Note</label>
+            <textarea id="mastered-detail-note" rows="6" maxlength="600"></textarea>
+            <div id="mastered-detail-note-stamp" class="mastered-note-stamp"></div>
+          </div>
+          <div class="form-error" id="mastered-detail-error"></div>
+          <div class="btn-row">
+            <button id="mastered-detail-save" class="btn-primary">Save note</button>
+            <button id="mastered-detail-unmaster" class="btn-danger">Un-master</button>
           </div>
         </div>
       </div>
@@ -2252,19 +2452,55 @@
     };
 
     /* ═══════════════════════════════════════════════════════════
-       WORD IDs — stamped onto CORE_36 + SUB_GRIDS at boot
-       Pathways reference words by stable IDs, not array positions.
-       Home buttons:  core_<idx>           (positional — home grid is permanent)
-       Sub-grid words: <subGridKey>_<slug> (e.g. want_run, food_apple)
-       MY WORDS:      mw_<uuid>            (already assigned at create time)
+       WORD IDs — stamped onto CORE_36, SUB_GRIDS, and tabbed-panel
+       data at boot. Pathways reference words by stable IDs.
+       Home buttons:    core_<idx>                  (positional)
+       Sub-grid words:  <subGridKey>_<slug>         (e.g. want_run)
+       Panel words:     <panel>_<tabId>_<slug>      (e.g. food_meals_bread)
+       MY WORDS:        mw_<uuid>                   (assigned on create)
        Treating want.Run vs go.Run as different IDs is deliberate — the
        motor-planning journey to each is different, so the engine should
-       not collapse them.
+       not collapse them. Same for academic_numbers_one vs (any future)
+       letters_one — different surfaces, different motor paths.
     ═══════════════════════════════════════════════════════════ */
     function slugify(s) {
       return String(s).toLowerCase()
         .replace(/[^a-z0-9]+/g, '_')
         .replace(/^_+|_+$/g, '');
+    }
+
+    /* Registry of tabbed panels eligible for pathway targeting.
+       Filled by stampIds() once panel data declarations have all run.
+       Grammar is intentionally absent — it's strip-launched morphology
+       (Tier 3), disabled during scaffolding by design. */
+    const TABBED_PANEL_REGISTRY = {};
+
+    /* Normalize panel data into { tabId: [words] } regardless of source
+       shape. FOOD/PEOPLE/PLACES/TOYS are arrays of {id, words}; ACADEMIC
+       is a flat { tabKey: [...] } object. */
+    function normalizePanelTabs(raw) {
+      if (Array.isArray(raw)) {
+        const out = {};
+        raw.forEach(t => { out[t.id] = t.words; });
+        return out;
+      }
+      return raw;
+    }
+
+    function stampPanelIds(panelName, tabsByKey) {
+      Object.entries(tabsByKey).forEach(([tabId, words]) => {
+        const seen = new Set();
+        words.forEach(item => {
+          const slug = slugify(item.label);
+          let id = panelName + '_' + tabId + '_' + slug;
+          let n = 2;
+          while (seen.has(id)) {
+            id = panelName + '_' + tabId + '_' + slug + '_' + (n++);
+          }
+          seen.add(id);
+          item.id = id;
+        });
+      });
     }
 
     function stampIds() {
@@ -2284,6 +2520,44 @@
           item.id = id;
         });
       });
+      // Tabbed-panel data is declared further down in the file; stampIds
+      // is called after all those `const` declarations have run, so this
+      // is safe.
+      const PANEL_SOURCES = {
+        academic: ACADEMIC_TABS,
+        food:     FOOD_TABS,
+        people:   PEOPLE_TABS,
+        places:   PLACES_TABS,
+        toys:     TOYS_TABS,
+      };
+      Object.entries(PANEL_SOURCES).forEach(([name, raw]) => {
+        const tabsByKey = normalizePanelTabs(raw);
+        stampPanelIds(name, tabsByKey);
+        TABBED_PANEL_REGISTRY[name] = tabsByKey;
+      });
+    }
+
+    /* True iff `id` is one of the registered tabbed-panel words. Used
+       by the engine + recorder + auto-nav to dispatch on word kind. */
+    function isPanelWordId(id) {
+      if (!id || typeof id !== 'string') return false;
+      const u = id.indexOf('_');
+      if (u < 0) return false;
+      return Object.prototype.hasOwnProperty.call(
+        TABBED_PANEL_REGISTRY, id.slice(0, u)
+      );
+    }
+
+    /* Parse a panel-word id into { panel, tab, slug }, or null if `id`
+       is malformed / not a panel word. */
+    function parsePanelWordId(id) {
+      if (!isPanelWordId(id)) return null;
+      const u1 = id.indexOf('_');
+      const panel = id.slice(0, u1);
+      const rest  = id.slice(u1 + 1);
+      const u2 = rest.indexOf('_');
+      if (u2 < 0) return null;
+      return { panel, tab: rest.slice(0, u2), slug: rest.slice(u2 + 1) };
     }
 
     /* Resolve a stamped pathway-word ID to a renderable record.
@@ -2299,6 +2573,14 @@
       if (id.startsWith('mw_')) {
         const mw = (Profile.current?.myWords || []).find(w => w.id === id);
         return mw ? { label: mw.label, emoji: mw.emoji || '⭐', color: 'yellow-light' } : null;
+      }
+      // Tabbed-panel IDs: <panel>_<tab>_<slug>. Look up via the registry.
+      if (isPanelWordId(id)) {
+        const parsed = parsePanelWordId(id);
+        if (!parsed) return null;
+        const tabsByKey = TABBED_PANEL_REGISTRY[parsed.panel];
+        const words = (tabsByKey && tabsByKey[parsed.tab]) || [];
+        return words.find(w => w.id === id) || null;
       }
       // Sub-grid IDs are <key>_<slug>; locate by scanning the matching sub-grid.
       const underscore = id.indexOf('_');
@@ -2325,6 +2607,19 @@
         try {
           const parsed = JSON.parse(raw);
           if (parsed.schemaVersion !== this.SCHEMA_VERSION) return null;
+          // Pilot (level 4) was removed; coerce any stored L4 pathways
+          // down to L3 (Guide) so they remain teachable.
+          if (Array.isArray(parsed.pathways)) {
+            parsed.pathways.forEach(p => {
+              if (p && p.scaffoldingLevel === 4) p.scaffoldingLevel = 3;
+            });
+          }
+          // Defensive: ensure masteredPathways exists on profiles created
+          // before this field was populated.
+          if (!parsed.meta) parsed.meta = {};
+          if (!Array.isArray(parsed.meta.masteredPathways)) {
+            parsed.meta.masteredPathways = [];
+          }
           this.current = parsed;
           return parsed;
         } catch (_e) {
@@ -2335,13 +2630,7 @@
       save() {
         if (!this.current) return;
         this.current.meta.updatedAt = new Date().toISOString();
-        // Pathways are ephemeral this session — they live on Profile.current
-        // for code-path consistency but are stripped from disk writes until
-        // a later stage formalises pathway persistence. Without this, an
-        // unrelated save (e.g. toggling high contrast) would silently
-        // persist the in-memory pathway array.
-        const toSave = { ...this.current, pathways: [] };
-        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(toSave));
+        localStorage.setItem(this.STORAGE_KEY, JSON.stringify(this.current));
       },
 
       create({ name, pinHash }) {
@@ -2410,6 +2699,8 @@
         'myword-edit-screen',
         'change-pin-screen',
         'pathway-edit-screen',
+        'mastered-confirm-screen',
+        'mastered-detail-screen',
       ];
       screens.forEach(s => { document.getElementById(s).hidden = (s !== screenId); });
     }
@@ -2529,6 +2820,39 @@
       document.getElementById('pathway-edit-cancel').addEventListener('click', () => showSettingsScreen('settings-main-screen'));
       document.getElementById('pathway-save').addEventListener('click', savePathwayEdit);
       document.getElementById('pathway-delete').addEventListener('click', deleteCurrentPathway);
+      document.getElementById('pathway-mastered-btn').addEventListener('click', () => {
+        if (editingPathwayId) openMarkMasteredConfirm(editingPathwayId);
+      });
+
+      // MASTERED handlers
+      document.getElementById('mastered-confirm-cancel').addEventListener('click', () => {
+        // Cancel returns to the still-populated pathway-edit screen;
+        // editingPathwayId stays intact so the edit context is preserved.
+        showSettingsScreen('pathway-edit-screen');
+      });
+      document.getElementById('mastered-confirm-save').addEventListener('click', confirmMarkMastered);
+      document.getElementById('mastered-detail-cancel').addEventListener('click', () => {
+        editingMasteredId = null;
+        showSettingsScreen('settings-main-screen');
+      });
+      document.getElementById('mastered-detail-save').addEventListener('click', saveMasteredNote);
+      document.getElementById('mastered-detail-unmaster').addEventListener('click', unmasterFromDetail);
+
+      // Event delegation on the mastered list — inline Un-master button +
+      // tap-row-to-open-detail. Same pattern as the pathway list.
+      const masteredListEl = document.getElementById('mastered-list');
+      masteredListEl.addEventListener('click', (e) => {
+        const t = e.target;
+        if (t.matches('.mastered-unmaster-btn')) {
+          e.stopPropagation();   // don't bubble into the row tap-to-open
+          unmasterFromList(t.dataset.masteredId);
+          return;
+        }
+        const row = t.closest('.mastered-item');
+        if (row && row.dataset.masteredId) {
+          openMasteredDetail(row.dataset.masteredId);
+        }
+      });
 
       // Record button on the pathway-edit screen — enters tap-to-build
       // for the currently-edited pathway.
@@ -2586,6 +2910,7 @@
       document.getElementById('settings-hc').checked = !!Profile.current.preferences.highContrast;
       renderMyWordsList();
       renderPathwayList();
+      renderMasteredList();
     }
 
     /* ─── MY WORDS CRUD ─────────────────────────────── */
@@ -2696,17 +3021,28 @@
 
     /* ═══════════════════════════════════════════════════════════
        PATHWAYS — CRUD + activation
-       Stage 1 of the scaffolding-engine build: data + UI only. The
-       engine that interprets these pathways arrives in a later stage.
-       Persistence is intentionally deferred — pathways live on
-       Profile.current.pathways but Profile.save() is NOT called for
-       pathway mutations this session, so reloading clears them.
+       Pathways and their completion counts persist via Profile.save()
+       on every mutation (create / edit / delete / activate / record /
+       trial completion).
     ═══════════════════════════════════════════════════════════ */
     let editingPathwayId = null;
+    let editingMasteredId = null;
 
-    const SCAFFOLDING_LEVELS = { 1: 'Magnet', 2: 'Ghost', 3: 'Guide', 4: 'Pilot' };
+    const SCAFFOLDING_LEVELS = { 1: 'Magnet', 2: 'Ghost', 3: 'Guide' };
     function getScaffoldingLevelName(level) {
       return SCAFFOLDING_LEVELS[level] || '—';
+    }
+
+    /* Clinical ceiling on pathways being taught simultaneously, per
+       CLAUDE.md. Enforced when adding new pathways and when un-mastering
+       (which adds back to the active list). */
+    const MAX_ACTIVE_PATHWAYS = 5;
+
+    function pathwayCount() {
+      return Profile.current?.pathways?.length || 0;
+    }
+    function isAtPathwayCap() {
+      return pathwayCount() >= MAX_ACTIVE_PATHWAYS;
     }
 
     /* Render the list of pathways inside the main settings screen.
@@ -2715,6 +3051,17 @@
       const listEl = document.getElementById('pathway-list');
       listEl.innerHTML = '';
       const pathways = Profile.current?.pathways || [];
+
+      // Reflect the cap on the Add Pathway button — disabled + tooltip
+      // when full so the teacher sees the limit before they tap.
+      const addBtn = document.getElementById('pathway-add-btn');
+      if (addBtn) {
+        const atCap = isAtPathwayCap();
+        addBtn.disabled = atCap;
+        addBtn.title = atCap
+          ? `At the ${MAX_ACTIVE_PATHWAYS}-pathway clinical limit.`
+          : '';
+      }
 
       if (pathways.length === 0) {
         const empty = document.createElement('div');
@@ -2796,7 +3143,7 @@
       Profile.current.pathways.forEach(p => {
         p.active = !!makeActive && p.id === id;
       });
-      // no save() — pathway persistence deferred to a later stage
+      Profile.save();
       Engine.syncFromProfile();
       renderPathwayList();
       renderActivePathwayIndicator();
@@ -2810,12 +3157,13 @@
        "Re-record" depending on whether steps already exist). */
     function openPathwayEdit(id) {
       editingPathwayId = id;
-      const titleEl   = document.getElementById('pathway-edit-title');
-      const labelEl   = document.getElementById('pathway-label');
-      const levelEl   = document.getElementById('pathway-level');
-      const errorEl   = document.getElementById('pathway-edit-error');
-      const deleteEl  = document.getElementById('pathway-delete');
-      const recordEl  = document.getElementById('pathway-record-btn');
+      const titleEl    = document.getElementById('pathway-edit-title');
+      const labelEl    = document.getElementById('pathway-label');
+      const levelEl    = document.getElementById('pathway-level');
+      const errorEl    = document.getElementById('pathway-edit-error');
+      const deleteEl   = document.getElementById('pathway-delete');
+      const recordEl   = document.getElementById('pathway-record-btn');
+      const masteredEl = document.getElementById('pathway-mastered-btn');
       errorEl.textContent = '';
 
       if (id === null) {
@@ -2827,6 +3175,7 @@
         levelEl.value = '';        // forces the teacher to pick a level
         deleteEl.hidden = true;
         recordEl.hidden = true;
+        masteredEl.hidden = true;
         renderStepChips([]);
       } else {
         const pw = Profile.current.pathways.find(p => p.id === id);
@@ -2839,6 +3188,9 @@
         recordEl.textContent = (pw.steps && pw.steps.length > 0)
           ? 'Re-record'
           : 'Record steps';
+        // Mark as mastered is only meaningful once the pathway has
+        // recorded steps — there's nothing to sign off otherwise.
+        masteredEl.hidden = !(pw.steps && pw.steps.length > 0);
         renderStepChips(pw.steps || []);
       }
       showSettingsScreen('pathway-edit-screen');
@@ -2861,6 +3213,10 @@
       }
 
       if (editingPathwayId === null) {
+        if (isAtPathwayCap()) {
+          errorEl.textContent = `At the ${MAX_ACTIVE_PATHWAYS}-pathway clinical limit. Master or delete a pathway first.`;
+          return;
+        }
         Profile.current.pathways.push({
           id:               'pw_' + crypto.randomUUID(),
           label,
@@ -2873,7 +3229,7 @@
         const pw = Profile.current.pathways.find(p => p.id === editingPathwayId);
         if (pw) Object.assign(pw, { label, scaffoldingLevel: level });
       }
-      // no save() — pathway persistence deferred to a later stage
+      Profile.save();
 
       Engine.syncFromProfile();
       renderPathwayList();
@@ -2891,7 +3247,7 @@
       if (!window.confirm(`Delete pathway "${pw.label}"?`)) return;
 
       Profile.current.pathways = Profile.current.pathways.filter(p => p.id !== editingPathwayId);
-      // no save() — pathway persistence deferred to a later stage
+      Profile.save();
 
       Engine.syncFromProfile();
       renderPathwayList();
@@ -2899,6 +3255,301 @@
       engineAutoNavigate();
       renderScaffoldHighlight();
       showSettingsScreen('settings-main-screen');
+    }
+
+    /* ═══════════════════════════════════════════════════════════
+       MASTERED PATHWAYS — manual sign-off + handover record
+       The teacher decides mastery; the app preserves the decision
+       (date, level, optional note) as the longitudinal record a
+       receiving teacher can read. Auto-promotion was deliberately
+       not built — see grill notes: contrived structured trials
+       can't establish generalisation, so the engine has no business
+       claiming mastery on its own. completionCount keeps incrementing
+       as a quiet trial counter but never gates anything.
+    ═══════════════════════════════════════════════════════════ */
+    function masteredList() {
+      return Profile.current?.meta?.masteredPathways || [];
+    }
+
+    /* Move a pathway out of the active list into the mastered record.
+       Caller supplies the optional note; everything else is captured
+       from the pathway's current state. Returns the new mastered id
+       on success, or null on failure. */
+    function markPathwayMastered(pathwayId, note) {
+      if (!Profile.current) return null;
+      const pw = Profile.current.pathways.find(p => p.id === pathwayId);
+      if (!pw) return null;
+
+      const masteredId = 'mp_' + crypto.randomUUID();
+      // No levelAtMastery: mastery means unprompted by definition.
+      // Recording the prompt level it was at while being taught would
+      // mislead a future regression assessment.
+      const record = {
+        id:               masteredId,
+        pathwayId:        pw.id,
+        label:            pw.label,
+        steps:            (pw.steps || []).slice(),
+        dateMastered:     new Date().toISOString(),
+        note:             (note || '').trim(),
+        noteUpdatedAt:    null,
+        completionCount:  pw.completionCount || 0,
+      };
+
+      if (!Profile.current.meta) Profile.current.meta = {};
+      if (!Array.isArray(Profile.current.meta.masteredPathways)) {
+        Profile.current.meta.masteredPathways = [];
+      }
+      Profile.current.meta.masteredPathways.push(record);
+      Profile.current.pathways = Profile.current.pathways.filter(p => p.id !== pathwayId);
+      Profile.save();
+      return masteredId;
+    }
+
+    /* Restore a mastered pathway to the active list. Capped — refuses
+       if the active list is full (returns false). On success the
+       pathway returns at L3 (Guide, most supportive prompt) as a
+       default; the teacher is expected to perform a fresh assessment
+       and adjust the level themselves. Restoring to a "remembered"
+       prior level would substitute stale data for clinical judgment. */
+    function unmasterPathway(masteredId) {
+      if (!Profile.current) return false;
+      const list = Profile.current.meta?.masteredPathways || [];
+      const idx  = list.findIndex(m => m.id === masteredId);
+      if (idx < 0) return false;
+      if (isAtPathwayCap()) return false;
+
+      const record = list[idx];
+      Profile.current.pathways.push({
+        id:               record.pathwayId,
+        label:            record.label,
+        steps:            (record.steps || []).slice(),
+        scaffoldingLevel: 3,
+        active:           false,
+        completionCount:  record.completionCount || 0,
+      });
+      list.splice(idx, 1);
+      Profile.save();
+      return true;
+    }
+
+    /* Update the note on a mastered record. Stamps noteUpdatedAt so a
+       receiving teacher can see the original entry has been amended. */
+    function updateMasteredNote(masteredId, note) {
+      if (!Profile.current) return false;
+      const list = Profile.current.meta?.masteredPathways || [];
+      const record = list.find(m => m.id === masteredId);
+      if (!record) return false;
+      record.note = (note || '').trim();
+      record.noteUpdatedAt = new Date().toISOString();
+      Profile.save();
+      return true;
+    }
+
+    /* ─── MASTERED PATHWAYS UI ────────────────────────── */
+    function formatMasteredDate(iso) {
+      if (!iso) return '';
+      const d = new Date(iso);
+      if (isNaN(d.getTime())) return '';
+      return d.toLocaleDateString(undefined, { year: 'numeric', month: 'short', day: 'numeric' });
+    }
+
+    function renderMasteredList() {
+      const listEl = document.getElementById('mastered-list');
+      if (!listEl) return;
+      listEl.innerHTML = '';
+      const records = masteredList()
+        .slice()
+        .sort((a, b) => (b.dateMastered || '').localeCompare(a.dateMastered || ''));
+
+      if (records.length === 0) {
+        const empty = document.createElement('div');
+        empty.className = 'mastered-empty';
+        empty.textContent = 'No mastered pathways yet.';
+        listEl.appendChild(empty);
+        return;
+      }
+
+      records.forEach(rec => {
+        const item = document.createElement('div');
+        item.className = 'mastered-item';
+        item.dataset.masteredId = rec.id;
+        item.setAttribute('role', 'button');
+        item.setAttribute('tabindex', '0');
+
+        const noteHtml = rec.note
+          ? `<div class="mastered-item-note">${escapeHtml(rec.note)}</div>`
+          : `<div class="mastered-item-note mastered-item-note-empty">No note recorded.</div>`;
+
+        item.innerHTML =
+          `<div class="mastered-item-header">` +
+            `<div class="mastered-item-label">${escapeHtml(rec.label)}</div>` +
+            `<div class="mastered-item-actions">` +
+              `<button class="mastered-unmaster-btn" data-mastered-id="${rec.id}">Un-master</button>` +
+            `</div>` +
+          `</div>` +
+          `<div class="mastered-item-meta">` +
+            `<span class="mastered-item-date">${escapeHtml(formatMasteredDate(rec.dateMastered))}</span>` +
+            `<span>·</span>` +
+            `<span class="mastered-item-steps">${escapeHtml(formatStepsPreview(rec.steps))}</span>` +
+          `</div>` +
+          noteHtml;
+
+        listEl.appendChild(item);
+      });
+    }
+
+    /* Render the read-only summary card used on both the mastery-confirm
+       screen and the mastered-detail screen. Source can be a live
+       pathway (during confirm) or a mastered record (during detail). */
+    function renderMasterySummary(containerId, source) {
+      const el = document.getElementById(containerId);
+      if (!el) return;
+      el.innerHTML = '';
+
+      const labelEl = document.createElement('div');
+      labelEl.className = 'mastered-summary-label';
+      labelEl.textContent = source.label || '';
+      el.appendChild(labelEl);
+
+      const meta = document.createElement('div');
+      meta.className = 'mastered-summary-meta';
+      let needSep = false;
+      if (source.dateMastered) {
+        const dt = document.createElement('span');
+        dt.textContent = formatMasteredDate(source.dateMastered);
+        meta.appendChild(dt);
+        needSep = true;
+      }
+      const trials = source.completionCount;
+      if (typeof trials === 'number' && trials > 0) {
+        if (needSep) {
+          const sep = document.createElement('span'); sep.textContent = '·';
+          meta.appendChild(sep);
+        }
+        const tr = document.createElement('span');
+        tr.textContent = trials === 1 ? '1 trial' : `${trials} trials`;
+        meta.appendChild(tr);
+      }
+      if (meta.childNodes.length > 0) el.appendChild(meta);
+
+      const chips = document.createElement('div');
+      chips.className = 'mastered-summary-chips';
+      const steps = source.steps || [];
+      steps.forEach((id, i) => {
+        const w = resolveWord(id);
+        const chip = document.createElement('span');
+        chip.className = 'pathway-step-chip';
+        const emoji = w?.emoji ? `${w.emoji} ` : '';
+        chip.textContent = `${emoji}${w?.label || '?'}`;
+        chips.appendChild(chip);
+        if (i < steps.length - 1) {
+          const arrow = document.createElement('span');
+          arrow.className = 'pathway-step-arrow';
+          arrow.textContent = '→';
+          chips.appendChild(arrow);
+        }
+      });
+      el.appendChild(chips);
+    }
+
+    function openMarkMasteredConfirm(pathwayId) {
+      const pw = Profile.current?.pathways.find(p => p.id === pathwayId);
+      if (!pw) return;
+      editingPathwayId = pathwayId;   // confirmed save reads this
+      renderMasterySummary('mastered-confirm-summary', pw);
+      document.getElementById('mastered-confirm-note').value = '';
+      showSettingsScreen('mastered-confirm-screen');
+    }
+
+    function confirmMarkMastered() {
+      if (editingPathwayId === null) {
+        showSettingsScreen('settings-main-screen');
+        return;
+      }
+      const note = document.getElementById('mastered-confirm-note').value;
+      const id   = markPathwayMastered(editingPathwayId, note);
+      editingPathwayId = null;
+      if (!id) {
+        showSettingsScreen('settings-main-screen');
+        return;
+      }
+      // Active list shrunk and trial state may have pointed at this
+      // pathway — re-sync the engine so highlights / nav reset cleanly.
+      Engine.syncFromProfile();
+      renderPathwayList();
+      renderMasteredList();
+      renderActivePathwayIndicator();
+      engineAutoNavigate();
+      renderScaffoldHighlight();
+      showSettingsScreen('settings-main-screen');
+    }
+
+    function openMasteredDetail(masteredId) {
+      const rec = masteredList().find(r => r.id === masteredId);
+      if (!rec) return;
+      editingMasteredId = masteredId;
+      document.getElementById('mastered-detail-error').textContent = '';
+      renderMasterySummary('mastered-detail-summary', rec);
+      document.getElementById('mastered-detail-note').value = rec.note || '';
+      const stamp = document.getElementById('mastered-detail-note-stamp');
+      stamp.textContent = rec.noteUpdatedAt
+        ? `Note updated ${formatMasteredDate(rec.noteUpdatedAt)}`
+        : '';
+      showSettingsScreen('mastered-detail-screen');
+    }
+
+    function saveMasteredNote() {
+      if (editingMasteredId === null) return;
+      const note = document.getElementById('mastered-detail-note').value;
+      updateMasteredNote(editingMasteredId, note);
+      editingMasteredId = null;
+      renderMasteredList();
+      showSettingsScreen('settings-main-screen');
+    }
+
+    function unmasterFromDetail() {
+      if (editingMasteredId === null) return;
+      const rec = masteredList().find(r => r.id === editingMasteredId);
+      if (!rec) {
+        editingMasteredId = null;
+        showSettingsScreen('settings-main-screen');
+        return;
+      }
+      if (isAtPathwayCap()) {
+        document.getElementById('mastered-detail-error').textContent =
+          `Can't un-master — at the ${MAX_ACTIVE_PATHWAYS}-pathway clinical limit. Master or delete an active pathway first.`;
+        return;
+      }
+      if (!window.confirm(`Move "${rec.label}" back to active pathways for re-teaching?`)) return;
+      unmasterPathway(editingMasteredId);
+      editingMasteredId = null;
+      Engine.syncFromProfile();
+      renderPathwayList();
+      renderMasteredList();
+      renderActivePathwayIndicator();
+      engineAutoNavigate();
+      renderScaffoldHighlight();
+      showSettingsScreen('settings-main-screen');
+    }
+
+    function unmasterFromList(masteredId) {
+      const rec = masteredList().find(r => r.id === masteredId);
+      if (!rec) return;
+      if (isAtPathwayCap()) {
+        window.alert(
+          `Can't un-master — this child has ${MAX_ACTIVE_PATHWAYS} active pathways already. ` +
+          `Master or delete an active pathway first to make room.`
+        );
+        return;
+      }
+      if (!window.confirm(`Move "${rec.label}" back to active pathways for re-teaching?`)) return;
+      unmasterPathway(masteredId);
+      Engine.syncFromProfile();
+      renderPathwayList();
+      renderMasteredList();
+      renderActivePathwayIndicator();
+      engineAutoNavigate();
+      renderScaffoldHighlight();
     }
 
     /* Active-pathway pill in the sentence strip. Decorative this
@@ -2936,6 +3587,11 @@
     ═══════════════════════════════════════════════════════════ */
     let sentenceWords  = [];
     let activeCategory = null;   // category id (e.g. 'food') when overlay is open, else null
+    /* Active tabbed panel + tab. Maintained by every panel's open(),
+       close(), and tab-switch path so the engine can answer "is the
+       right panel + tab currently shown for the next pathway step".
+       null when no tabbed panel is open. */
+    let activeTabbedPanel = null;   // { name, tab } | null
 
     /* Tap-to-build recording state. While isRecording is true:
        - the strip doubles as the live recording display
@@ -2947,16 +3603,15 @@
     let recordingSteps     = [];
 
     /* ═══════════════════════════════════════════════════════════
-       SCAFFOLDING ENGINE — Level 4 (Pilot) only this stage
-       Pure observer. No visual changes, no override of tap behaviour,
-       no auto-speak. Watches strip commits and tracks whether the
-       child has stepped through the active pathway in order. Trial
-       boundary is Clear; a successful trial increments the pathway's
-       completionCount.
+       SCAFFOLDING ENGINE
+       Tracks the child's position in the active pathway. Strip commits
+       advance the pointer; backspace rewinds; clear resets. A
+       successful trial (full chain + Speak) increments completionCount
+       at the moment of audible utterance — the natural reinforcer.
 
-       L1/L2/L3 logic (visibility overrides, navigation auto-handling,
-       gold-border scaffolding, scaffolded Speak) layers on top of this
-       state machine in a later stage.
+       Visual + behavioural overrides for L1/L2/L3 layer on top via
+       getScaffoldTargetId(), engineAutoNavigate(), and
+       renderScaffoldHighlight(). L4 is the pure-observer baseline.
     ═══════════════════════════════════════════════════════════ */
     const Engine = {
       state: {
@@ -3048,6 +3703,7 @@
         if (this.state.stepIndex !== pw.steps.length) return;
         pw.completionCount = (pw.completionCount || 0) + 1;
         this.state.speakTapped = true;
+        Profile.save();
       },
     };
 
@@ -3064,14 +3720,23 @@
       return item ? item.id : null;
     }
 
+    /* Find the home button that opens the named tabbed panel
+       (academic/food/people/places/toys). Used by the engine to
+       redirect L3 gold to "close this panel" cues when the wrong
+       panel is open. */
+    function findCoreIdForPanel(panelName) {
+      const action = 'open' + panelName.charAt(0).toUpperCase() + panelName.slice(1);
+      const item = CORE_36.find(it => it.action === action);
+      return item ? item.id : null;
+    }
+
     function getScaffoldTargetId() {
       // Scaffolding is suppressed entirely during authoring.
       if (isRecording) return null;
       const pw = Engine.activePathway();
       if (!pw || !pw.steps) return null;
       const level = pw.scaffoldingLevel || 0;
-      if (level < 1 || level > 4) return null;
-      if (level === 4) return null;                        // pure observer
+      if (level < 1 || level > 3) return null;
       if (Engine.state.speakTapped) return null;           // chain complete + spoken
       if (pw.steps.length === 0) return null;
 
@@ -3087,30 +3752,64 @@
 
       // Home-button target.
       if (targetId.startsWith('core_')) {
-        if (activeCategory === null) return targetId;
-        const idx = parseInt(targetId.slice(5), 10);
-        const item = CORE_36[idx];
-        if (item && item.subGrid === activeCategory) {
-          // Anchor of the open sub-grid IS the target.
-          return targetId;
+        if (activeCategory === null && activeTabbedPanel === null) return targetId;
+        if (activeCategory !== null) {
+          const idx = parseInt(targetId.slice(5), 10);
+          const item = CORE_36[idx];
+          if (item && item.subGrid === activeCategory) {
+            // Anchor of the open sub-grid IS the target.
+            return targetId;
+          }
+          return findCoreIdForSubGrid(activeCategory);
         }
-        // A different sub-grid is open — guide the child to close it.
-        return findCoreIdForSubGrid(activeCategory);
+        // A tabbed panel is open. If the target home button is the one
+        // that opened it (e.g. target = Food, Food panel is open), keep
+        // gold on the home button — the child re-taps to close. Otherwise
+        // gold goes onto the open panel's home button (close-and-go cue).
+        if (activeTabbedPanel) {
+          const openerId = findCoreIdForPanel(activeTabbedPanel.name);
+          if (openerId === targetId) return targetId;
+          return openerId;
+        }
+        return targetId;
       }
 
       // MY WORDS entry.
       if (targetId.startsWith('mw_')) {
         if (activeCategory === 'my_words') return targetId;
         if (activeCategory !== null) return findCoreIdForSubGrid(activeCategory);
+        if (activeTabbedPanel)       return findCoreIdForPanel(activeTabbedPanel.name);
         return findCoreIdForSubGrid('my_words');
       }
 
-      // Sub-grid word: <key>_<slug>.
+      // Tabbed-panel word.
+      if (isPanelWordId(targetId)) {
+        const parsed = parsePanelWordId(targetId);
+        if (!parsed) return null;
+        if (activeCategory !== null) return findCoreIdForSubGrid(activeCategory);
+        if (activeTabbedPanel && activeTabbedPanel.name !== parsed.panel) {
+          return findCoreIdForPanel(activeTabbedPanel.name);
+        }
+        if (activeTabbedPanel && activeTabbedPanel.name === parsed.panel) {
+          // Right panel; tile lives in DOM only when its tab is active.
+          if (activeTabbedPanel.tab === parsed.tab) return targetId;
+          // Wrong tab — fall back to the panel's home button. Imperfect
+          // L3 cue, but defined: re-tapping closes the panel and the
+          // child can try again. (L1/L2 never reach this branch — auto-
+          // navigate switches to the correct tab proactively.)
+          return findCoreIdForPanel(parsed.panel);
+        }
+        // No surface open — highlight the panel's home button.
+        return findCoreIdForPanel(parsed.panel);
+      }
+
+      // Legacy sub-grid word: <key>_<slug>.
       const underscore = targetId.indexOf('_');
       if (underscore < 0) return null;
       const key = targetId.slice(0, underscore);
       if (activeCategory === key) return targetId;
       if (activeCategory !== null) return findCoreIdForSubGrid(activeCategory);
+      if (activeTabbedPanel)       return findCoreIdForPanel(activeTabbedPanel.name);
       return findCoreIdForSubGrid(key);
     }
 
@@ -3124,38 +3823,55 @@
       return target !== itemId;
     }
 
-    /* For a given target ID, return the activeCategory that should
-       be open so the child needs only one tap to commit the target.
-       Used by engineAutoNavigate at L1/L2.
+    /* For a given target ID, return the surface that should be visible
+       so the child needs only one tap to commit it. Used by
+       engineAutoNavigate at L1/L2.
+
+       Returns one of:
+         null
+         { kind: 'subgrid', key: '<subGridKey>' }
+         { kind: 'panel',   name: '<panelName>', tab: '<tabId>' }
 
        Rules:
-       - Pronouns / Power Tools (no subGrid): no overlay (null).
-       - addToStrip parents (Want/Go/Look): no overlay — the commit
-         happens on first tap of the home button, and the existing
-         overlay-open is intercepted at L1/L2 to avoid a flash.
-       - Non-addToStrip home button targets (Food, Stop, etc.): the
-         commit happens on anchor re-tap, so pre-open the sub-grid.
+       - Pronouns / Power Tools (no subGrid, no openX action): no surface.
+       - addToStrip parents (Want/Go/Look): no surface — the commit
+         happens on first tap of the home button.
+       - Non-addToStrip sub-grid home button targets: pre-open the sub-grid.
+       - Tabbed-panel home button targets (Food/People/etc.): no surface —
+         the home button itself is the commit point.
        - Sub-grid words: pre-open their parent sub-grid.
-       - MY WORDS entries: pre-open my_words. */
-    function getExpectedCategoryForTarget(targetId) {
+       - MY WORDS entries: pre-open my_words.
+       - Panel words: open the panel + switch to the right tab. */
+    function getExpectedSurfaceForTarget(targetId) {
       if (!targetId || targetId === 'speak-btn') return null;
 
       if (targetId.startsWith('core_')) {
         const idx = parseInt(targetId.slice(5), 10);
         const item = CORE_36[idx];
-        if (!item || !item.subGrid) return null;
-        if (item.addToStrip) return null;
-        return item.subGrid;
+        if (!item) return null;
+        if (item.subGrid && !item.addToStrip) {
+          return { kind: 'subgrid', key: item.subGrid };
+        }
+        return null;
       }
 
-      if (targetId.startsWith('mw_')) return 'my_words';
+      if (targetId.startsWith('mw_')) {
+        return { kind: 'subgrid', key: 'my_words' };
+      }
 
+      if (isPanelWordId(targetId)) {
+        const parsed = parsePanelWordId(targetId);
+        if (!parsed) return null;
+        return { kind: 'panel', name: parsed.panel, tab: parsed.tab };
+      }
+
+      // Legacy sub-grid word
       const u = targetId.indexOf('_');
-      return u > 0 ? targetId.slice(0, u) : null;
+      return u > 0 ? { kind: 'subgrid', key: targetId.slice(0, u) } : null;
     }
 
-    /* Engine-handled navigation for L1/L2. Adjusts the overlay state
-       so the current target is reachable in one tap. No-op at L3+
+    /* Engine-handled navigation for L1/L2. Adjusts overlay + tabbed-panel
+       state so the current target is reachable in one tap. No-op at L3+
        (where the child performs the navigation themselves) and at L4.
        Recording mode bypasses entirely. */
     function engineAutoNavigate() {
@@ -3165,31 +3881,81 @@
       const level = pw.scaffoldingLevel || 0;
       if (level < 1 || level > 2) return;
 
-      let expectedCat;
-      if (Engine.state.speakTapped ||
-          Engine.state.stepIndex >= (pw.steps?.length || 0)) {
-        // Trial complete — close any open overlay so the strip is the focus.
-        expectedCat = null;
-      } else {
+      let expected = null;
+      const trialOver = Engine.state.speakTapped ||
+                        Engine.state.stepIndex >= (pw.steps?.length || 0);
+      if (!trialOver) {
         const targetId = pw.steps[Engine.state.stepIndex];
-        expectedCat = getExpectedCategoryForTarget(targetId);
+        expected = getExpectedSurfaceForTarget(targetId);
       }
 
-      if (activeCategory === expectedCat) return;
+      const wantSubgrid = expected && expected.kind === 'subgrid' ? expected.key : null;
+      const wantPanel   = expected && expected.kind === 'panel'   ? expected      : null;
 
-      if (activeCategory !== null) closeCategoryOverlay();
-      if (expectedCat) {
-        const triggerIdx = CORE_36.findIndex(it => it.subGrid === expectedCat);
-        if (triggerIdx >= 0) {
-          openCategoryOverlay(expectedCat, CORE_36[triggerIdx], triggerIdx);
+      // 1. Close any sub-grid overlay we don't want.
+      if (activeCategory !== null && activeCategory !== wantSubgrid) {
+        closeCategoryOverlay();
+      }
+      // 2. Close any tabbed panel we don't want (or none at all).
+      if (activeTabbedPanel) {
+        const keep = wantPanel && activeTabbedPanel.name === wantPanel.name;
+        if (!keep) {
+          if (activeTabbedPanel.name === 'academic') closeAcademicPanel();
+          else closeTabbedSurface(activeTabbedPanel.name);
         }
       }
+      // 3. Open the desired sub-grid if needed.
+      if (wantSubgrid && activeCategory !== wantSubgrid) {
+        const triggerIdx = CORE_36.findIndex(it => it.subGrid === wantSubgrid);
+        if (triggerIdx >= 0) {
+          openCategoryOverlay(wantSubgrid, CORE_36[triggerIdx], triggerIdx);
+        }
+      }
+      // 4. Open the desired panel + switch to the right tab.
+      if (wantPanel) {
+        if (!activeTabbedPanel || activeTabbedPanel.name !== wantPanel.name) {
+          if (wantPanel.name === 'academic') openAcademicPanel();
+          else if (TABBED_SURFACES[wantPanel.name]) {
+            TABBED_SURFACES[wantPanel.name].open();
+          }
+        }
+        if (activeTabbedPanel && activeTabbedPanel.name === wantPanel.name &&
+            activeTabbedPanel.tab !== wantPanel.tab) {
+          if (wantPanel.name === 'academic') renderAcademicTab(wantPanel.tab);
+          else if (TABBED_SURFACES[wantPanel.name]) {
+            TABBED_SURFACES[wantPanel.name].renderTab(wantPanel.tab);
+          }
+        }
+      }
+    }
+
+    /* Tile lookup by stamped word id. Knows about home buttons, the
+       category overlay, and every tabbed panel's words container. */
+    function findTileElForWordId(id) {
+      if (!id) return null;
+      if (id === 'speak-btn') return document.getElementById('speak-btn');
+      if (id.startsWith('core_')) {
+        const idx = parseInt(id.slice(5), 10);
+        return gridSlots[idx] || null;
+      }
+      if (isPanelWordId(id)) {
+        const parsed = parsePanelWordId(id);
+        if (!parsed) return null;
+        return document.querySelector(
+          `#${parsed.panel}-words button[data-word-id="${id}"]`
+        );
+      }
+      // Sub-grid words (incl. mw_*) live in the category overlay.
+      return document.querySelector(
+        `#category-overlay button[data-word-id="${id}"]`
+      );
     }
 
     /* Apply the .scaffold-target class to whichever element is the
        current gold target, then layer L1/L2 visibility overrides on
        top. Called after every state-changing event (commit, backspace,
-       clear, speak, overlay open/close/re-render, pathway activation). */
+       clear, speak, overlay open/close/re-render, pathway activation,
+       panel open/close/tab-switch). */
     function renderScaffoldHighlight() {
       // 1. Strip prior classes from all relevant elements.
       gridSlots.forEach(b => {
@@ -3197,28 +3963,26 @@
       });
       document.querySelectorAll('#category-overlay button:not(#cat-close)')
         .forEach(b => b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded'));
+      // Every tabbed-panel words container.
+      Object.keys(TABBED_PANEL_REGISTRY).forEach(name => {
+        const wordsEl = document.getElementById(name + '-words');
+        if (!wordsEl) return;
+        wordsEl.querySelectorAll('button').forEach(b =>
+          b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded')
+        );
+      });
       document.getElementById('speak-btn').classList.remove('scaffold-target');
 
       const targetId = getScaffoldTargetId();
       if (!targetId) return;
 
       // 2. Apply gold to the target.
+      const targetEl = findTileElForWordId(targetId);
+      if (targetEl) targetEl.classList.add('scaffold-target');
       if (targetId === 'speak-btn') {
-        document.getElementById('speak-btn').classList.add('scaffold-target');
         // Speak target only at L3 — no L1/L2 visibility overrides apply.
         return;
       }
-
-      let targetEl = null;
-      if (targetId.startsWith('core_')) {
-        const idx = parseInt(targetId.slice(5), 10);
-        targetEl = gridSlots[idx] || null;
-      } else {
-        targetEl = document.querySelector(
-          `#category-overlay button[data-word-id="${targetId}"]`
-        );
-      }
-      if (targetEl) targetEl.classList.add('scaffold-target');
 
       // 3. Layer L1/L2 visibility overrides — fade or hide everything
       //    that isn't the target, the lifted anchor, or a Power Tool.
@@ -3246,6 +4010,18 @@
               btn.classList.add(visClass);
             }
           });
+      }
+
+      // Tabbed-panel tiles inside the open panel.
+      if (activeTabbedPanel) {
+        const wordsEl = document.getElementById(activeTabbedPanel.name + '-words');
+        if (wordsEl) {
+          wordsEl.querySelectorAll('button').forEach(btn => {
+            if (!btn.classList.contains('scaffold-target')) {
+              btn.classList.add(visClass);
+            }
+          });
+        }
       }
     }
 
@@ -3331,7 +4107,7 @@
       const pw = Profile.current?.pathways.find(p => p.id === recordingPathwayId);
       if (!pw) { exitRecordingMode(); return; }
       pw.steps = [...recordingSteps];
-      // no save() — pathway persistence deferred to a later stage
+      Profile.save();
 
       // If the just-rewritten pathway is the active one, the engine's
       // in-flight stepIndex now points into the OLD steps array. Reset
@@ -3635,31 +4411,27 @@
           // and below.
           if (!isRecording && isWrongTapAt(item.id)) return;
 
-          // Academic / Places / Food / People / Toys — open a tabbed
+          // Academic / Places / Food / People / Toys — toggle a tabbed
           // panel. Structurally distinct from a sub-grid, so they don't
           // route through openCategoryOverlay. Like other yellow nav
           // buttons their labels are silent (folders, not words).
-          if (item.action === 'openAcademic') {
-            if (activeCategory) closeCategoryOverlay();
-            closeGrammarPanel();
-            for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
-            openAcademicPanel();
-            return;
-          }
-          if (item.action === 'openPlaces') {
-            openPlacesPanel();
-            return;
-          }
-          if (item.action === 'openFood') {
-            openFoodPanel();
-            return;
-          }
-          if (item.action === 'openPeople') {
-            openPeoplePanel();
-            return;
-          }
-          if (item.action === 'openToys') {
-            openToysPanel();
+          // Re-tap on the home button while its panel is open closes
+          // the panel — mirrors the sub-grid anchor toggle and gives
+          // L3 scaffolding a working "close-and-go" cue.
+          if (item.action && /^open[A-Z]/.test(item.action)) {
+            const panelName = item.action.slice(4).toLowerCase();
+            const isOpen = activeTabbedPanel && activeTabbedPanel.name === panelName;
+            if (isOpen) {
+              if (panelName === 'academic') closeAcademicPanel();
+              else closeTabbedSurface(panelName);
+            } else {
+              // Mutual-exclusion + open. Each panel's own open() handles
+              // closing siblings, so we can dispatch directly.
+              if (panelName === 'academic') openAcademicPanel();
+              else if (TABBED_SURFACES[panelName]) {
+                TABBED_SURFACES[panelName].open();
+              }
+            }
             return;
           }
 
@@ -3875,13 +4647,12 @@
 
     /* ═══════════════════════════════════════════════════════════
        ACADEMIC PANEL — tabbed numbers / colours / shapes / letters /
-       academic actions. Structurally distinct from a category overlay
-       (5 tabs over a 6×6 word area), so it gets its own data + render
-       path. Words don't carry IDs — they're not pathway-targetable
-       (the engine has no concept of academic words). Without IDs
-       addWord skips Engine.onCommit and the recorder, so the panel
-       integrates cleanly with both scaffolding and tap-to-build modes
-       without touching pathway infrastructure.
+       academic actions / body / clothing. Structurally distinct from
+       a category overlay (multiple tabs over a 6×6 word area), so it
+       gets its own data + render path. Words carry IDs stamped by
+       stampIds() so they can serve as pathway targets — engine
+       auto-navigation drives the panel + tab switches at L1/L2,
+       gold-target highlighting works at L3.
     ═══════════════════════════════════════════════════════════ */
     const ACADEMIC_TABS = {
       // Numbers — 1–20 as numeral glyphs, then ordinals + quantifiers.
@@ -4092,6 +4863,7 @@
       btn.type      = 'button';
       btn.className = 'btn';
       btn.setAttribute('aria-label', w.label);
+      if (w.id) btn.dataset.wordId = w.id;   // pathway target lookup
 
       // Visual element — varies by word type. Glyph-only words
       // (letters / numerals) skip the redundant text label below.
@@ -4126,8 +4898,10 @@
         const now = Date.now();
         if (now - lastTapTime < 100) return;
         lastTapTime = now;
-        // No id — engine + recorder ignore. Speak + strip + close.
-        addWord({ label: w.label, speak: w.speak });
+        // L3 wrong-tap gate — silently ignore taps on non-target tiles.
+        // Recording bypasses scaffolding entirely.
+        if (!isRecording && isWrongTapAt(w.id)) return;
+        addWord({ id: w.id, label: w.label, speak: w.speak });
         speak(w.speak);
         closeAcademicPanel();
       };
@@ -4155,6 +4929,10 @@
         cell.className = 'tabbed-empty';
         academicWordsEl.appendChild(cell);
       }
+      if (!academicEl.hidden) {
+        activeTabbedPanel = { name: 'academic', tab: tabId };
+        renderScaffoldHighlight();
+      }
     }
 
     function openAcademicPanel() {
@@ -4163,11 +4941,23 @@
       // by which time all top-level const declarations have run.
       for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
       academicEl.hidden = false;
+      // Hide ✕ at L1/L2/L3 — engine controls navigation during
+      // scaffolding (matches the sub-grid anchor rule).
+      const pw = isRecording ? null : Engine.activePathway();
+      const scaffolded = pw && (pw.scaffoldingLevel || 0) >= 1
+                            && (pw.scaffoldingLevel || 0) <= 3;
+      academicCloseBtn.hidden = !!scaffolded;
+      activeTabbedPanel = { name: 'academic', tab: academicActiveTab };
       renderAcademicTab(academicActiveTab);
     }
 
     function closeAcademicPanel() {
       academicEl.hidden = true;
+      academicCloseBtn.hidden = false;
+      if (activeTabbedPanel && activeTabbedPanel.name === 'academic') {
+        activeTabbedPanel = null;
+        renderScaffoldHighlight();
+      }
     }
 
     // Tab switching — instant DOM swap, no transition.
@@ -4202,12 +4992,12 @@
        data shape: [ { id, label, emoji, words: [...] }, ... ].
 
        Tiles are simple emoji+label buttons (no swatches/shapes/
-       glyphs — those stay specific to Academic). Words carry no
-       IDs, mirroring Academic: engine + recorder ignore them so
-       scaffolding/recording stay untouched.
+       glyphs — those stay specific to Academic). Words carry IDs
+       (stamped by stampIds() at boot) so the engine + recorder can
+       target them in pathways.
 
-       Returns { open, close } so each surface gets its own pair
-       without the caller having to wire DOM handlers manually.
+       Returns { open, close, renderTab, activeTab } so each surface
+       exposes the controls the engine needs for L1/L2 auto-navigation.
     ═══════════════════════════════════════════════════════════ */
     function defineTabbedSurface({ name, tabs, defaultTab, tileColor }) {
       const overlayEl = document.getElementById(name + '-overlay');
@@ -4238,6 +5028,7 @@
         btn.type = 'button';
         btn.className = `btn ${tileColor}`;
         btn.setAttribute('aria-label', w.label);
+        if (w.id) btn.dataset.wordId = w.id;
         btn.innerHTML =
           renderTileVisual(w, { withCard: true }) +
           `<span class="btn-label">${w.label}</span>`;
@@ -4255,8 +5046,10 @@
           const now = Date.now();
           if (now - lastTapTime < 100) return;
           lastTapTime = now;
-          // No id — engine + recorder ignore. Speak + strip + close.
-          addWord({ label: w.label, speak: w.speak });
+          // L3 wrong-tap gate — silently ignore taps on non-target tiles.
+          // Recording bypasses scaffolding entirely.
+          if (!isRecording && isWrongTapAt(w.id)) return;
+          addWord({ id: w.id, label: w.label, speak: w.speak });
           speak(w.speak);
           close();
         };
@@ -4281,6 +5074,10 @@
           cell.className = 'tabbed-empty';
           wordsEl.appendChild(cell);
         }
+        if (!overlayEl.hidden) {
+          activeTabbedPanel = { name, tab: tabId };
+          renderScaffoldHighlight();
+        }
       }
 
       function open() {
@@ -4292,11 +5089,23 @@
           if (otherName !== name) closeTabbedSurface(otherName);
         }
         overlayEl.hidden = false;
+        // Hide ✕ at L1/L2/L3 — engine controls navigation during
+        // scaffolding (matches the sub-grid anchor rule).
+        const pw = isRecording ? null : Engine.activePathway();
+        const scaffolded = pw && (pw.scaffoldingLevel || 0) >= 1
+                              && (pw.scaffoldingLevel || 0) <= 3;
+        closeBtn.hidden = !!scaffolded;
+        activeTabbedPanel = { name, tab: activeTab };
         renderTab(activeTab);
       }
 
       function close() {
         overlayEl.hidden = true;
+        closeBtn.hidden = false;
+        if (activeTabbedPanel && activeTabbedPanel.name === name) {
+          activeTabbedPanel = null;
+          renderScaffoldHighlight();
+        }
       }
 
       // Wire the tab strip — single delegated handler, instant switch.
@@ -4325,7 +5134,9 @@
         close();
       }, { passive: false });
 
-      return { open, close };
+      // Expose renderTab so the engine can drive panel/tab transitions
+      // during L1/L2 auto-navigation without going through a user tap.
+      return { open, close, renderTab, get activeTab() { return activeTab; } };
     }
 
     // Registry of tabbed-surface names — let mutual-exclusion close the
