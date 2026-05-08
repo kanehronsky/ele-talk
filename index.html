@@ -469,19 +469,24 @@
 
     /* Academic-specific tile palette — white background on teal
        border. Other tabbed surfaces use the parent yellow nav's
-       yellow-light tile colour (set per-tile via the data). */
+       yellow-light tile colour (set per-tile via the data).
+       Asymmetric vertical padding (10 top / 6 bottom) compensates
+       for the label's baseline gap so the optical centre matches
+       the flex centre — without this, swatches/shapes look like
+       they sit too high on shorter tiles. */
     #academic-overlay .tabbed-words .btn {
       background: #ffffff;
       border: 1.5px solid #B5C8CD;
       color: #1a1a1a;
       --neon: #00E5FF;
+      padding: 10px 3px 6px;
     }
 
     /* Letter / numeral "visual" — uppercase glyph filling the slot
        where the emoji would be. Larger than the text label below
        because for non-readers, the glyph IS the icon. */
     .academic-glyph {
-      font-size: clamp(1.4rem, 4vw, 2.4rem);
+      font-size: clamp(1.3rem, 3.5vw, 2.1rem);
       font-weight: 800;
       line-height: 1;
       color: #1a3a3f;
@@ -489,10 +494,11 @@
 
     /* Colour swatch — circle filled with the actual colour. Thin
        outline keeps White visible against the white panel and gives
-       all swatches a consistent silhouette. */
+       all swatches a consistent silhouette. Sizes leave breathing
+       room above and below for the centred label baseline. */
     .academic-swatch {
-      width: clamp(28px, 5vw, 44px);
-      height: clamp(28px, 5vw, 44px);
+      width:  clamp(26px, 4.5vw, 38px);
+      height: clamp(26px, 4.5vw, 38px);
       border-radius: 50%;
       border: 2px solid #4A5A5F;
       flex-shrink: 0;
@@ -502,20 +508,20 @@
        internally consistent (no mix of OS emoji styles) and lets us
        guarantee a square/rectangle/oval/diamond at any size. */
     .academic-shape {
-      width: clamp(28px, 5vw, 40px);
-      height: clamp(28px, 5vw, 40px);
+      width:  clamp(26px, 4.5vw, 36px);
+      height: clamp(26px, 4.5vw, 36px);
       flex-shrink: 0;
       background: #2E8B8B;
     }
     .academic-shape.shape-circle    { border-radius: 50%; }
     .academic-shape.shape-square    { border-radius: 4px; }
-    .academic-shape.shape-rectangle { width: clamp(40px, 7vw, 56px); height: clamp(22px, 3.5vw, 32px); border-radius: 3px; }
-    .academic-shape.shape-oval      { width: clamp(40px, 7vw, 56px); height: clamp(22px, 3.5vw, 32px); border-radius: 50%; }
+    .academic-shape.shape-rectangle { width: clamp(36px, 6vw, 50px); height: clamp(20px, 3vw, 28px); border-radius: 3px; }
+    .academic-shape.shape-oval      { width: clamp(36px, 6vw, 50px); height: clamp(20px, 3vw, 28px); border-radius: 50%; }
     .academic-shape.shape-triangle {
       width: 0; height: 0; background: transparent;
-      border-left:  clamp(16px, 2.5vw, 22px) solid transparent;
-      border-right: clamp(16px, 2.5vw, 22px) solid transparent;
-      border-bottom: clamp(28px, 4.5vw, 38px) solid #2E8B8B;
+      border-left:  clamp(14px, 2.2vw, 19px) solid transparent;
+      border-right: clamp(14px, 2.2vw, 19px) solid transparent;
+      border-bottom: clamp(24px, 4vw, 33px) solid #2E8B8B;
     }
     .academic-shape.shape-star {
       background: #2E8B8B;
@@ -531,8 +537,8 @@
     }
     .academic-shape.shape-diamond {
       transform: rotate(45deg);
-      width: clamp(22px, 4vw, 32px);
-      height: clamp(22px, 4vw, 32px);
+      width:  clamp(20px, 3.5vw, 28px);
+      height: clamp(20px, 3.5vw, 28px);
       border-radius: 3px;
     }
 
