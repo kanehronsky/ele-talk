@@ -187,6 +187,58 @@
       font-family: "Apple Color Emoji", "Segoe UI Emoji", "Noto Color Emoji", sans-serif;
     }
 
+    /* ═══════════════════════════════════════════════════
+       SYMBOL / ICON CARD — Mulberry-style white card on
+       coloured Fitzgerald tile. Applied via .icon-card
+       modifier on .btn-emoji. The card scales with tile
+       size and holds either an <img> (Mulberry SVG when
+       present), an emoji glyph (transitional fallback),
+       or a placeholder marker (entries with no symbol
+       yet — flagged for the teacher to spot holes during
+       the Mulberry rollout).
+    ═══════════════════════════════════════════════════ */
+    .btn-emoji.icon-card {
+      background: #ffffff;
+      border-radius: 6px;
+      width: clamp(44px, 7vw, 72px);
+      aspect-ratio: 1;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: clamp(1.5rem, 4.5vw, 2.6rem);
+      flex-shrink: 0;
+      overflow: hidden;
+      box-shadow: 0 1px 2px rgba(0, 0, 0, 0.08);
+    }
+    .btn-emoji.icon-card img {
+      width: 88%;
+      height: 88%;
+      object-fit: contain;
+      pointer-events: none;
+      user-select: none;
+    }
+    .btn-emoji.placeholder {
+      background: #f0f2f5;
+      border: 2px dashed #b0b8c8;
+      color: #888;
+      font-weight: 700;
+    }
+    /* High-contrast: card becomes black with neon border so the
+       symbol stays visible against the black tile background. */
+    html.high-contrast .btn-emoji.icon-card {
+      background: #000;
+      border: 2px solid var(--neon, #ffffff);
+      box-shadow: none;
+    }
+    html.high-contrast .btn-emoji.icon-card img {
+      filter: invert(1);
+    }
+    html.high-contrast .btn-emoji.placeholder {
+      background: #1a1a1a;
+      border: 2px dashed #666;
+      color: #888;
+    }
+
     .btn-label {
       font-size: clamp(9px, 1.5vw, 15px);
       font-weight: 700;
@@ -1428,6 +1480,12 @@
           <div class="btn-row">
             <button id="settings-change-pin" class="btn-secondary">Change PIN</button>
           </div>
+        </div>
+
+        <div class="overlay-section">
+          <h2>About</h2>
+          <p>ELE Talk is built on evidence-based AAC and behaviour analytic principles.</p>
+          <p>Symbol artwork: Mulberry Symbols © Steve Lee, licensed under CC BY-SA 2.0 UK.</p>
         </div>
 
       </div>
@@ -3332,6 +3390,30 @@
     }, { passive: true });
 
     /* ═══════════════════════════════════════════════════════════
+       TILE VISUAL HELPER
+       Single source of truth for the upper "icon" portion of any
+       tile. Priority: iconPath (Mulberry SVG) → emoji (transitional
+       fallback during Mulberry rollout) → placeholder (entry has
+       neither — flagged so the teacher can spot holes).
+
+       withCard:true wraps the visual in a Mulberry-style white card
+       on the coloured Fitzgerald tile (used for home grid, category
+       overlays, tabbed yellow-nav surfaces). withCard:false renders
+       the emoji/symbol directly on the tile (used for Academic,
+       whose tile background is already white).
+    ═══════════════════════════════════════════════════════════ */
+    function renderTileVisual(item, opts) {
+      const cardClass = (opts && opts.withCard) ? ' icon-card' : '';
+      if (item && item.iconPath) {
+        return `<span class="btn-emoji${cardClass}"><img src="${item.iconPath}" alt="" aria-hidden="true" /></span>`;
+      }
+      if (item && item.emoji) {
+        return `<span class="btn-emoji${cardClass}" aria-hidden="true">${item.emoji}</span>`;
+      }
+      return `<span class="btn-emoji${cardClass} placeholder" aria-hidden="true">?</span>`;
+    }
+
+    /* ═══════════════════════════════════════════════════════════
        SENTENCE STRIP
     ═══════════════════════════════════════════════════════════ */
     const tilesEl     = document.getElementById('word-tiles');
@@ -3510,7 +3592,7 @@
       btn.className = `btn ${item.color}${extraClass ? ' ' + extraClass : ''}`;
       btn.setAttribute('aria-label', item.aria || item.label);
       btn.innerHTML =
-        `<span class="btn-emoji" aria-hidden="true">${item.emoji}</span>` +
+        renderTileVisual(item, { withCard: true }) +
         `<span class="btn-label">${item.label}</span>`;
       setSlotHandler(idx, action);
     }
@@ -3709,11 +3791,12 @@
     function renderOverlayWords() {
       const words = activeCategory === 'my_words'
         ? (Profile.current?.myWords ?? []).map(mw => ({
-            id:    mw.id,
-            label: mw.label,
-            speak: mw.speak,
-            emoji: mw.emoji || '⭐',
-            color: 'yellow-light',
+            id:       mw.id,
+            label:    mw.label,
+            speak:    mw.speak,
+            emoji:    mw.emoji || '⭐',
+            iconPath: mw.iconPath,
+            color:    'yellow-light',
           }))
         : (SUB_GRIDS[activeCategory] || []);
 
@@ -3738,7 +3821,7 @@
           btn.setAttribute('aria-label', word.aria || word.label);
           btn.dataset.wordId = word.id;   // used by renderScaffoldHighlight
           btn.innerHTML =
-            `<span class="btn-emoji" aria-hidden="true">${word.emoji}</span>` +
+            renderTileVisual(word, { withCard: true }) +
             `<span class="btn-label">${word.label}</span>`;
           // 1-indexed CSS grid placement.
           btn.style.gridRow    = row + 1;
@@ -3975,6 +4058,9 @@
 
       // Visual element — varies by word type. Glyph-only words
       // (letters / numerals) skip the redundant text label below.
+      // Academic tiles use a white background already, so we don't
+      // wrap visuals in the icon-card (white card on coloured tile)
+      // — symbol/emoji renders directly.
       let visualHtml = '';
       if (w.visual === 'swatch') {
         visualHtml = `<span class="academic-swatch" style="background:${w.swatch}" aria-hidden="true"></span>`;
@@ -3982,8 +4068,8 @@
         visualHtml = `<span class="academic-shape shape-${w.shape}" aria-hidden="true"></span>`;
       } else if (w.visual === 'glyph') {
         visualHtml = `<span class="academic-glyph" aria-hidden="true">${w.label}</span>`;
-      } else if (w.emoji) {
-        visualHtml = `<span class="btn-emoji" aria-hidden="true">${w.emoji}</span>`;
+      } else {
+        visualHtml = renderTileVisual(w);
       }
       const labelHtml = w.glyphOnly
         ? ''
@@ -4116,7 +4202,7 @@
         btn.className = `btn ${tileColor}`;
         btn.setAttribute('aria-label', w.label);
         btn.innerHTML =
-          `<span class="btn-emoji" aria-hidden="true">${w.emoji || ''}</span>` +
+          renderTileVisual(w, { withCard: true }) +
           `<span class="btn-label">${w.label}</span>`;
 
         btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
