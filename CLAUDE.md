@@ -184,10 +184,11 @@ stimulus fading principles from Applied Behaviour Analysis.
 Scaffolding is not just a visual prompt that gets dimmer. As prompts 
 fade, the child progressively takes on more of the real-world 
 communication chain. The engine handles the mechanics at high prompting 
-levels, then hands them back to the child level by level. By Level 4, 
-the child performs the full sequence independently — which is exactly 
-what real, unprompted use looks like. This single principle governs how 
-both navigation and the Speak action are handled across the four levels.
+levels, then hands them back to the child level by level. When the 
+pathway is deactivated entirely, the child performs the full sequence 
+independently — which is exactly what real, unprompted use looks like. 
+This single principle governs how both navigation and the Speak action 
+are handled across the three levels.
 
 ### Pathway Model (Forward Chaining)
 
@@ -196,7 +197,7 @@ child is being taught to produce in order. Examples: "I want Lego",
 "Go park", "I need toilet."
 
 Pathway data model rules:
-- Stored per user profile, max 5 active pathways per child (clinical ceiling)
+- Stored per user profile, max 5 active pathways per child (clinical ceiling, hard-enforced — blocks both Add Pathway and Un-master flows when full)
 - Each pathway is a list of **semantic word IDs** (not individual taps)
 - The engine computes the navigation steps between words automatically — 
   the teacher does not specify "tap the back button" or other mechanics
@@ -218,7 +219,7 @@ every pathway is buildable in the real app and uses real coordinate IDs.
 Pathway label is auto-generated from the recorded words (e.g., 
 "I want Lego") and editable by the teacher.
 
-### The Four Scaffolding Levels — Behaviour by Level
+### The Three Scaffolding Levels — Behaviour by Level
 
 Each level governs three things: **what's visible**, **how navigation is 
 handled**, **how the Speak action is handled**.
@@ -227,8 +228,13 @@ handled**, **how the Speak action is handled**.
 |---|---|---|---|
 | **1 Magnet** | Only the current target button + Power Tools | Engine auto-handles (invisible to child) | Engine auto-speaks the full sentence on completion |
 | **2 Ghost** | Full grid, non-targets at opacity 0.1 + Power Tools full | Engine auto-handles | Engine auto-speaks |
-| **3 Guide** | Full grid, target has gold border | **Scaffolded** — child taps anchor button to close sub-grids | **Scaffolded** — gold border moves to Speak button as final step |
-| **4 Pilot** | Full grid, no prompts | Normal app behaviour | Normal app behaviour (child taps Speak) |
+| **3 Guide** | Full grid, target has gold border | **Scaffolded** — child taps anchor button to close sub-grids and tabbed panels | **Scaffolded** — gold border moves to Speak button as final step |
+
+"Scaffolding off" is **not** a fourth level — it's deactivating the 
+pathway. There used to be a Level 4 "Pilot" stage but it was removed 
+because mastery is a generalisation claim across varied real-world 
+contexts that a structured trial can't establish; auto-tracking would 
+mislead. See "Mastered Pathways" below.
 
 Box-shadow for the Level 3 gold border:
 `box-shadow: 0 0 15px 5px gold`
@@ -260,17 +266,51 @@ sequence one step at a time. On the final step:
   until teacher clears manually (teacher controls trial timing).
 - **Level 3:** scaffolding moves to the Speak button as the final 
   scaffolded step; child taps Speak to complete the trial.
-- **Level 4:** no scaffolding — the pathway is effectively mastered and 
-  the engine is silent. May be silently tracked for generalisation 
-  data later.
 
-### Mastered Pathway Data (Future)
+`completionCount` increments on each successful trial at every level. 
+It's a quiet trial counter only — it never gates anything. Mastery 
+is teacher-marked, not auto-promoted (see below).
 
-Mastered pathways (those that have advanced to Level 4 and remained 
-there) carry real handover value in the school deployment context, 
-where students change teachers year-to-year. Track and persist this 
-data as part of the profile schema; it strengthens the school-licence 
-proposition (the school owns longitudinal student progress data).
+### Mastered Pathways
+
+Mastery is a clinical sign-off the teacher records manually. The app's 
+job is durable record-keeping for school handover, not autonomous 
+assessment. The reasoning: mastery is a generalisation claim across 
+varied real-world contexts the device can't observe; auto-promoting on 
+trial counts would produce misleading records that erode the credibility 
+of the longitudinal data.
+
+**Marking mastered:** A button on the pathway-edit screen opens a 
+confirmation with a summary card and an optional note (placeholder 
+nudges the teacher toward generalisation language). Confirming moves 
+the pathway out of the active list (`profile.pathways`) into the 
+mastered record (`profile.meta.masteredPathways`).
+
+**Mastered record schema:**
+```js
+{
+  id, pathwayId, label, steps,
+  dateMastered, note, noteUpdatedAt,
+  completionCount    // snapshot at mastery time
+}
+```
+
+There is **no `levelAtMastery`** — mastery means unprompted by 
+definition; storing the prompt level would substitute stale data for 
+fresh clinical judgment if the pathway later regresses.
+
+**Un-mastering** (regression handling, expected in education-support 
+contexts): removes the mastered record and returns the pathway to the 
+active list at L3 (Guide, default supportive prompt) with `active: 
+false`. The teacher then performs a fresh assessment to set the actual 
+level. Hard-blocked when the active list is at the 5-pathway clinical 
+ceiling — the teacher must master or delete an active pathway first.
+
+**Mastered list UI:** Settings has a "Mastered Pathways" section 
+parallel to "Pathways". Each row shows label, date, chips, and note 
+preview, with an inline Un-master button. Tap row → detail screen for 
+note editing (note is amendable; everything else is frozen). Most-recent 
+first sort. This list IS the receiving-teacher view — no separate screen.
 
 ---
 
@@ -316,12 +356,16 @@ shared-device classroom rotation.
   myWords: [                       // populates Button 25 sub-grid
     { id, label, speak, emoji, iconPath? }
   ],
-  pathways: [                      // max 5
-    { id, label, words: [...], scaffoldingLevel: 1-4, isActive }
+  pathways: [                      // max 5, cap hard-enforced
+    { id, label, steps: [...wordIds], scaffoldingLevel: 1-3,
+      active, completionCount }
   ],
   meta: {
     createdAt, updatedAt,
-    masteredPathways: []           // designed in, populated later
+    masteredPathways: [            // populated by manual teacher sign-off
+      { id, pathwayId, label, steps,
+        dateMastered, note, noteUpdatedAt, completionCount }
+    ]
   }
 }
 ```
@@ -474,25 +518,39 @@ licensed under CC BY-SA 2.0 UK.
 3. Fitzgerald Key colour coding
 4. Sub-grid navigation with anchor rule
 5. High contrast accessibility toggle (v1: global; profile-backed in step 6)
-6. **Local profile + PIN-gated settings + MY WORDS CRUD (Step 1 of 
-   post-grill plan)**
+6. **Local profile + PIN-gated settings + MY WORDS CRUD**
+7. **Scaffolding engine — pathway CRUD, tap-to-build authoring, 
+   activation toggle, three levels (Magnet/Ghost/Guide) wired through 
+   sub-grids AND tabbed panels (Food/People/Places/Toys/Academic), 
+   pathway persistence, tabbed-panel home buttons toggle to support L3 
+   "close-and-go" cues, ✕ hidden during scaffolding, mastery via 
+   teacher-marked sign-off with regression-aware un-master + 5-pathway 
+   clinical-ceiling enforcement.**
 
 ### Next
-7. **Scaffolding engine (all 4 levels) — pathway CRUD, tap-to-build 
-   authoring, engine state machine, level-by-level visual + behavioural 
-   rules.** This is the next major piece of work.
+8. **Real-device test pass** — outstanding from the scaffolding work; 
+   verify on iPad / Chromebook / Android tablet across all three 
+   levels, recording, mastery, un-master.
+9. **Three more Academic tabs** — Time, Emotions, Weather (~38 entries) 
+   to close the gap toward the 1200 vocab target.
+10. **Tab-strip restructuring at 8+ tabs** — tab bar will need trimmed 
+    labels, splitting Academic, or emoji-only tabs once Time/Emotions/
+    Weather land.
+11. **Mulberry symbol rollout** — deferred until a fill-the-gap source 
+    is identified (Mulberry covers ~28% of Tier-1 vocab measured 
+    2026-05-08). ARASAAC commercial-permission letter is the slow-track 
+    action.
 
 ### Continuous (not a discrete step)
-- Polish: real-device testing on iPad / Chromebook / Android tablet, 
-  bug fixes as found
-- Mulberry symbol integration (parallel track, can run alongside 
-  scaffolding work)
+- Polish: real-device testing as found
+- MY WORDS deletion blocking when used in active OR mastered pathways 
+  (currently a `// Future` TODO at the deletion site)
 
-### Later (post-scaffolding, in order)
-8. Login and account system (cloud sync of local profiles)
-9. Stripe subscription and payment tiers
-10. Teacher/admin dashboard
-11. School licence model
+### Later (post-symbols, in order)
+12. Login and account system (cloud sync of local profiles)
+13. Stripe subscription and payment tiers
+14. Teacher/admin dashboard
+15. School licence model
 
 ### Build-order principle (revised post-grill)
 Clinical differentiator before infrastructure. Scaffolding is the 
@@ -516,26 +574,20 @@ showing them prompt-faded discrete trials does.
 
 ## CURRENT GOAL
 
-Step 1 of the post-grill plan is complete: local profile data layer, 
-first-run setup, PIN-gated settings, MY WORDS CRUD, and a dynamic 
-MY WORDS sub-grid wired to profile data.
+The scaffolding engine is built and demoable. Pathways are recordable, 
+activatable, persisted, and run correctly at all three levels through 
+both sub-grids AND tabbed panels. Mastery is teacher-marked with a 
+durable handover record; un-master handles regression with the 
+5-pathway clinical ceiling enforced.
 
-**Next: Step 2 — the Scaffolding Engine.** 
+**Next: real-device testing across all three levels and the master / 
+un-master flows on iPad / Chromebook / Android tablet.** This is the 
+last gate before the engine is genuinely shippable to a teacher demo.
 
-This is the largest single piece of clinical value in the entire 
-roadmap and the project's primary differentiator. See "THE 
-SCAFFOLDING/PROMPTING ENGINE" section above for the full 
-post-grill design specification. Build approach:
-
-1. Pathway data model already lives in the profile schema; surface it 
-   in settings — list view, add/edit/delete UI
-2. Tap-to-build authoring mode (record sequence by tapping the real grid)
-3. Pathway activation toggle (one active at a time)
-4. Engine state machine: track current step, advance on correct tap, 
-   silent-ignore wrong taps
-5. Level 4 first (no visual prompts — just track progress and auto-speak 
-   per the level table), then Level 3 (gold border), then Levels 1–2 
-   (visibility/opacity overrides)
+After that, in priority order: Time / Emotions / Weather Academic tabs 
+to close the vocab gap, tab-strip restructuring once 8+ tabs land, 
+Mulberry symbol rollout (paced by coverage gaps and the ARASAAC 
+permission letter).
 
 Do NOT build login, Stripe, or dashboard before the scaffolding engine 
-is working and demoed to a teacher.
+has been tested on real devices and demoed to a teacher.
