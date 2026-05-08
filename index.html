@@ -4756,9 +4756,10 @@
     }
 
     function openGrammarPanel() {
-      // Mutual exclusion with other panels.
+      // Mutual exclusion with every other panel.
       if (activeCategory) closeCategoryOverlay();
       closeAcademicPanel();
+      for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
       grammarEl.hidden = false;
       // Render lazily — the word set is static, but rendering on
       // open keeps initial paint cheap.
