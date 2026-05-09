@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-09-js-viewport" />
+  <meta name="build" content="2026-05-09-strip-breathing" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1593,22 +1593,29 @@
       }
       #speak-btn { font-size: 18px; }
 
+      /* Word tile padding bumped vertically (4px → 7px) so the tile
+         renders ~38px tall, matching the chrome button height. With
+         identical heights the strip's align-items: center no longer
+         leaves a centering gap between the pill row and the word
+         tiles. Horizontal padding unchanged so word capacity stays. */
       .word-tile {
-        padding: 4px 10px;
+        padding: 7px 10px;
         font-size: 14px;
         border-radius: 14px;
       }
 
       #word-tiles {
         gap: 4px;
-        padding: 6px 3px;
+        padding: 4px 3px;
       }
 
       #sentence-strip {
         flex-wrap: wrap;        /* allow pathway pill to take its own row */
         height: auto;
         min-height: 0;
-        padding: 0 6px;
+        padding: 4px 6px;       /* 4px top+bottom — breathing room above pill
+                                   and below chrome / word tiles so nothing
+                                   visually flushes against the strip edges */
         row-gap: 0;             /* pill sits flush against the strip row */
         gap: 5px;
       }
@@ -2055,14 +2062,24 @@
        browser chrome animates.
     ═══════════════════════════════════════════════════════════ */
     (function trackViewportHeight() {
+      const vv = window.visualViewport;
       function update() {
-        document.documentElement.style.setProperty(
-          '--app-h', window.innerHeight + 'px'
-        );
+        // visualViewport.height is the actually-visible CSS pixels on
+        // mobile (excludes URL bar, bottom toolbar, on-screen keyboard).
+        // window.innerHeight is the *layout* viewport, which on iOS
+        // Chrome can include browser chrome and over-report by ~80px,
+        // pushing the grid below the visible area. Prefer
+        // visualViewport when available; fall back to innerHeight.
+        const h = vv ? vv.height : window.innerHeight;
+        document.documentElement.style.setProperty('--app-h', h + 'px');
       }
       update();
       window.addEventListener('resize', update);
       window.addEventListener('orientationchange', update);
+      if (vv) {
+        vv.addEventListener('resize', update);
+        vv.addEventListener('scroll', update);
+      }
     })();
 
     /* ═══════════════════════════════════════════════════════════
