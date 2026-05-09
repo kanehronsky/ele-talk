@@ -39,7 +39,8 @@
       display: flex;
       flex-direction: column;
       width: 100vw;
-      height: 100vh;
+      height: 100vh;     /* fallback for browsers without dvh support */
+      height: 100dvh;    /* dynamic viewport — shrinks with mobile browser chrome */
       overflow: hidden;
     }
 
@@ -1378,6 +1379,54 @@
       font-size: 15px;
       color: #5a6373;
       margin: 0 0 22px 0;
+    }
+
+    /* ═══════════════════════════════════════════════════
+       MOBILE LANDSCAPE (short viewport)
+       Triggers on phone landscape (~360–430px tall). Compacts
+       sentence strip + scales button labels/emoji so all 6 rows
+       and 6 columns of the grid stay fully visible — Power Tools
+       (row 6, col 6) included. Honours the Piano Principle: grid
+       coordinates do not move; only typography and chrome shrink.
+    ═══════════════════════════════════════════════════ */
+    @media (max-height: 500px) {
+      /* Sentence strip — compact for short viewports */
+      #sentence-strip {
+        height: 52px;
+        min-height: 52px;
+        padding: 0 6px;
+        gap: 6px;
+      }
+      #settings-btn,
+      #grammar-btn,
+      .strip-btn {
+        width: 40px;
+        height: 40px;
+        font-size: 16px;
+        border-radius: 8px;
+      }
+      #speak-btn { font-size: 18px; }
+      #word-tiles { padding: 6px 4px; gap: 4px; }
+      .word-tile {
+        padding: 4px 10px;
+        font-size: 14px;
+        border-radius: 16px;
+      }
+      #strip-placeholder { font-size: 13px; }
+
+      /* Grid buttons — labels + emoji scale down so 6×6 fits */
+      .btn { padding: 2px 2px; gap: 1px; }
+      .btn-label {
+        font-size: clamp(7px, 1.4vw, 12px);
+        line-height: 1.05;
+      }
+      .btn-emoji {
+        font-size: clamp(0.65rem, 2vw, 1.2rem);
+      }
+      .btn-emoji.icon-card {
+        width: clamp(26px, 5vw, 44px);
+        font-size: clamp(0.85rem, 2.6vw, 1.4rem);
+      }
     }
   </style>
 </head>
