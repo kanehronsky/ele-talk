@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-09-portrait-strip" />
+  <meta name="build" content="2026-05-09-svh-and-pill-row" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -43,8 +43,15 @@
       display: flex;
       flex-direction: column;
       width: 100vw;
-      height: 100vh;     /* fallback for browsers without dvh support */
-      height: 100dvh;    /* dynamic viewport — shrinks with mobile browser chrome */
+      height: 100vh;     /* fallback for browsers without svh support */
+      height: 100svh;    /* small viewport — always fits even when browser chrome hides.
+                            Chosen over 100dvh because iOS Chrome's dvh sometimes reports
+                            the larger viewport when the URL bar collapses, pushing the
+                            grid below the visible area and clipping Power Tools (row 6).
+                            svh stays at the smallest viewport height regardless of chrome
+                            state, guaranteeing Power Tools never clip. Trade-off: ~60-100px
+                            of empty space below the grid when the URL bar is hidden. That
+                            cost is acceptable; Power Tools visibility is non-negotiable. */
       overflow: hidden;
     }
 
@@ -1595,17 +1602,28 @@
       }
 
       #sentence-strip {
+        flex-wrap: wrap;        /* allow pathway pill to take its own row */
+        height: auto;
+        min-height: 0;
         padding: 0 6px;
+        row-gap: 4px;
         gap: 5px;
       }
 
-      /* Cap pathway pill width so it doesn't starve the word-tiles
-         area when scaffolding is active. Teacher still sees the
-         indicator, just truncated to fit. */
+      /* Pathway pill, when active, gets its own full-width row at
+         the TOP of the strip (order: -1 puts it first in flex
+         order; flex-basis: 100% makes it take a full row by
+         itself). This frees the strip's main row for chrome +
+         word-tiles, restoring full word-tile capacity. The strip
+         grows ~30px taller when pathway is active — acceptable
+         cost for being able to see what you're building. */
       #active-pathway-indicator {
-        max-width: 100px;
-        padding: 4px 8px;
+        order: -1;
+        flex-basis: 100%;
+        max-width: none;
+        padding: 4px 10px;
         font-size: 12px;
+        text-align: center;
       }
     }
   </style>
