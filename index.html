@@ -8,6 +8,10 @@
   <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent" />
   <meta name="apple-mobile-web-app-title" content="ELE Talk" />
   <meta name="theme-color" content="#4A86C8" />
+  <!-- Build identifier — bumped on every commit. Verify a deploy
+       reached the device by opening view-source: in mobile Chrome
+       and searching for the current commit short-hash. -->
+  <meta name="build" content="2026-05-09-revert-scroll" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -431,16 +435,23 @@
       visibility: hidden !important;
     }
 
-    /* ETHICAL REQUIREMENT — Power Tools (grid indices 30-35, the
-       bottom row) MUST be visible and tappable at all times,
-       regardless of scaffolding state, overlay state, or any
-       other condition. The renderScaffoldHighlight() JS already
-       excludes them from .l1-hidden / .l2-faded; this rule is the
-       belt-and-braces CSS guarantee that defeats any class-based
-       visibility/opacity manipulation. ID-based selector specificity
-       (1,2,1) wins over .l1-hidden / .l2-faded (0,1,0) so this
-       holds regardless of source order or future class changes. */
-    #grid > .btn:nth-child(n+31):nth-child(-n+36) {
+    /* ETHICAL REQUIREMENT — Power Tools (the bottom row, last 6
+       buttons in #grid) MUST be visible and tappable at all times,
+       regardless of scaffolding state, overlay state, or any other
+       condition. The renderScaffoldHighlight() JS already excludes
+       them from .l1-hidden / .l2-faded; this rule is the belt-and-
+       braces CSS guarantee that defeats any class-based visibility
+       or opacity manipulation. ID + class + pseudo specificity wins
+       over .l1-hidden / .l2-faded so this holds regardless of
+       source order or future class changes.
+
+       Selector uses :nth-last-child(-n+6) deliberately — #grid has
+       seven overlay containers (category-overlay + 5 tabbed-panels
+       + grammar-overlay) as siblings of the 36 buttons, so absolute
+       nth-child positions would target the wrong tiles. The buttons
+       are appended last via initGrid(), so the LAST six children
+       of #grid are always the six Power Tools. */
+    #grid > .btn:nth-last-child(-n+6) {
       visibility: visible !important;
       opacity: 1 !important;
     }
@@ -1481,15 +1492,12 @@
         box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
       }
 
-      /* Tabbed-panel words: enforce a minimum row height that fits
-         icon-card (32px min) + label + padding, and let the words
-         area scroll if the tab content is taller than the panel.
-         Without minmax, repeat(6, 1fr) force-fits 6 rows into the
-         available space, squeezing labels off-screen. */
-      .tabbed-words {
-        overflow-y: auto;
-        grid-template-rows: repeat(6, minmax(58px, 1fr));
-      }
+      /* (Tabbed-panel words deliberately keep grid-template-rows:
+         repeat(6, 1fr) — no scroll, no minmax floor. Scrolling
+         would move tiles by scroll position and break the Piano
+         Principle. Cramped landscape labels clip; that's the
+         accepted trade-off until phone-landscape gets restructured
+         tabs or moved off the design-target list.) */
     }
 
     @media (max-height: 430px) {
@@ -1544,12 +1552,9 @@
         box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
       }
 
-      /* Tighter row-height floor at iPhone Safari heights — the
-         icon-card is 26px min here, so 54px row leaves room for
-         label + padding without reflowing the whole grid. */
-      .tabbed-words {
-        grid-template-rows: repeat(6, minmax(54px, 1fr));
-      }
+      /* (No tabbed-words override here either — same reason as
+         the 520px block: scroll within tile containers violates
+         the Piano Principle.) */
     }
   </style>
 </head>
