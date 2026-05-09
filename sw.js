@@ -1,9 +1,22 @@
 /* ═══════════════════════════════════════════════════════════
    ELE Talk — Service Worker
-   Cache-first strategy: app works fully offline after first load.
-   Bump CACHE_NAME version string whenever app files change.
+
+   Caching strategy:
+   - Top-level navigations + HTML documents: network-first, with a
+     cache fallback when offline. Ensures Netlify deploys reach
+     users on their next online visit instead of being masked by
+     a stale cached index.html.
+   - /symbols/* (Mulberry SVGs): cache-first, network-fill on miss.
+     Symbols are large + immutable per filename — no benefit to
+     re-fetching once we have one cached.
+   - Everything else (manifest, icons): cache-first. These rarely
+     change and benefit from offline speed.
+
+   Bump CACHE_NAME whenever you change non-HTML cached assets
+   (icons, manifest) so old versions get purged. HTML updates
+   propagate automatically via network-first.
 ═══════════════════════════════════════════════════════════ */
-const CACHE_NAME = 'ele-talk-v5';
+const CACHE_NAME = 'ele-talk-v6';
 
 const FILES_TO_CACHE = [
   '/',
@@ -36,22 +49,24 @@ self.addEventListener('activate', (event) => {
   self.clients.claim(); // take control of all open tabs straight away
 });
 
-/* Fetch: cache-first for app shell, cache-on-fetch for /symbols/.
-   The symbols folder holds the bundled Mulberry SVGs; they aren't
-   pre-cached because the list is large and growing — instead each
-   symbol is fetched once over the network and cached for offline
-   use thereafter. After the first load with all surfaces touched,
-   the entire symbol set is offline-available. */
+/* Fetch: route by request type.
+   - /symbols/*       → cache-first, network-fill on miss (large
+                        immutable SVG set; built up over time)
+   - HTML / navigate  → network-first with cache fallback (so deploys
+                        reach users; offline still works)
+   - everything else  → cache-first (icons, manifest) */
 self.addEventListener('fetch', (event) => {
-  const url = new URL(event.request.url);
+  const req = event.request;
+  const url = new URL(req.url);
+
   if (url.pathname.startsWith('/symbols/')) {
     event.respondWith(
-      caches.match(event.request).then((cached) => {
+      caches.match(req).then((cached) => {
         if (cached) return cached;
-        return fetch(event.request).then((response) => {
+        return fetch(req).then((response) => {
           if (response.ok) {
             const clone = response.clone();
-            caches.open(CACHE_NAME).then((cache) => cache.put(event.request, clone));
+            caches.open(CACHE_NAME).then((cache) => cache.put(req, clone));
           }
           return response;
         });
@@ -59,7 +74,30 @@ self.addEventListener('fetch', (event) => {
     );
     return;
   }
+
+  if (req.mode === 'navigate' || req.destination === 'document') {
+    event.respondWith(networkFirst(req));
+    return;
+  }
+
   event.respondWith(
-    caches.match(event.request).then((cached) => cached || fetch(event.request))
+    caches.match(req).then((cached) => cached || fetch(req))
   );
 });
+
+/* Network-first: try the network, update the cache on success,
+   fall back to the cached copy if the network is unreachable. */
+async function networkFirst(req) {
+  try {
+    const response = await fetch(req);
+    if (response.ok) {
+      const cache = await caches.open(CACHE_NAME);
+      cache.put(req, response.clone());
+    }
+    return response;
+  } catch (err) {
+    const cached = await caches.match(req);
+    if (cached) return cached;
+    throw err;
+  }
+}

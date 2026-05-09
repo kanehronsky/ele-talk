@@ -1,0 +1,8 @@
+# Netlify custom headers
+# https://docs.netlify.com/routing/headers/
+
+# Force the browser to revalidate the service worker on every visit.
+# Without this, browsers may serve a stale sw.js for up to 24h, which
+# delays propagation of the SW's own fetch-strategy updates.
+/sw.js
+  Cache-Control: no-cache
