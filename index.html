@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-09-revert-scroll" />
+  <meta name="build" content="2026-05-09-portrait-strip" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1555,6 +1555,58 @@
       /* (No tabbed-words override here either — same reason as
          the 520px block: scroll within tile containers violates
          the Piano Principle.) */
+    }
+
+    /* ═══════════════════════════════════════════════════
+       PHONE PORTRAIT (primary phone-form-factor target)
+       The home grid + tabbed panels render naturally in portrait
+       — tall cells, all 36 buttons visible, Power Tools at the
+       bottom, no clipping. The one squeeze is the sentence strip:
+       on a ~393px viewport, five 48px chrome widgets + gaps +
+       padding consume ~280px and leave only ~113px for word tiles
+       (1-2 short words). This block reduces strip chrome to 38px
+       and tightens word-tile padding so ~3 typical words fit, with
+       horizontal scroll-into-view as more are added.
+
+       Targets phone portrait specifically via
+       (orientation: portrait) and (max-width: 600px) — excludes
+       tablets in portrait (~768px+ wide), where the default chrome
+       has plenty of horizontal room.
+    ═══════════════════════════════════════════════════ */
+    @media (orientation: portrait) and (max-width: 600px) {
+      #settings-btn,
+      #grammar-btn,
+      .strip-btn {
+        width: 38px;
+        height: 38px;
+        font-size: 16px;
+      }
+      #speak-btn { font-size: 18px; }
+
+      .word-tile {
+        padding: 4px 10px;
+        font-size: 14px;
+        border-radius: 14px;
+      }
+
+      #word-tiles {
+        gap: 4px;
+        padding: 6px 3px;
+      }
+
+      #sentence-strip {
+        padding: 0 6px;
+        gap: 5px;
+      }
+
+      /* Cap pathway pill width so it doesn't starve the word-tiles
+         area when scaffolding is active. Teacher still sees the
+         indicator, just truncated to fit. */
+      #active-pathway-indicator {
+        max-width: 100px;
+        padding: 4px 8px;
+        font-size: 12px;
+      }
     }
   </style>
 </head>
