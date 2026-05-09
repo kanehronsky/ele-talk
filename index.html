@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-09-svh-and-pill-row" />
+  <meta name="build" content="2026-05-09-js-viewport" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -43,15 +43,18 @@
       display: flex;
       flex-direction: column;
       width: 100vw;
-      height: 100vh;     /* fallback for browsers without svh support */
-      height: 100svh;    /* small viewport — always fits even when browser chrome hides.
-                            Chosen over 100dvh because iOS Chrome's dvh sometimes reports
-                            the larger viewport when the URL bar collapses, pushing the
-                            grid below the visible area and clipping Power Tools (row 6).
-                            svh stays at the smallest viewport height regardless of chrome
-                            state, guaranteeing Power Tools never clip. Trade-off: ~60-100px
-                            of empty space below the grid when the URL bar is hidden. That
-                            cost is acceptable; Power Tools visibility is non-negotiable. */
+      /* Three-step fallback for the visible viewport height:
+         1. 100vh   — works everywhere, but on iOS may include chrome.
+         2. 100svh  — works on modern browsers; never clips Power Tools
+                      but leaves a grey gap when chrome hides.
+         3. var(--app-h) — set by JS (trackViewportHeight) to the
+                      precise window.innerHeight; resizes when the
+                      URL bar shows/hides so the grid fills the
+                      actually-visible viewport at every state.
+         The cascade applies them in order; the var wins once JS runs. */
+      height: 100vh;
+      height: 100svh;
+      height: var(--app-h, 100svh);
       overflow: hidden;
     }
 
@@ -1606,7 +1609,7 @@
         height: auto;
         min-height: 0;
         padding: 0 6px;
-        row-gap: 4px;
+        row-gap: 0;             /* pill sits flush against the strip row */
         gap: 5px;
       }
 
@@ -1614,14 +1617,16 @@
          the TOP of the strip (order: -1 puts it first in flex
          order; flex-basis: 100% makes it take a full row by
          itself). This frees the strip's main row for chrome +
-         word-tiles, restoring full word-tile capacity. The strip
-         grows ~30px taller when pathway is active — acceptable
-         cost for being able to see what you're building. */
+         word-tiles, restoring full word-tile capacity. Tight
+         padding + zero row-gap so the strip grows ~22px when
+         pathway is active rather than ~30px — every pixel back
+         to the grid keeps tile labels comfortably above the
+         bottom edge. */
       #active-pathway-indicator {
         order: -1;
         flex-basis: 100%;
         max-width: none;
-        padding: 4px 10px;
+        padding: 2px 8px;
         font-size: 12px;
         text-align: center;
       }
@@ -2033,6 +2038,33 @@
   </div>
 
   <script>
+    /* ═══════════════════════════════════════════════════════════
+       VIEWPORT HEIGHT TRACKER
+       Sets --app-h to window.innerHeight on load + resize +
+       orientationchange. Used by #app's height in CSS so the
+       layout precisely fills the actually-visible viewport,
+       even when iOS Chrome's URL bar collapses or expands.
+
+       Why: 100dvh on iOS Chrome sometimes reports the larger
+       (chrome-hidden) viewport even when the URL bar is shown,
+       which clips Power Tools at the bottom. 100svh fixes the
+       clipping but leaves a visible grey gap at the bottom when
+       the URL bar collapses. Measuring window.innerHeight
+       directly gives us the true visible CSS pixels in every
+       state, so the grid grows and shrinks exactly as the
+       browser chrome animates.
+    ═══════════════════════════════════════════════════════════ */
+    (function trackViewportHeight() {
+      function update() {
+        document.documentElement.style.setProperty(
+          '--app-h', window.innerHeight + 'px'
+        );
+      }
+      update();
+      window.addEventListener('resize', update);
+      window.addEventListener('orientationchange', update);
+    })();
+
     /* ═══════════════════════════════════════════════════════════
        CORE 36 — permanent vocabulary. Index === grid slot.
        The position of every word is permanent and must never change.
