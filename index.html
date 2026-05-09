@@ -431,6 +431,20 @@
       visibility: hidden !important;
     }
 
+    /* ETHICAL REQUIREMENT — Power Tools (grid indices 30-35, the
+       bottom row) MUST be visible and tappable at all times,
+       regardless of scaffolding state, overlay state, or any
+       other condition. The renderScaffoldHighlight() JS already
+       excludes them from .l1-hidden / .l2-faded; this rule is the
+       belt-and-braces CSS guarantee that defeats any class-based
+       visibility/opacity manipulation. ID-based selector specificity
+       (1,2,1) wins over .l1-hidden / .l2-faded (0,1,0) so this
+       holds regardless of source order or future class changes. */
+    #grid > .btn:nth-child(n+31):nth-child(-n+36) {
+      visibility: visible !important;
+      opacity: 1 !important;
+    }
+
     html.high-contrast .cat-close {
       background: #000;
       border: 2px solid #fff;
@@ -1458,6 +1472,24 @@
         height: calc((500% - 22px) / 6);
       }
       #category-overlay { gap: 2px; }
+
+      /* Reduce panel shadow on short viewports — the default 16px
+         blur extends ~20px below row 5 and visually obscures Power
+         Tools (row 6) when the gap is only 2px. */
+      .tabbed-panel,
+      #grammar-overlay {
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.15);
+      }
+
+      /* Tabbed-panel words: enforce a minimum row height that fits
+         icon-card (32px min) + label + padding, and let the words
+         area scroll if the tab content is taller than the panel.
+         Without minmax, repeat(6, 1fr) force-fits 6 rows into the
+         available space, squeezing labels off-screen. */
+      .tabbed-words {
+        overflow-y: auto;
+        grid-template-rows: repeat(6, minmax(58px, 1fr));
+      }
     }
 
     @media (max-height: 430px) {
@@ -1504,6 +1536,20 @@
         height: calc((500% - 11px) / 6);
       }
       #category-overlay { gap: 1px; }
+
+      /* Even tighter shadow at iPhone Safari heights — keeps row 6
+         visually clean when only 1px separates panel from row 6. */
+      .tabbed-panel,
+      #grammar-overlay {
+        box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+      }
+
+      /* Tighter row-height floor at iPhone Safari heights — the
+         icon-card is 26px min here, so 54px row leaves room for
+         label + padding without reflowing the whole grid. */
+      .tabbed-words {
+        grid-template-rows: repeat(6, minmax(54px, 1fr));
+      }
     }
   </style>
 </head>
