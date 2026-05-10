@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-tabbed-panels" />
+  <meta name="build" content="2026-05-10-trim-academic-tabs" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -5069,8 +5069,12 @@
         { label: 'some',   speak: 'Some',   visual: 'text' },
         { label: 'many',   speak: 'Many',   visual: 'text' },
         { label: 'few',    speak: 'Few',    visual: 'text' },
-        { label: 'all',    speak: 'All',    visual: 'text' },
         { label: 'half',   speak: 'Half',   visual: 'text' },
+        // 'all' previously sat at panel cell 33 (row 6 col 4) which
+        // is covered by the lifted Academic anchor when the panel is
+        // open. After dropping it, 'half' shifts into position 33 and
+        // 'whole' is at position 34. So 'half' is now the covered
+        // word — flag if this needs further reordering.
         { label: 'whole',  speak: 'Whole',  visual: 'text' },
       ],
 
@@ -5119,7 +5123,6 @@
         { label: 'Cut',           speak: 'Cut',            emoji: '✂️' },
         { label: 'Paste',         speak: 'Paste',          emoji: '📋' },
         { label: 'Colour',        speak: 'Colour',         emoji: '🖍️' },
-        { label: 'Trace',         speak: 'Trace',          emoji: '✒️' },
         { label: 'Match',         speak: 'Match',          emoji: '🔗' },
         { label: 'Sort',          speak: 'Sort',           emoji: '📊' },
         { label: 'Find',          speak: 'Find',           emoji: '🔍' },
@@ -5144,9 +5147,15 @@
         { label: 'Sit down',      speak: 'Sit down',       emoji: '🪑' },
         { label: 'Stand up',      speak: 'Stand up',       emoji: '🧍' },
         { label: 'Line up',       speak: 'Line up',        emoji: '🚶' },
-        { label: 'Pack up',       speak: 'Pack up',        emoji: '📦' },
         { label: 'Come here',     speak: 'Come here',      emoji: '🫸' },
         { label: 'Go there',      speak: 'Go there',       emoji: '➡️' },
+        // 'Pack up' moved to last position because cell 33 (panel
+        // row 6 col 4) is covered by the lifted Academic anchor
+        // when the panel is open. Pack up is the most teacher-
+        // initiated of the classroom-routine cluster, so the kid
+        // loses the least by having it at the covered position.
+        // Come here / Go there remain visible at positions 31/32.
+        { label: 'Pack up',       speak: 'Pack up',        emoji: '📦' },
       ],
 
       // Body parts — emoji where one cleanly represents the part
