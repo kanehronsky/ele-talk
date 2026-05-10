@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-hide-label" />
+  <meta name="build" content="2026-05-10-anchor-tight-fit-and-fillers" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -451,25 +451,24 @@
       box-shadow:
         inset 0 0 0 3px gold,
         0 0 18px 6px rgba(255, 215, 0, 0.75);
+      padding: 3px 3px;
+      gap: 1px;
     }
-    /* Shrink the icon-card to panel-cell size so it visually
-       matches the surrounding panel tiles. Matches the override
-       on .tabbed-words tiles. */
+    /* Lifted-anchor content sized tight to fit the panel-cell-
+       sized visible tile (~73px in iPad landscape). Default
+       sizing (56px icon + 19px label + 8px padding ≈ 86px) blew
+       past the visible tile by 13px and clipped the icon-card
+       top. Shrunk icon, smaller label font + line-height,
+       tighter padding & gap so the whole stack centers cleanly
+       with breathing room. */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor .btn-emoji.icon-card,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor .btn-emoji.icon-card {
-      width: clamp(40px, 5vw, 56px);
+      width: clamp(32px, 4vw, 44px);
     }
-    /* Hide the label on the lifted anchor in panel mode. The
-       label ("Food" / "People" / "Academic") is redundant once
-       the panel is open — the child just tapped this exact
-       button, they know what category they're in — and removing
-       it gives the icon-card enough vertical room to center
-       inside the visible tile without clipping at the top edge.
-       Sub-grid anchors keep their label (their visible tile is
-       full home-cell height, plenty of room). */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor .btn-label,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor .btn-label {
-      display: none;
+      font-size: clamp(8px, 1.1vw, 11px);
+      line-height: 1.05;
     }
 
     html.high-contrast .btn.is-anchor {
@@ -5242,20 +5241,35 @@
       for (let row = 0; row < 5; row++) {
         for (let col = 0; col < 6; col++) {
           if (row === triggerRow && col === triggerCol) continue; // anchor cell
-          if (wordCursor >= words.length) break;
-          const word = words[wordCursor++];
 
           const btn = document.createElement('button');
-          btn.type      = 'button';
+          btn.type           = 'button';
+          btn.style.gridRow    = row + 1;
+          btn.style.gridColumn = col + 1;
+
+          /* Filler cell when the sub-grid has fewer entries than
+             the 29 non-anchor positions. Without this, the overlay
+             cell stays empty and the home button below (Places /
+             Toys / etc. in row 5) shows through the transparent
+             overlay AND blocks tap-through, so children see a
+             button they can't actually use. .btn.empty has
+             pointer-events: none + a light grey fill, so it visually
+             reads as an empty slot and absorbs taps cleanly. */
+          if (wordCursor >= words.length) {
+            btn.className = 'btn empty';
+            btn.setAttribute('aria-hidden', 'true');
+            btn.tabIndex  = -1;
+            overlayEl.appendChild(btn);
+            continue;
+          }
+
+          const word = words[wordCursor++];
           btn.className = `btn ${word.color}`;
           btn.setAttribute('aria-label', word.aria || word.label);
           btn.dataset.wordId = word.id;   // used by renderScaffoldHighlight
           btn.innerHTML =
             renderTileVisual(word, { withCard: true }) +
             `<span class="btn-label">${word.label}</span>`;
-          // 1-indexed CSS grid placement.
-          btn.style.gridRow    = row + 1;
-          btn.style.gridColumn = col + 1;
 
           btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
           btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
