@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-grammar-two-tabs" />
+  <meta name="build" content="2026-05-10-record-from-add-pathway" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -3237,10 +3237,15 @@
         }
       });
 
-      // Record button on the pathway-edit screen — enters tap-to-build
-      // for the currently-edited pathway.
+      // Record button on the pathway-edit screen — validates + saves
+      // the form first (creates the pathway in add mode, commits any
+      // label/level changes in edit mode), then enters tap-to-build
+      // recording for the resulting id. Aborts silently if validation
+      // fails — error is already shown in the form by savePathwayDraft.
       document.getElementById('pathway-record-btn').addEventListener('click', () => {
-        if (editingPathwayId) enterRecordingMode(editingPathwayId);
+        const id = savePathwayDraft();
+        if (id === null) return;
+        enterRecordingMode(id);
       });
 
       // Record-banner Done / Cancel buttons.
@@ -3550,14 +3555,17 @@
       errorEl.textContent = '';
 
       if (id === null) {
-        // Add mode — Record button hidden until the pathway is saved.
-        // The teacher saves with label + level, returns to the list,
-        // then taps Edit on the new row to record.
+        // Add mode — Record button visible from the start. Tapping
+        // Record validates label + level (and clinical pathway cap)
+        // via savePathwayDraft, creates the pathway, then immediately
+        // enters recording mode for the new id. Skips the previous
+        // round-trip via Save → list → Edit → Record.
         titleEl.textContent = 'Add pathway';
         labelEl.value = '';
         levelEl.value = '';        // forces the teacher to pick a level
         deleteEl.hidden = true;
-        recordEl.hidden = true;
+        recordEl.hidden = false;
+        recordEl.textContent = 'Record steps';
         masteredEl.hidden = true;
         renderStepChips([]);
       } else {
@@ -3579,7 +3587,15 @@
       showSettingsScreen('pathway-edit-screen');
     }
 
-    function savePathwayEdit() {
+    /* Validate the pathway-edit form and persist the pathway. Returns
+       the saved pathway's id on success, or null if validation failed
+       (the form's error message is already populated). Shared by:
+       - the Save button → savePathwayEdit, which afterwards
+         re-renders the list and returns to the settings main screen
+       - the Record button handler → which afterwards calls
+         enterRecordingMode(id), so the teacher can record steps for
+         a brand-new pathway without round-tripping through the list. */
+    function savePathwayDraft() {
       const errorEl = document.getElementById('pathway-edit-error');
       errorEl.textContent = '';
       const label = document.getElementById('pathway-label').value.trim();
@@ -3587,34 +3603,46 @@
 
       if (label.length === 0) {
         errorEl.textContent = 'A pathway label is required.';
-        return;
+        return null;
       }
       const level = parseInt(levelRaw, 10);
       if (!SCAFFOLDING_LEVELS[level]) {
         errorEl.textContent = 'Please pick a scaffolding level.';
-        return;
+        return null;
       }
 
+      let id;
       if (editingPathwayId === null) {
         if (isAtPathwayCap()) {
           errorEl.textContent = `At the ${MAX_ACTIVE_PATHWAYS}-pathway clinical limit. Master or delete a pathway first.`;
-          return;
+          return null;
         }
+        id = 'pw_' + crypto.randomUUID();
         Profile.current.pathways.push({
-          id:               'pw_' + crypto.randomUUID(),
+          id,
           label,
           steps:            [],   // populated by tap-to-build in a later stage
           scaffoldingLevel: level,
           active:           false,
           completionCount:  0,    // engine increments this on successful trial
         });
+        // Update the editing context so any follow-up action (e.g.
+        // Record button continuing into recording mode) treats this
+        // pathway as the one currently being edited.
+        editingPathwayId = id;
       } else {
-        const pw = Profile.current.pathways.find(p => p.id === editingPathwayId);
+        id = editingPathwayId;
+        const pw = Profile.current.pathways.find(p => p.id === id);
         if (pw) Object.assign(pw, { label, scaffoldingLevel: level });
       }
       Profile.save();
-
       Engine.syncFromProfile();
+      return id;
+    }
+
+    function savePathwayEdit() {
+      const id = savePathwayDraft();
+      if (id === null) return;
       renderPathwayList();
       renderActivePathwayIndicator();
       engineAutoNavigate();
