@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-record-from-add-pathway" />
+  <meta name="build" content="2026-05-10-tablet-landscape-panel-fit" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -391,14 +391,25 @@
     .btn.is-anchor {
       position: relative;
       z-index: 6;
-      box-shadow: 0 0 0 3px gold, 0 0 12px 3px rgba(255, 215, 0, 0.6);
+      /* Halo size matters here — when the anchor sits over a tabbed
+         panel, panel rows are ~88px on tablet landscape vs. the
+         home-grid row's ~123px. A 12px-blurred halo extends ~15px
+         past the home button's edges and bleeds into the panel row
+         above the anchor's actual position, visually obscuring
+         whatever word lives there. Tightening the blur to 6px / 1px
+         spread keeps the 3px solid gold ring as the primary "this
+         is the anchor" signal while limiting bleed into adjacent
+         panel cells to ~4px. Sub-grid anchors are unaffected
+         visually — sub-grid leaves the trigger's cell empty so
+         there's no neighbour to obscure. */
+      box-shadow: 0 0 0 3px gold, 0 0 6px 1px rgba(255, 215, 0, 0.5);
     }
 
     html.high-contrast .btn.is-anchor {
       box-shadow:
         0 0 0 3px gold,
-        0 0 12px 4px rgba(255, 215, 0, 0.7),
-        0 0 8px var(--neon, #ffffff);
+        0 0 6px 1px rgba(255, 215, 0, 0.65),
+        0 0 6px var(--neon, #ffffff);
     }
 
     /* Scaffold target — electric-cyan halo on the next-step cue.
@@ -553,6 +564,20 @@
       grid-template-columns: repeat(6, 1fr);
       grid-template-rows: repeat(6, 1fr);
       gap: 4px;
+    }
+
+    /* Panel tiles use a SMALLER icon-card cap than home-grid tiles.
+       Panel rows are shorter than home rows (~88px on tablet
+       landscape vs ~123px home rows) because the tab strip takes
+       ~56px off the top of the panel's vertical budget. Without this
+       cap, tablet-landscape clamps the home-grid icon-card to its
+       72px max, which leaves no room for the label below it inside
+       a panel cell — every label clips at the bottom. Capping at
+       56px gives ~30px back to label + padding in every row. Home
+       grid and sub-grid (category-overlay) tiles aren't affected —
+       their rows are full-home-row-height and the larger cap fits. */
+    .tabbed-words .btn-emoji.icon-card {
+      width: clamp(40px, 5vw, 56px);
     }
 
     /* Academic-specific tile palette — white background on teal
