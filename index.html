@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-overlay-filler-opaque" />
+  <meta name="build" content="2026-05-10-panel-tile-shrink" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1726,14 +1726,18 @@
       }
       #speak-btn { font-size: 20px; }
 
-      /* Looser line-height + a touch of bottom padding so
-         descenders sit fully inside the panel cell rather than
-         clipping at the cell bottom. */
-      .tabbed-words .btn {
-        padding-bottom: 5px;
+      /* Default 56px icon + label + padding overflows the ~73px
+         panel cell on iPad landscape and clips the icon-card's
+         top white border. Shrunk icon to 44px max (matches the
+         lifted anchor) and used line-height 1.2 (just enough for
+         descenders to sit inside the line-box without padding-
+         bottom hacks). 44 + 2 gap + 18 label + 8 padding = 72px
+         content in a 73px cell — 1px slack, no clipping. */
+      .tabbed-words .btn-emoji.icon-card {
+        width: clamp(36px, 3.7vw, 44px);
       }
       .tabbed-words .btn-label {
-        line-height: 1.3;
+        line-height: 1.2;
       }
     }
 
