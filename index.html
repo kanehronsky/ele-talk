@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-trim-academic-tabs" />
+  <meta name="build" content="2026-05-10-numbers-half-whole-swap" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -5069,13 +5069,17 @@
         { label: 'some',   speak: 'Some',   visual: 'text' },
         { label: 'many',   speak: 'Many',   visual: 'text' },
         { label: 'few',    speak: 'Few',    visual: 'text' },
-        { label: 'half',   speak: 'Half',   visual: 'text' },
-        // 'all' previously sat at panel cell 33 (row 6 col 4) which
-        // is covered by the lifted Academic anchor when the panel is
-        // open. After dropping it, 'half' shifts into position 33 and
-        // 'whole' is at position 34. So 'half' is now the covered
-        // word — flag if this needs further reordering.
+        // Order is `whole, half` (not the usual fraction order
+        // `half, whole`) on purpose: panel cell 33 (row 6 col 4)
+        // is covered by the lifted Academic anchor when the panel
+        // is open, so whatever lands there is effectively
+        // unreachable. 'whole' is the least clinically essential
+        // word in the quantifier set, so it gets the covered
+        // position; 'half' (more commonly used by kids) stays
+        // visible at position 34. 'all' was dropped entirely to
+        // free a slot.
         { label: 'whole',  speak: 'Whole',  visual: 'text' },
+        { label: 'half',   speak: 'Half',   visual: 'text' },
       ],
 
       // Colours — coloured circle swatch alongside the label.
