@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-actually-fix-gap" />
+  <meta name="build" content="2026-05-10-half-gap-more-bottom" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1617,20 +1617,34 @@
       #word-tiles {
         gap: 4px;
         padding: 4px 3px;
+        /* height: auto overrides the original `height: 100%`. In a
+           wrapped flex layout, height: 100% causes word-tiles to
+           inflate to the strip's total height, which then makes the
+           strip's chrome+tiles row taller than the chrome buttons
+           need. align-items: center then centers the 38px chrome
+           buttons in that oversized row, producing a visible empty
+           gap above and below. height: auto sizes the div to its
+           actual content (the word tiles or placeholder), so row 2
+           sits at the chrome button height and the gap disappears. */
+        height: auto;
       }
 
       #sentence-strip {
         flex-wrap: wrap;        /* allow pathway pill to take its own row */
         height: auto;
         min-height: 0;
-        padding: 6px;           /* 6px all sides — breathing room above pill,
-                                   below chrome / word tiles, and on the sides */
+        padding: 6px 6px 13px;  /* 6px top + sides, 13px bottom — extra
+                                   breathing room below the chrome / word
+                                   tiles so they don't crowd the strip's
+                                   bottom border */
         column-gap: 5px;        /* horizontal gap between strip items */
-        row-gap: 0;             /* pill flush against chrome+tiles row.
-                                   IMPORTANT: do not replace these two with
-                                   `gap: 5px` — the shorthand resets row-gap
-                                   back to 5px and reintroduces a vertical
-                                   gap between the wrapped rows. */
+        row-gap: 7px;           /* small intentional visible separation
+                                   between the pill row and the chrome+
+                                   tiles row. Half of the previous bug-
+                                   produced ~14px gap. IMPORTANT: do not
+                                   replace these two with `gap: Xpx` — the
+                                   shorthand resets row-gap and reintroduces
+                                   the issue. */
       }
 
       /* Pathway pill, when active, gets its own full-width row at
