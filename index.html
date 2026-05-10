@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-cyan-on-anchor-target" />
+  <meta name="build" content="2026-05-10-cyan-on-wrong-tab" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4413,11 +4413,14 @@
         if (activeTabbedPanel && activeTabbedPanel.name === parsed.panel) {
           // Right panel; tile lives in DOM only when its tab is active.
           if (activeTabbedPanel.tab === parsed.tab) return targetId;
-          // Wrong tab — fall back to the panel's home button. Imperfect
-          // L3 cue, but defined: re-tapping closes the panel and the
-          // child can try again. (L1/L2 never reach this branch — auto-
-          // navigate switches to the correct tab proactively.)
-          return findCoreIdForPanel(parsed.panel);
+          // Wrong tab — highlight the correct tab. Tapping it switches
+          // tabs and re-renders the cue onto the actual target word.
+          // Previously this returned the panel's home button, which on
+          // tap closed the panel; re-opening re-defaulted to the first
+          // tab, producing an N-tap loop on the home button. (L1/L2
+          // never reach this branch — auto-navigate switches the tab
+          // proactively.)
+          return `tab:${parsed.panel}:${parsed.tab}`;
         }
         // No surface open — highlight the panel's home button.
         return findCoreIdForPanel(parsed.panel);
@@ -4550,13 +4553,21 @@
     }
 
     /* Tile lookup by stamped word id. Knows about home buttons, the
-       category overlay, and every tabbed panel's words container. */
+       category overlay, every tabbed panel's words container, and
+       the `tab:<panel>:<tab>` sentinel used by the wrong-tab L3
+       cue (resolves to the tab button itself). */
     function findTileElForWordId(id) {
       if (!id) return null;
       if (id === 'speak-btn') return document.getElementById('speak-btn');
       if (id.startsWith('core_')) {
         const idx = parseInt(id.slice(5), 10);
         return gridSlots[idx] || null;
+      }
+      if (id.startsWith('tab:')) {
+        const [, panel, tab] = id.split(':');
+        const tabsEl = document.getElementById(panel + '-tabs');
+        if (!tabsEl) return null;
+        return tabsEl.querySelector(`.tabbed-tab[data-tab="${tab}"]`) || null;
       }
       if (isPanelWordId(id)) {
         const parsed = parsePanelWordId(id);
@@ -4583,13 +4594,20 @@
       });
       document.querySelectorAll('#category-overlay button:not(#cat-close)')
         .forEach(b => b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded'));
-      // Every tabbed-panel words container.
+      // Every tabbed-panel words container + tab strip.
       Object.keys(TABBED_PANEL_REGISTRY).forEach(name => {
         const wordsEl = document.getElementById(name + '-words');
-        if (!wordsEl) return;
-        wordsEl.querySelectorAll('button').forEach(b =>
-          b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded')
-        );
+        if (wordsEl) {
+          wordsEl.querySelectorAll('button').forEach(b =>
+            b.classList.remove('scaffold-target', 'l1-hidden', 'l2-faded')
+          );
+        }
+        const tabsEl = document.getElementById(name + '-tabs');
+        if (tabsEl) {
+          tabsEl.querySelectorAll('.tabbed-tab').forEach(b =>
+            b.classList.remove('scaffold-target')
+          );
+        }
       });
       document.getElementById('speak-btn').classList.remove('scaffold-target');
 
