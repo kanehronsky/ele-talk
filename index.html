@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-fix-apple-i-pronunciation" />
+  <meta name="build" content="2026-05-10-fix-recording-tabbed-commit" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4814,11 +4814,13 @@
             const isOpen = activeTabbedPanel && activeTabbedPanel.name === panelName;
             if (isOpen) {
               // Re-tap: commit the category label unless it's a silent
-              // folder, recording mode, or an L3 close-navigation step
-              // (engine wants the anchor closed for navigation only —
-              // committing would insert the parent name into the strip).
-              let shouldCommit = !item.silentLabel && !isRecording;
-              if (shouldCommit) {
+              // folder (MY WORDS / Academic) or an L3 close-navigation
+              // step (engine wants the anchor closed for navigation
+              // only — committing would insert the parent name into
+              // the strip). Recording mode MUST commit so the step is
+              // captured, so !isRecording gates only the L3 override.
+              let shouldCommit = !item.silentLabel;
+              if (shouldCommit && !isRecording) {
                 const pw = Engine.activePathway();
                 if (pw && (pw.scaffoldingLevel || 0) >= 3 && pw.steps) {
                   const stepTargetId = pw.steps[Engine.state.stepIndex];
