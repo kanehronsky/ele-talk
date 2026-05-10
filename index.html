@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-tile-action-on-touchend" />
+  <meta name="build" content="2026-05-10-grammar-two-tabs" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -668,9 +668,11 @@
     html.high-contrast .tabbed-empty { background: transparent; }
 
     /* ═══════════════════════════════════════════════════
-       GRAMMAR PANEL — flat 7×6 grid (42 cells, exact match
-       to the 42-word grammar list — no scrolling, no empty
-       cells). Same positioning as #category-overlay.
+       GRAMMAR PANEL — two-tab overlay, sits over home rows 1–5.
+       Internal layout: tab strip on top (.tabbed-tabs, borrowed
+       from Academic / Food / etc.) + 6×6 words grid below. Each
+       tab has fewer entries than the panel can hold, so unused
+       cells render as .tabbed-empty placeholders.
     ═══════════════════════════════════════════════════ */
     #grammar-overlay {
       position: absolute;
@@ -680,6 +682,7 @@
       height: calc((500% - 33px) / 6);
       display: flex;
       flex-direction: column;
+      gap: 6px;
       padding: 6px;
       z-index: 5;
       background: #F4F5F7;
@@ -694,13 +697,8 @@
       flex: 1;
       min-height: 0;
       display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      /* 7 rows (not 6) — the word list is 43 entries, so a 6×7 = 42
-         explicit grid leaves the 43rd item ("waiting") in an implicit
-         row sized to content rather than 1fr, producing a short,
-         visually mismatched tile. An explicit 7th row gives it a
-         proper 1fr × 1fr cell, identical to every other tile. */
-      grid-template-rows: repeat(7, 1fr);
+      grid-template-columns: repeat(6, 1fr);
+      grid-template-rows: repeat(6, 1fr);
       gap: 4px;
     }
 
@@ -711,12 +709,13 @@
       --neon: #FFFFFF;
       padding: 4px 6px;
     }
-    /* Grammar tiles are narrower than category tiles (7 cols vs 6).
-       Every tile is now a centered text label (no emoji), so the
-       label sizing only needs to keep the longest words ("drinking",
-       "sleeping", "watching" — 8 chars) on a single line. */
+    /* 6-col layout (same width as the home grid). Every grammar
+       tile is a centered text label (no emoji), so label sizing
+       only needs to keep the longest words ("drinking", "sleeping",
+       "watching" — 8 chars) on a single line at the smallest
+       breakpoint. */
     .grammar-words .btn-label {
-      font-size: clamp(11px, 1.3vw, 15px);
+      font-size: clamp(12px, 1.5vw, 17px);
       line-height: 1.1;
       white-space: nowrap;
     }
@@ -1809,13 +1808,26 @@
       </div>
 
       <!--
-        Grammar panel — flat 7×6 grid of grammatical connector words.
-        Sits over rows 1–5 like the other panels; row 6 (Power Tools)
-        stays uncovered. Opened via the 📝 button in the sentence strip.
+        Grammar panel — two-tab overlay sitting over rows 1–5; row 6
+        (Power Tools) stays uncovered. Opened via the 📝 button in the
+        sentence strip.
+
+        Tabs:
+          Words — function words (articles, conjunctions, be-verbs,
+                  possessives, negation, modals, auxiliaries)
+          Doing — present-progressive verb forms used to construct
+                  continuous-tense sentences ("I am eating")
+
+        Borrows .tabbed-tabs / .tabbed-tab styles from the Academic /
+        Food / People / Places / Toys panels for visual consistency.
       -->
       <div id="grammar-overlay" role="dialog" aria-label="Grammar words" hidden>
         <button class="cat-close" id="grammar-close" aria-label="Close grammar">✕</button>
-        <div id="grammar-words" class="grammar-words"></div>
+        <div id="grammar-tabs" class="tabbed-tabs" role="tablist">
+          <button class="tabbed-tab active" data-tab="words" role="tab" type="button">Words</button>
+          <button class="tabbed-tab"        data-tab="doing" role="tab" type="button">Doing</button>
+        </div>
+        <div id="grammar-words" class="grammar-words" role="tabpanel"></div>
       </div>
     </div>
 
@@ -6146,74 +6158,97 @@
        grammar words mid-trial, and recording would capture nothing
        meaningful (no IDs).
     ═══════════════════════════════════════════════════════════ */
-    const GRAMMAR_WORDS = [
-      // Particles & determiners (text-only — emoji on these would be noise).
-      { label: 'to',    speak: 'to'    },
-      { label: 'is',    speak: 'is'    },
-      { label: 'are',   speak: 'are'   },
-      { label: 'was',   speak: 'was'   },
-      { label: 'were',  speak: 'were'  },
-      { label: 'the',   speak: 'the'   },
-      { label: 'a',     speak: 'a'     },
-      { label: 'an',    speak: 'an'    },
-      { label: 'and',   speak: 'and'   },
-      { label: 'or',    speak: 'or'    },
-      { label: 'but',   speak: 'but'   },
-      { label: 'with',  speak: 'with'  },
-      // Possessives.
-      { label: 'my',    speak: 'my'    },
-      { label: 'your',  speak: 'your'  },
-      { label: 'his',   speak: 'his'   },
-      { label: 'her',   speak: 'her'   },
-      { label: 'their', speak: 'their' },
-      { label: 'our',   speak: 'our'   },
-      // Negation + auxiliaries.
-      { label: 'not',     speak: 'not'      },
-      { label: 'can',     speak: 'can'      },
-      { label: "can't",   speak: "can't"    },
-      { label: 'will',    speak: 'will'     },
-      { label: "won't",   speak: "won't"    },
-      { label: 'do',      speak: 'do'       },
-      { label: "don't",   speak: "don't"    },
-      { label: 'did',     speak: 'did'      },
-      { label: "didn't",  speak: "didn't"   },
-      { label: 'have',    speak: 'have'     },
-      { label: 'has',     speak: 'has'      },
-      { label: 'had',     speak: 'had'      },
-      // -ing forms — emoji-free for visual uniformity. Mixing some
-      // tiles with emoji and others without produced an inconsistent
-      // grid; pure text labels keep every tile rendering identically.
-      { label: 'going',    speak: 'going'    },
-      { label: 'doing',    speak: 'doing'    },
-      { label: 'eating',   speak: 'eating'   },
-      { label: 'drinking', speak: 'drinking' },
-      { label: 'playing',  speak: 'playing'  },
-      { label: 'sleeping', speak: 'sleeping' },
-      { label: 'running',  speak: 'running'  },
-      { label: 'jumping',  speak: 'jumping'  },
-      { label: 'watching', speak: 'watching' },
-      { label: 'reading',  speak: 'reading'  },
-      { label: 'making',   speak: 'making'   },
-      { label: 'helping',  speak: 'helping'  },
-      { label: 'waiting',  speak: 'waiting'  },
-    ];
+    /* Grammar overlay content — split into two tabs:
+       - 'words' tab: function words (articles, conjunctions, be-
+                       verbs, possessives, negation, modals,
+                       auxiliaries) — true grammatical connectors
+       - 'doing' tab: present-progressive verb forms used to build
+                       continuous-tense sentences ("I am eating",
+                       "He is reading"). Previously co-located with
+                       function words in a flat list; separated here
+                       because they're content verbs, not grammar.
+       Both tabs render in the same 6×6 .grammar-words grid; under-
+       filled cells use the .tabbed-empty placeholder, matching the
+       Academic / Food / etc. panel pattern. */
+    const GRAMMAR_TABS = {
+      words: [
+        // Articles, particles, conjunctions, prepositions
+        { label: 'the',   speak: 'the'   },
+        { label: 'a',     speak: 'a'     },
+        { label: 'an',    speak: 'an'    },
+        { label: 'to',    speak: 'to'    },
+        { label: 'with',  speak: 'with'  },
+        { label: 'and',   speak: 'and'   },
+        { label: 'or',    speak: 'or'    },
+        { label: 'but',   speak: 'but'   },
+        // Be-verbs
+        { label: 'is',    speak: 'is'    },
+        { label: 'are',   speak: 'are'   },
+        { label: 'was',   speak: 'was'   },
+        { label: 'were',  speak: 'were'  },
+        // Possessives
+        { label: 'my',    speak: 'my'    },
+        { label: 'your',  speak: 'your'  },
+        { label: 'his',   speak: 'his'   },
+        { label: 'her',   speak: 'her'   },
+        { label: 'their', speak: 'their' },
+        { label: 'our',   speak: 'our'   },
+        // Negation + auxiliaries / modals
+        { label: 'not',     speak: 'not'      },
+        { label: 'can',     speak: 'can'      },
+        { label: "can't",   speak: "can't"    },
+        { label: 'will',    speak: 'will'     },
+        { label: "won't",   speak: "won't"    },
+        { label: 'do',      speak: 'do'       },
+        { label: "don't",   speak: "don't"    },
+        { label: 'did',     speak: 'did'      },
+        { label: "didn't",  speak: "didn't"   },
+        { label: 'have',    speak: 'have'     },
+        { label: 'has',     speak: 'has'      },
+        { label: 'had',     speak: 'had'      },
+      ],
+      doing: [
+        { label: 'going',    speak: 'going'    },
+        { label: 'doing',    speak: 'doing'    },
+        { label: 'eating',   speak: 'eating'   },
+        { label: 'drinking', speak: 'drinking' },
+        { label: 'playing',  speak: 'playing'  },
+        { label: 'sleeping', speak: 'sleeping' },
+        { label: 'running',  speak: 'running'  },
+        { label: 'jumping',  speak: 'jumping'  },
+        { label: 'watching', speak: 'watching' },
+        { label: 'reading',  speak: 'reading'  },
+        { label: 'making',   speak: 'making'   },
+        { label: 'helping',  speak: 'helping'  },
+        { label: 'waiting',  speak: 'waiting'  },
+      ],
+    };
 
     const grammarEl       = document.getElementById('grammar-overlay');
+    const grammarTabsEl   = document.getElementById('grammar-tabs');
     const grammarWordsEl  = document.getElementById('grammar-words');
     const grammarCloseBtn = document.getElementById('grammar-close');
     const grammarBtn      = document.getElementById('grammar-btn');
 
-    function renderGrammarWords() {
+    // Persists between panel openings — the user resumes on whichever
+    // tab they last used, the same pattern as Academic.
+    let activeGrammarTab = 'words';
+
+    function renderGrammarTab(tabId) {
+      activeGrammarTab = tabId;
+      // Tab strip active state.
+      grammarTabsEl.querySelectorAll('.tabbed-tab').forEach(b => {
+        b.classList.toggle('active', b.dataset.tab === tabId);
+      });
+      // Word area rebuild.
       grammarWordsEl.innerHTML = '';
-      GRAMMAR_WORDS.forEach(w => {
+      const words = GRAMMAR_TABS[tabId] || [];
+      words.forEach(w => {
         const btn = document.createElement('button');
         btn.type      = 'button';
         btn.className = 'btn';
         btn.setAttribute('aria-label', w.label);
-        const emojiHtml = w.emoji
-          ? `<span class="btn-emoji" aria-hidden="true">${w.emoji}</span>`
-          : '';
-        btn.innerHTML = emojiHtml + `<span class="btn-label">${w.label}</span>`;
+        btn.innerHTML = `<span class="btn-label">${w.label}</span>`;
 
         btn.addEventListener('touchend',    () => btn.classList.remove('pressed'), { passive: true });
         btn.addEventListener('touchcancel', () => btn.classList.remove('pressed'), { passive: true });
@@ -6238,7 +6273,36 @@
 
         grammarWordsEl.appendChild(btn);
       });
+      // Pad remainder of the 6×6 area with empty placeholders so the
+      // grid stays visually balanced when a tab has < 36 entries.
+      const empty = 36 - words.length;
+      for (let i = 0; i < empty; i++) {
+        const cell = document.createElement('div');
+        cell.className = 'tabbed-empty';
+        grammarWordsEl.appendChild(cell);
+      }
     }
+
+    // Tab switching — instant DOM swap, no transition, debounced
+    // by the shared lastTapTime guard. Mirrors the Academic /
+    // tabbed-surface tab handlers.
+    grammarTabsEl.addEventListener('click', (e) => {
+      const tab = e.target.closest('.tabbed-tab');
+      if (!tab) return;
+      const now = Date.now();
+      if (now - lastTapTime < 100) return;
+      lastTapTime = now;
+      renderGrammarTab(tab.dataset.tab);
+    });
+    grammarTabsEl.addEventListener('touchstart', (e) => {
+      const tab = e.target.closest('.tabbed-tab');
+      if (!tab) return;
+      e.preventDefault();
+      const now = Date.now();
+      if (now - lastTapTime < 100) return;
+      lastTapTime = now;
+      renderGrammarTab(tab.dataset.tab);
+    }, { passive: false });
 
     function openGrammarPanel() {
       // Mutual exclusion with every other panel.
@@ -6246,9 +6310,10 @@
       closeAcademicPanel();
       for (const n of TABBED_SURFACE_NAMES) closeTabbedSurface(n);
       grammarEl.hidden = false;
-      // Render lazily — the word set is static, but rendering on
-      // open keeps initial paint cheap.
-      if (grammarWordsEl.childElementCount === 0) renderGrammarWords();
+      // Always re-render on open so the active tab's tile event
+      // handlers are fresh (.pressed class etc. don't leak across
+      // hidden states).
+      renderGrammarTab(activeGrammarTab);
     }
 
     function closeGrammarPanel() {
