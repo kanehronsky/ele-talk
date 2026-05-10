@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-clip-top" />
+  <meta name="build" content="2026-05-10-anchor-panel-cell-fit" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -391,46 +391,53 @@
     .btn.is-anchor {
       position: relative;
       z-index: 6;
-      /* Wider, lower-opacity halo — visually prominent as the "this
-         is the lifted anchor" cue, but translucent enough that any
-         cell content the halo's outer edge overlaps remains readable.
-         Pairs with the clip-path rule below: when the anchor is over
-         a tabbed-panel context, the upward bleed that was obscuring
-         the panel row above is clipped, so this larger halo doesn't
-         re-introduce the issue. */
-      box-shadow: 0 0 0 3px gold, 0 0 14px 4px rgba(255, 215, 0, 0.4);
+      /* Prominent gold halo. When the anchor sits over a tabbed
+         panel, the clip-path rule below clips the top portion of
+         the button + halo so this larger glow doesn't bleed into
+         the panel row above. Sub-grid anchors get the full halo
+         all around — sub-grid leaves the trigger cell empty by
+         design, so there's no neighbour to obscure. */
+      box-shadow: 0 0 0 3px gold, 0 0 14px 4px rgba(255, 215, 0, 0.65);
     }
 
     /* When the lifted anchor sits over a tabbed panel or grammar
-       overlay (where panel rows are ~88px on tablet landscape, vs.
-       the home-grid row's ~123px), the home button's full-cell
-       visual extent bleeds 25-40px into the panel row ABOVE its
-       actual position — covering the bottom of that cell's label
-       (e.g. "last" in Numbers, "Look" in Actions). Halo reduction
-       alone wasn't enough — the button's solid background was the
-       culprit, not just the halo.
-       Fix: clip the top 15% of the lifted button when sitting over
-       a tabbed-panel context. clip-path is purely visual — the
-       button's full home-cell layout box and hitbox are preserved,
-       so the child's motor plan still hits the same area; only the
-       rendered pixels (background + halo above the visual top) are
-       clipped. The 15% inset leaves the icon-card and label
-       unclipped (content sits ~14% from the top with default
-       padding) and matches the natural 8px border-radius via
-       `round 8px`.
-       Sub-grid (category-overlay) anchors bypass this clip — sub-
-       grid leaves the trigger's cell empty by design, so there's
-       no neighbour to obscure and the full button visual reads
-       correctly. The :has() scoping handles that distinction. */
+       overlay, panel rows are ~88px on tablet landscape vs. the
+       home-grid row's ~125px. Without intervention the home
+       button's full-cell visual extent bleeds 25-40px into the
+       panel row ABOVE its actual position, covering the bottom of
+       that cell's label (e.g. "last" in Numbers, "Look" in Actions).
+
+       Two-part fix:
+       1. clip-path: inset(30% 0 0 0 round 8px) — clips the top 30%
+          of the button (including its background AND the box-shadow
+          halo above the visual top). Visible region matches panel-
+          cell size (~87px), so the lifted button reads as a panel
+          tile, not a half-clipped home tile.
+       2. justify-content: flex-end + padding-bottom: 10px —
+          repositions the button's content (icon-card + label) to
+          the bottom of the original button box, which is the only
+          part still visible after the clip. Without this, content
+          would be vertically centered in the full home cell and
+          would partially fall in the clipped (invisible) top
+          region.
+
+       clip-path is purely visual — the button's full home-cell
+       layout box and hitbox are preserved, so the child's motor
+       plan still hits the same area.
+
+       Sub-grid (category-overlay) anchors bypass this clip via the
+       :has() scoping. */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
-      clip-path: inset(15% 0 0 0 round 8px);
+      clip-path: inset(30% 0 0 0 round 8px);
+      justify-content: flex-end;
+      padding: 4px 3px 10px 3px;
     }
 
     html.high-contrast .btn.is-anchor {
       box-shadow:
         0 0 0 3px gold,
-        0 0 14px 4px rgba(255, 215, 0, 0.55),
+        0 0 14px 4px rgba(255, 215, 0, 0.75),
         0 0 6px var(--neon, #ffffff);
     }
 
