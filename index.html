@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-09-strip-breathing" />
+  <meta name="build" content="2026-05-10-visible-build-stamp" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -827,6 +827,16 @@
       color: #5a6373;
       margin: 0 0 12px 0;
       line-height: 1.45;
+    }
+
+    /* Build stamp in About section — populated at runtime from the
+       <meta name="build"> tag. Small + monospace + muted so it
+       reads as version metadata, not body copy. */
+    .build-stamp {
+      font-size: 12px !important;
+      color: #98a0ac !important;
+      margin-top: 14px !important;
+      font-family: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
     }
 
     .form-row {
@@ -1901,6 +1911,7 @@
           <h2>About</h2>
           <p>ELE Talk is built on evidence-based AAC and behaviour analytic principles.</p>
           <p>Symbol artwork: Mulberry Symbols © Steve Lee, licensed under CC BY-SA 2.0 UK.</p>
+          <p class="build-stamp">Build: <span id="build-stamp">unknown</span></p>
         </div>
 
       </div>
@@ -2061,6 +2072,18 @@
        state, so the grid grows and shrinks exactly as the
        browser chrome animates.
     ═══════════════════════════════════════════════════════════ */
+    /* ═══════════════════════════════════════════════════════════
+       BUILD STAMP — copy <meta name="build"> into the visible
+       Settings → About row so the user can verify which deploy
+       reached the device without leaving the app or relying on
+       view-source: (which is desktop-only on Chrome / Safari).
+    ═══════════════════════════════════════════════════════════ */
+    (function showBuild() {
+      const m = document.querySelector('meta[name="build"]');
+      const el = document.getElementById('build-stamp');
+      if (m && el) el.textContent = m.content;
+    })();
+
     (function trackViewportHeight() {
       const vv = window.visualViewport;
       function update() {
