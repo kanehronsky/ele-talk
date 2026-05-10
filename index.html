@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-icon-shrink" />
+  <meta name="build" content="2026-05-10-tablet-strip-slim" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1668,6 +1668,53 @@
       /* (No tabbed-words override here either — same reason as
          the 520px block: scroll within tile containers violates
          the Piano Principle.) */
+    }
+
+    /* ═══════════════════════════════════════════════════
+       TABLET LANDSCAPE (primary form-factor target)
+       Default sentence strip is 72px tall — perfectly fine for
+       desktop / phone-portrait but heavy on tablet landscape
+       where viewport heights are typically 700-820px after
+       browser chrome. With 72px gone to the strip, panel rows
+       come out at ~85px and tile content (56px icon + ~17px
+       label-line + padding) sits with only 1-2px slack —
+       descenders ("y" in Hallway, "g" in Lounge) clip at the
+       cell bottom.
+
+       This block borrows 14px from the strip (72 → 58) and
+       loosens label line-height + adds bottom padding so
+       descenders fit fully inside the panel cell.
+
+       Targets touch landscape viewports above the phone-
+       landscape thresholds:
+       - orientation: landscape — exclude tablet portrait
+       - pointer: coarse — exclude desktop browsers
+       - min-height: 521px — exclude phone landscape (the
+         max-height: 520 / 430 blocks already handle those)
+    ═══════════════════════════════════════════════════ */
+    @media (orientation: landscape) and (pointer: coarse) and (min-height: 521px) {
+      #sentence-strip {
+        height: 58px;
+        min-height: 58px;
+      }
+      #settings-btn,
+      #grammar-btn,
+      .strip-btn {
+        width: 42px;
+        height: 42px;
+        font-size: 18px;
+      }
+      #speak-btn { font-size: 20px; }
+
+      /* Looser line-height + a touch of bottom padding so
+         descenders sit fully inside the panel cell rather than
+         clipping at the cell bottom. */
+      .tabbed-words .btn {
+        padding-bottom: 5px;
+      }
+      .tabbed-words .btn-label {
+        line-height: 1.3;
+      }
     }
 
     /* ═══════════════════════════════════════════════════
