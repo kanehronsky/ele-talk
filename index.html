@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-visible-build-stamp" />
+  <meta name="build" content="2026-05-10-actually-fix-gap" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1623,11 +1623,14 @@
         flex-wrap: wrap;        /* allow pathway pill to take its own row */
         height: auto;
         min-height: 0;
-        padding: 4px 6px;       /* 4px top+bottom — breathing room above pill
-                                   and below chrome / word tiles so nothing
-                                   visually flushes against the strip edges */
-        row-gap: 0;             /* pill sits flush against the strip row */
-        gap: 5px;
+        padding: 6px;           /* 6px all sides — breathing room above pill,
+                                   below chrome / word tiles, and on the sides */
+        column-gap: 5px;        /* horizontal gap between strip items */
+        row-gap: 0;             /* pill flush against chrome+tiles row.
+                                   IMPORTANT: do not replace these two with
+                                   `gap: 5px` — the shorthand resets row-gap
+                                   back to 5px and reintroduces a vertical
+                                   gap between the wrapped rows. */
       }
 
       /* Pathway pill, when active, gets its own full-width row at
@@ -1646,6 +1649,25 @@
         padding: 2px 8px;
         font-size: 12px;
         text-align: center;
+      }
+
+      /* Compact recording banner so the grid + Power Tools row
+         still fits the visible viewport during pathway recording.
+         Banner content stays the same — we just shrink padding,
+         font, button size, and inter-section gap. Saves ~30px of
+         vertical space, which is enough for row 6 to clear the
+         bottom edge on most phones. */
+      #record-banner {
+        padding: 6px 8px;
+        min-height: 0;
+        gap: 8px;
+      }
+      .record-title { font-size: 14px; }
+      .record-step-counter { font-size: 11px; }
+      .record-actions { gap: 5px; }
+      .record-actions button {
+        padding: 6px 12px;
+        font-size: 13px;
       }
     }
   </style>
