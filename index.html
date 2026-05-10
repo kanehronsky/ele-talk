@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-halo-pseudo" />
+  <meta name="build" content="2026-05-10-anchor-inner-wrapper" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -194,6 +194,29 @@
       touch-action: manipulation;
       -webkit-tap-highlight-color: transparent;
       transition: transform 0.08s ease, filter 0.08s ease;
+      position: relative;            /* containing block for .btn-inner */
+    }
+
+    /* Visible-tile wrapper. Home-grid buttons (initGrid → updateSlot)
+       wrap their icon-card + label inside this so the visible
+       rectangle can be resized independently of .btn's layout cell.
+       Default: fills the parent .btn 1:1 — sub-grid anchors and
+       normal home buttons keep their existing visual.
+       Panel-mode anchor (rule below): .btn-inner shrinks to the
+       bottom 70% of the cell and hosts the gold halo, so the glow
+       follows the visible tile rather than the full home cell. */
+    .btn-inner {
+      position: absolute;
+      inset: 0;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      text-align: center;
+      padding: 4px 3px;
+      gap: 2px;
+      border-radius: 8px;
+      overflow: hidden;
     }
 
     .btn-emoji {
@@ -402,56 +425,32 @@
 
     /* When the lifted anchor sits over a tabbed panel or grammar
        overlay, panel rows are ~88px on tablet landscape vs. the
-       home-grid row's ~125px. Without intervention the home
-       button's full-cell visual extent bleeds 25-40px into the
-       panel row ABOVE its actual position, covering the bottom of
-       that cell's label (e.g. "last" in Numbers, "Look" in Actions).
+       home-grid row's ~125px. The home button's full-cell visual
+       extent would bleed 25-40px into the panel row ABOVE its
+       actual position, covering text there (e.g. "last", "Look").
 
-       Pseudo-element approach (replaces the earlier clip-path and
-       drop-shadow attempts; both clipped the halo away):
+       Wrapper approach: the .btn becomes a transparent positioning
+       shell hosting only the layout cell + hitbox. The visible tile
+       lives entirely on .btn-inner, which shrinks to the bottom 70%
+       of the cell. The halo also lives on .btn-inner so the glow
+       follows the visible-tile silhouette — no upward bleed of
+       background OR halo into the row above.
 
-       - .btn's own background goes transparent so it doesn't fill
-         the full home cell (which would cover the row above).
-       - ::before pseudo paints the visible "tile" at the bottom 70%
-         of the cell, sized to match a panel cell (~87px). It owns
-         the yellow fill, the rounded corner, and the inner gold
-         ring (the scaffold marker proper).
-       - .btn KEEPS its outer box-shadow as the soft glow halo. The
-         halo extends around the full home-cell rectangle, including
-         ~14px upward into the row above. That's acceptable because
-         it's translucent — text in the row above stays readable
-         through the gold tint, unlike the original solid-background
-         bleed which fully obscured it.
-       - Content (icon-card + label) gets pushed to the bottom of
-         the layout box via justify-content + padding so it sits
-         inside the visible tile rather than the empty top region.
-
-       The .btn's hitbox is the full home cell — motor plan is
-       preserved exactly as it was on the home grid.
-
-       Sub-grid anchors bypass this rule via the :has() scoping and
-       use the standard halo from .btn.is-anchor above. */
+       Sub-grid anchors bypass this rule via the :has() scoping
+       and keep the original full-cell halo on .btn (sub-grid cells
+       match home-grid cells in size, so no shrink is needed). */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
       background: transparent !important;
-      box-shadow: 0 0 18px 6px rgba(255, 215, 0, 0.75);
-      justify-content: flex-end;
-      padding: 4px 3px 10px 3px;
+      box-shadow: none !important;
     }
-    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor::before,
-    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor::before {
-      content: '';
-      position: absolute;
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor > .btn-inner,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor > .btn-inner {
       inset: 30% 0 0 0;
       background: #D4A820;
-      border-radius: 8px;
-      box-shadow: inset 0 0 0 3px gold;
-      z-index: 0;
-    }
-    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor > *,
-    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor > * {
-      position: relative;
-      z-index: 1;
+      box-shadow:
+        inset 0 0 0 3px gold,
+        0 0 18px 6px rgba(255, 215, 0, 0.75);
     }
 
     html.high-contrast .btn.is-anchor {
@@ -462,13 +461,15 @@
     }
     html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
-      box-shadow:
-        0 0 20px 6px rgba(255, 215, 0, 0.85),
-        0 0 8px var(--neon, #ffffff);
+      box-shadow: none !important;
     }
-    html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor::before,
-    html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor::before {
-      box-shadow: inset 0 0 0 3px gold, inset 0 0 6px var(--neon, #ffffff);
+    html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor > .btn-inner,
+    html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor > .btn-inner {
+      background: #000;
+      box-shadow:
+        inset 0 0 0 3px gold,
+        inset 0 0 6px var(--neon, #ffffff),
+        0 0 20px 6px rgba(255, 215, 0, 0.85);
     }
 
     /* Scaffold target — electric-cyan halo on the next-step cue.
@@ -4926,9 +4927,15 @@
       const btn = gridSlots[idx];
       btn.className = `btn ${item.color}${extraClass ? ' ' + extraClass : ''}`;
       btn.setAttribute('aria-label', item.aria || item.label);
+      /* Wrap visible content in .btn-inner so the panel-mode anchor
+         CSS can resize the visible tile (and its halo) without
+         affecting .btn's hitbox. See the panel-mode rule on
+         .btn.is-anchor > .btn-inner above. */
       btn.innerHTML =
-        renderTileVisual(item, { withCard: true }) +
-        `<span class="btn-label">${item.label}</span>`;
+        '<span class="btn-inner">' +
+          renderTileVisual(item, { withCard: true }) +
+          `<span class="btn-label">${item.label}</span>` +
+        '</span>';
       setSlotHandler(idx, action);
     }
 
