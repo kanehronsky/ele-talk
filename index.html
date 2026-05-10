@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-fix-ios-speech-unlock" />
+  <meta name="build" content="2026-05-10-ios-unlock-via-queue" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4533,10 +4533,34 @@
        literal "I" — unchanged behaviour for them. */
     const IS_APPLE_PLATFORM = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
 
+    /* iOS Safari requires the FIRST speak() call to perform a real
+       unlock of the speech-synthesis audio context. A separate
+       touchstart-handler primer doesn't reliably work because:
+       (a) tile taps use preventDefault on touchstart, which iOS may
+           not count as a valid user-gesture for audio unlock
+       (b) the tile's own speak() runs in target phase BEFORE the
+           document-level unlock listener bubbles up
+       (c) the tile's speak() calls cancel() first, which can wipe
+           the queued primer before iOS processes it
+       Instead, prepend the primer INSIDE speak() on the first iOS
+       call, after cancel(). The primer + real utterance both queue
+       in the same user-gesture call; iOS processes primer first
+       (silent — performs the unlock) then the real utterance plays
+       audibly. One-shot via a flag so subsequent calls don't waste
+       processing on the primer. */
+    let needsIOSSpeechUnlock = IS_APPLE_PLATFORM;
+
     function speak(text) {
       if (suppressSpeak) return;
       if (!window.speechSynthesis) return;
       speechSynthesis.cancel();
+      if (needsIOSSpeechUnlock) {
+        const primer = new SpeechSynthesisUtterance('.');
+        primer.volume = 0.01;
+        primer.rate = 10;
+        speechSynthesis.speak(primer);
+        needsIOSSpeechUnlock = false;
+      }
       const speakText = IS_APPLE_PLATFORM
         ? text.replace(/\bI\b/g, 'eye')
         : text;
@@ -4545,20 +4569,6 @@
       utterance.pitch = 1.0;
       speechSynthesis.speak(utterance);
     }
-
-    /* iOS requires a user-gesture-triggered speak() call to unlock
-       the audio context. cancel() alone doesn't count — that was the
-       previous bug here. Pre-warm with a silent utterance (volume 0,
-       single space) so the user's first ACTUAL tile tap produces
-       audible speech, instead of losing the first one or two taps to
-       the deferred unlock that the Speak button was doing implicitly. */
-    document.addEventListener('touchstart', function unlockSpeech() {
-      if (!window.speechSynthesis) return;
-      const primer = new SpeechSynthesisUtterance(' ');
-      primer.volume = 0;
-      speechSynthesis.speak(primer);
-      document.removeEventListener('touchstart', unlockSpeech);
-    }, { passive: true });
 
     /* ═══════════════════════════════════════════════════════════
        TILE VISUAL HELPER
