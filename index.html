@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-look-no-addtostrip" />
+  <meta name="build" content="2026-05-10-fix-apple-i-pronunciation" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4521,11 +4521,26 @@
        sentence speech replaces it. */
     let suppressSpeak = false;
 
+    /* Apple's speech-synthesis engine (iPad / iPhone / Mac Safari)
+       pronounces a lone uppercase "I" as "Capital I" — describing
+       the character rather than speaking the pronoun. The
+       workaround is to substitute the perfect homophone "eye"
+       before utterance. Whole-word boundary (\bI\b) so contractions
+       and other words containing capital I (e.g. "It", letters in
+       the Academic Letters tab where "Capital A" IS correct) are
+       left alone. Detect Apple platforms via UA so non-Apple
+       browsers (Chrome on Android/Windows etc.) keep speaking the
+       literal "I" — unchanged behaviour for them. */
+    const IS_APPLE_PLATFORM = /iPad|iPhone|iPod|Macintosh/.test(navigator.userAgent);
+
     function speak(text) {
       if (suppressSpeak) return;
       if (!window.speechSynthesis) return;
       speechSynthesis.cancel();
-      const utterance = new SpeechSynthesisUtterance(text);
+      const speakText = IS_APPLE_PLATFORM
+        ? text.replace(/\bI\b/g, 'eye')
+        : text;
+      const utterance = new SpeechSynthesisUtterance(speakText);
       utterance.rate  = 1.0;
       utterance.pitch = 1.0;
       speechSynthesis.speak(utterance);
