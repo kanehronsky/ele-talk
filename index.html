@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-fix-recording-tabbed-commit" />
+  <meta name="build" content="2026-05-10-fix-ios-speech-unlock" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4546,9 +4546,17 @@
       speechSynthesis.speak(utterance);
     }
 
-    /* iOS requires a user gesture to unlock the audio context */
+    /* iOS requires a user-gesture-triggered speak() call to unlock
+       the audio context. cancel() alone doesn't count — that was the
+       previous bug here. Pre-warm with a silent utterance (volume 0,
+       single space) so the user's first ACTUAL tile tap produces
+       audible speech, instead of losing the first one or two taps to
+       the deferred unlock that the Speak button was doing implicitly. */
     document.addEventListener('touchstart', function unlockSpeech() {
-      if (window.speechSynthesis) speechSynthesis.cancel();
+      if (!window.speechSynthesis) return;
+      const primer = new SpeechSynthesisUtterance(' ');
+      primer.volume = 0;
+      speechSynthesis.speak(primer);
       document.removeEventListener('touchstart', unlockSpeech);
     }, { passive: true });
 
