@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-panel-tile-icon-bigger" />
+  <meta name="build" content="2026-05-10-cyan-on-anchor-target" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -527,6 +527,46 @@
        the cue is consistent across grid buttons and the strip. */
     #speak-btn.scaffold-target {
       box-shadow: 0 0 0 3px #00E5FF, 0 0 15px 5px #00E5FF;
+    }
+
+    /* Close-and-go cue: when the lifted anchor IS the next-step
+       scaffold target (e.g. inside Want's sub-grid and Toys/Play
+       is the next target — child must close Want first), cyan
+       REPLACES gold. Per design: "you're inside here" is
+       redundant once the kid sees the open surface; what matters
+       is "tap me next."
+
+       Without these overrides:
+       - Sub-grid case: .btn.is-anchor has higher specificity than
+         .scaffold-target (2 classes vs 1), so the gold halo wins
+         and the cyan never paints. Bumping the selector to
+         .btn.is-anchor.scaffold-target (3 classes) tilts it back.
+       - Panel-mode case: the gold halo lives on .btn-inner (the
+         wrapper restructure moved it there because clip-path /
+         drop-shadow / pseudo couldn't escape their element).
+         .scaffold-target on the parent .btn doesn't reach the
+         child, so we need a parallel rule on .btn-inner. */
+    .btn.is-anchor.scaffold-target {
+      box-shadow: 0 0 0 3px #00E5FF, 0 0 15px 5px #00E5FF;
+    }
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor.scaffold-target > .btn-inner,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor.scaffold-target > .btn-inner {
+      box-shadow:
+        inset 0 0 0 3px #00E5FF,
+        0 0 18px 6px #00E5FF;
+    }
+    html.high-contrast .btn.is-anchor.scaffold-target {
+      box-shadow:
+        0 0 0 3px #00E5FF,
+        0 0 15px 5px #00E5FF,
+        0 0 8px var(--neon, #ffffff);
+    }
+    html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor.scaffold-target > .btn-inner,
+    html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor.scaffold-target > .btn-inner {
+      box-shadow:
+        inset 0 0 0 3px #00E5FF,
+        inset 0 0 6px var(--neon, #ffffff),
+        0 0 20px 6px #00E5FF;
     }
 
     /* Level 2 (Ghost) — non-target buttons reduced to 35% opacity.
