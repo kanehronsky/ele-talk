@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-tablet-landscape-panel-fit" />
+  <meta name="build" content="2026-05-10-anchor-clip-top" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -391,24 +391,46 @@
     .btn.is-anchor {
       position: relative;
       z-index: 6;
-      /* Halo size matters here — when the anchor sits over a tabbed
-         panel, panel rows are ~88px on tablet landscape vs. the
-         home-grid row's ~123px. A 12px-blurred halo extends ~15px
-         past the home button's edges and bleeds into the panel row
-         above the anchor's actual position, visually obscuring
-         whatever word lives there. Tightening the blur to 6px / 1px
-         spread keeps the 3px solid gold ring as the primary "this
-         is the anchor" signal while limiting bleed into adjacent
-         panel cells to ~4px. Sub-grid anchors are unaffected
-         visually — sub-grid leaves the trigger's cell empty so
-         there's no neighbour to obscure. */
-      box-shadow: 0 0 0 3px gold, 0 0 6px 1px rgba(255, 215, 0, 0.5);
+      /* Wider, lower-opacity halo — visually prominent as the "this
+         is the lifted anchor" cue, but translucent enough that any
+         cell content the halo's outer edge overlaps remains readable.
+         Pairs with the clip-path rule below: when the anchor is over
+         a tabbed-panel context, the upward bleed that was obscuring
+         the panel row above is clipped, so this larger halo doesn't
+         re-introduce the issue. */
+      box-shadow: 0 0 0 3px gold, 0 0 14px 4px rgba(255, 215, 0, 0.4);
+    }
+
+    /* When the lifted anchor sits over a tabbed panel or grammar
+       overlay (where panel rows are ~88px on tablet landscape, vs.
+       the home-grid row's ~123px), the home button's full-cell
+       visual extent bleeds 25-40px into the panel row ABOVE its
+       actual position — covering the bottom of that cell's label
+       (e.g. "last" in Numbers, "Look" in Actions). Halo reduction
+       alone wasn't enough — the button's solid background was the
+       culprit, not just the halo.
+       Fix: clip the top 15% of the lifted button when sitting over
+       a tabbed-panel context. clip-path is purely visual — the
+       button's full home-cell layout box and hitbox are preserved,
+       so the child's motor plan still hits the same area; only the
+       rendered pixels (background + halo above the visual top) are
+       clipped. The 15% inset leaves the icon-card and label
+       unclipped (content sits ~14% from the top with default
+       padding) and matches the natural 8px border-radius via
+       `round 8px`.
+       Sub-grid (category-overlay) anchors bypass this clip — sub-
+       grid leaves the trigger's cell empty by design, so there's
+       no neighbour to obscure and the full button visual reads
+       correctly. The :has() scoping handles that distinction. */
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
+      clip-path: inset(15% 0 0 0 round 8px);
     }
 
     html.high-contrast .btn.is-anchor {
       box-shadow:
         0 0 0 3px gold,
-        0 0 6px 1px rgba(255, 215, 0, 0.65),
+        0 0 14px 4px rgba(255, 215, 0, 0.55),
         0 0 6px var(--neon, #ffffff);
     }
 
