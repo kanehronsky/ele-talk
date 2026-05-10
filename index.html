@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-tight-fit-and-fillers" />
+  <meta name="build" content="2026-05-10-overlay-filler-opaque" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -316,6 +316,17 @@
       background: rgba(200, 205, 215, 0.35) !important;
       pointer-events: none;
       cursor: default;
+    }
+
+    /* Inside the category overlay, .btn.empty filler cells need
+       to be OPAQUE — there's a real home button (Places, Toys,
+       MY WORDS, etc.) at z-index 0 underneath, and a translucent
+       fill lets it ghost through. Solid light grey matches the
+       rendered colour of translucent grey over the home grid's
+       white background, so visually the empty cells in the
+       overlay read identically to empty cells on the home grid. */
+    #category-overlay .btn.empty {
+      background: #ECEFF1 !important;
     }
 
     /* ═══════════════════════════════════════════════════
