@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-tablet-strip-slim" />
+  <meta name="build" content="2026-05-10-anchor-hide-label" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -452,14 +452,24 @@
         inset 0 0 0 3px gold,
         0 0 18px 6px rgba(255, 215, 0, 0.75);
     }
-    /* Shrink the icon-card to panel-cell size so the label fits
-       inside the smaller visible tile. Without this, the default
-       72px icon + label + padding overflows the ~90px panel-cell
-       height in landscape and the label gets clipped. Matches the
-       override on .tabbed-words tiles. */
+    /* Shrink the icon-card to panel-cell size so it visually
+       matches the surrounding panel tiles. Matches the override
+       on .tabbed-words tiles. */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor .btn-emoji.icon-card,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor .btn-emoji.icon-card {
       width: clamp(40px, 5vw, 56px);
+    }
+    /* Hide the label on the lifted anchor in panel mode. The
+       label ("Food" / "People" / "Academic") is redundant once
+       the panel is open — the child just tapped this exact
+       button, they know what category they're in — and removing
+       it gives the icon-card enough vertical room to center
+       inside the visible tile without clipping at the top edge.
+       Sub-grid anchors keep their label (their visible tile is
+       full home-cell height, plenty of room). */
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor .btn-label,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor .btn-label {
+      display: none;
     }
 
     html.high-contrast .btn.is-anchor {
