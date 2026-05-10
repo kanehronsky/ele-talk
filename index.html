@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-panel-tile-shrink" />
+  <meta name="build" content="2026-05-10-panel-tile-icon-bigger" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1728,13 +1728,17 @@
 
       /* Default 56px icon + label + padding overflows the ~73px
          panel cell on iPad landscape and clips the icon-card's
-         top white border. Shrunk icon to 44px max (matches the
-         lifted anchor) and used line-height 1.2 (just enough for
-         descenders to sit inside the line-box without padding-
-         bottom hacks). 44 + 2 gap + 18 label + 8 padding = 72px
-         content in a 73px cell — 1px slack, no clipping. */
+         top white border. Resized to fill the cell tightly:
+         50px icon (significantly larger than the home grid 44px)
+         + 18px label (line-height 1.2 — just enough for
+         descenders) + 1px gap + 4px padding = 73px content,
+         exact fit, no clipping at top OR bottom. */
+      .tabbed-words .btn {
+        padding: 2px 3px;
+        gap: 1px;
+      }
       .tabbed-words .btn-emoji.icon-card {
-        width: clamp(36px, 3.7vw, 44px);
+        width: clamp(40px, 4.3vw, 50px);
       }
       .tabbed-words .btn-label {
         line-height: 1.2;
