@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-panel-cell-fit" />
+  <meta name="build" content="2026-05-10-anchor-halo-drop-shadow" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -407,31 +407,40 @@
        panel row ABOVE its actual position, covering the bottom of
        that cell's label (e.g. "last" in Numbers, "Look" in Actions).
 
-       Two-part fix:
+       Three-part fix:
        1. clip-path: inset(30% 0 0 0 round 8px) — clips the top 30%
-          of the button (including its background AND the box-shadow
-          halo above the visual top). Visible region matches panel-
-          cell size (~87px), so the lifted button reads as a panel
-          tile, not a half-clipped home tile.
-       2. justify-content: flex-end + padding-bottom: 10px —
-          repositions the button's content (icon-card + label) to
-          the bottom of the original button box, which is the only
-          part still visible after the clip. Without this, content
-          would be vertically centered in the full home cell and
-          would partially fall in the clipped (invisible) top
-          region.
+          of the button. Visible region matches panel-cell size
+          (~87px), so the lifted button reads as a panel tile.
+       2. justify-content: flex-end + padding-bottom — repositions
+          the icon-card + label to the bottom of the layout box so
+          content stays inside the visible (clipped) region.
+       3. filter: drop-shadow() — applied AFTER clip-path in the
+          render pipeline, so the gold glow follows the visible
+          silhouette of the clipped tile rather than the original
+          rectangular box. This is why we drop the outer box-shadow
+          glow in this rule — box-shadow rasterises BEFORE clip-path
+          and so its outer halo above the tile is clipped away
+          (this was the bug: 30% clip ate the entire top glow).
+          Inner gold ring stays via box-shadow inset so the tile
+          still reads as scaffolded; the clipped top edge of that
+          ring sits along the rounded top of the visible tile
+          cleanly.
 
        clip-path is purely visual — the button's full home-cell
        layout box and hitbox are preserved, so the child's motor
        plan still hits the same area.
 
        Sub-grid (category-overlay) anchors bypass this clip via the
-       :has() scoping. */
+       :has() scoping and keep the original box-shadow halo. */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
       clip-path: inset(30% 0 0 0 round 8px);
       justify-content: flex-end;
       padding: 4px 3px 10px 3px;
+      box-shadow: inset 0 0 0 3px gold;
+      filter:
+        drop-shadow(0 0 4px gold)
+        drop-shadow(0 0 10px rgba(255, 215, 0, 0.85));
     }
 
     html.high-contrast .btn.is-anchor {
@@ -439,6 +448,13 @@
         0 0 0 3px gold,
         0 0 14px 4px rgba(255, 215, 0, 0.75),
         0 0 6px var(--neon, #ffffff);
+    }
+    html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
+    html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
+      box-shadow: inset 0 0 0 3px gold, inset 0 0 6px var(--neon, #ffffff);
+      filter:
+        drop-shadow(0 0 5px gold)
+        drop-shadow(0 0 12px rgba(255, 215, 0, 0.95));
     }
 
     /* Scaffold target — electric-cyan halo on the next-step cue.
