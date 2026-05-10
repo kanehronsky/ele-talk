@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-ios-unlock-touchend" />
+  <meta name="build" content="2026-05-10-tile-action-on-touchend" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4737,27 +4737,47 @@
     function setSlotHandler(idx, action) {
       const btn = gridSlots[idx];
 
+      // Multi-handler cleanup. We split press-feedback (touchstart)
+      // from action-fire (touchend) so iOS Safari sees the speak()
+      // call inside a touchend gesture, which it accepts as a valid
+      // user-gesture for speech-synthesis audio-context unlock.
+      // touchstart-with-preventDefault was being rejected, leaving
+      // the FIRST tile tap silent until the user pressed the Speak
+      // button. After this restructure, the first tap is audible.
       if (slotHandlers[idx]) {
-        btn.removeEventListener('touchstart', slotHandlers[idx]);
-        btn.removeEventListener('mousedown',  slotHandlers[idx]);
+        const h = slotHandlers[idx];
+        btn.removeEventListener('touchstart',  h.press);
+        btn.removeEventListener('touchend',    h.fire);
+        btn.removeEventListener('touchcancel', h.cancel);
+        btn.removeEventListener('mousedown',   h.fire);
       }
 
-      const handler = (e) => {
-        if (e.type === 'touchstart') {
-          e.preventDefault();
-          btn.classList.add('pressed');
-        } else {
-          if (isTouchDevice) return;  /* block ghost clicks on touch devices */
-        }
+      // Touchstart: preventDefault + visual press feedback only.
+      // No action, no speak — defer all of that to touchend.
+      const press = (e) => {
+        e.preventDefault();
+        btn.classList.add('pressed');
+      };
+      // Touchend (touch devices) and mousedown (non-touch): fire the
+      // action. Same debounce + ghost-click guard as before.
+      const fire = (e) => {
+        if (e.type === 'mousedown' && isTouchDevice) return;
+        btn.classList.remove('pressed');
         const now = Date.now();
         if (now - lastTapTime < 100) return;  /* 100 ms debounce */
         lastTapTime = now;
         action();
       };
+      // Touchcancel: drag-off cleanup (no action fires).
+      const cancel = () => {
+        btn.classList.remove('pressed');
+      };
 
-      slotHandlers[idx] = handler;
-      btn.addEventListener('touchstart', handler, { passive: false });
-      btn.addEventListener('mousedown',  handler);
+      slotHandlers[idx] = { press, fire, cancel };
+      btn.addEventListener('touchstart',  press,  { passive: false });
+      btn.addEventListener('touchend',    fire,   { passive: true });
+      btn.addEventListener('touchcancel', cancel, { passive: true });
+      btn.addEventListener('mousedown',   fire);
     }
 
     /* ═══════════════════════════════════════════════════════════
