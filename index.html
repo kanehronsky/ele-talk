@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-anchor-halo-drop-shadow" />
+  <meta name="build" content="2026-05-10-anchor-halo-pseudo" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -407,40 +407,51 @@
        panel row ABOVE its actual position, covering the bottom of
        that cell's label (e.g. "last" in Numbers, "Look" in Actions).
 
-       Three-part fix:
-       1. clip-path: inset(30% 0 0 0 round 8px) — clips the top 30%
-          of the button. Visible region matches panel-cell size
-          (~87px), so the lifted button reads as a panel tile.
-       2. justify-content: flex-end + padding-bottom — repositions
-          the icon-card + label to the bottom of the layout box so
-          content stays inside the visible (clipped) region.
-       3. filter: drop-shadow() — applied AFTER clip-path in the
-          render pipeline, so the gold glow follows the visible
-          silhouette of the clipped tile rather than the original
-          rectangular box. This is why we drop the outer box-shadow
-          glow in this rule — box-shadow rasterises BEFORE clip-path
-          and so its outer halo above the tile is clipped away
-          (this was the bug: 30% clip ate the entire top glow).
-          Inner gold ring stays via box-shadow inset so the tile
-          still reads as scaffolded; the clipped top edge of that
-          ring sits along the rounded top of the visible tile
-          cleanly.
+       Pseudo-element approach (replaces the earlier clip-path and
+       drop-shadow attempts; both clipped the halo away):
 
-       clip-path is purely visual — the button's full home-cell
-       layout box and hitbox are preserved, so the child's motor
-       plan still hits the same area.
+       - .btn's own background goes transparent so it doesn't fill
+         the full home cell (which would cover the row above).
+       - ::before pseudo paints the visible "tile" at the bottom 70%
+         of the cell, sized to match a panel cell (~87px). It owns
+         the yellow fill, the rounded corner, and the inner gold
+         ring (the scaffold marker proper).
+       - .btn KEEPS its outer box-shadow as the soft glow halo. The
+         halo extends around the full home-cell rectangle, including
+         ~14px upward into the row above. That's acceptable because
+         it's translucent — text in the row above stays readable
+         through the gold tint, unlike the original solid-background
+         bleed which fully obscured it.
+       - Content (icon-card + label) gets pushed to the bottom of
+         the layout box via justify-content + padding so it sits
+         inside the visible tile rather than the empty top region.
 
-       Sub-grid (category-overlay) anchors bypass this clip via the
-       :has() scoping and keep the original box-shadow halo. */
+       The .btn's hitbox is the full home cell — motor plan is
+       preserved exactly as it was on the home grid.
+
+       Sub-grid anchors bypass this rule via the :has() scoping and
+       use the standard halo from .btn.is-anchor above. */
     #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
-      clip-path: inset(30% 0 0 0 round 8px);
+      background: transparent !important;
+      box-shadow: 0 0 18px 6px rgba(255, 215, 0, 0.75);
       justify-content: flex-end;
       padding: 4px 3px 10px 3px;
+    }
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor::before,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor::before {
+      content: '';
+      position: absolute;
+      inset: 30% 0 0 0;
+      background: #D4A820;
+      border-radius: 8px;
       box-shadow: inset 0 0 0 3px gold;
-      filter:
-        drop-shadow(0 0 4px gold)
-        drop-shadow(0 0 10px rgba(255, 215, 0, 0.85));
+      z-index: 0;
+    }
+    #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor > *,
+    #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor > * {
+      position: relative;
+      z-index: 1;
     }
 
     html.high-contrast .btn.is-anchor {
@@ -451,10 +462,13 @@
     }
     html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor,
     html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor {
+      box-shadow:
+        0 0 20px 6px rgba(255, 215, 0, 0.85),
+        0 0 8px var(--neon, #ffffff);
+    }
+    html.high-contrast #grid:has(.tabbed-panel:not([hidden])) > .btn.is-anchor::before,
+    html.high-contrast #grid:has(#grammar-overlay:not([hidden])) > .btn.is-anchor::before {
       box-shadow: inset 0 0 0 3px gold, inset 0 0 6px var(--neon, #ffffff);
-      filter:
-        drop-shadow(0 0 5px gold)
-        drop-shadow(0 0 12px rgba(255, 215, 0, 0.95));
     }
 
     /* Scaffold target — electric-cyan halo on the next-step cue.
