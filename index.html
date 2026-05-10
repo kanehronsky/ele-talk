@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-trim-strip-bottom" />
+  <meta name="build" content="2026-05-10-anchor-tabbed-panels" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -2184,16 +2184,16 @@
          spoken or added to the sentence strip — silentLabel:true short-
          circuits both the first-tap and re-tap speak paths. */
       { label: 'MY WORDS',    speak: 'My Words', emoji: '⭐', color: 'yellow', subGrid: 'my_words', silentLabel: true },
-      { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', action: 'openPeople', silentLabel: true },
-      { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', action: 'openFood', silentLabel: true },
+      { label: 'People',      speak: 'People',   emoji: '👥', color: 'yellow', action: 'openPeople' },
+      { label: 'Food',        speak: 'Food',     emoji: '🍎', color: 'yellow', action: 'openFood'   },
       /* Academic — opens a tabbed panel (Numbers / Colours / Shapes / Letters /
          Academic Actions). Uses action: 'openAcademic' rather than subGrid so
          renderGrid dispatches to openAcademicPanel; the panel is structurally
          different from a 5×6 sub-grid. silentLabel:true mirrors MY WORDS —
          "Academic" is a folder name, never spoken or added to the strip. */
       { label: 'Academic',    speak: 'Academic', emoji: '📚', color: 'yellow', action: 'openAcademic', silentLabel: true },
-      { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', action: 'openPlaces', silentLabel: true },
-      { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', action: 'openToys', silentLabel: true, aria: 'Toys or Play' },
+      { label: 'Places',      speak: 'Places',   emoji: '🗺️', color: 'yellow', action: 'openPlaces' },
+      { label: 'Toys / Play', speak: 'Toys',     emoji: '🧸', color: 'yellow', action: 'openToys',   aria: 'Toys or Play' },
 
       /* Row 6 — Power Tools (Red) — always visible, even in sub-grids */
       { label: 'YES',         speak: 'Yes',      emoji: '✔️', color: 'red'                          },
@@ -4768,20 +4768,41 @@
 
           // Academic / Places / Food / People / Toys — toggle a tabbed
           // panel. Structurally distinct from a sub-grid, so they don't
-          // route through openCategoryOverlay. Like other yellow nav
-          // buttons their labels are silent (folders, not words).
-          // Re-tap on the home button while its panel is open closes
-          // the panel — mirrors the sub-grid anchor toggle and gives
-          // L3 scaffolding a working "close-and-go" cue.
+          // route through openCategoryOverlay.
+          //
+          // Re-tap on the home button while its panel is open mirrors the
+          // sub-grid anchor toggle: speak the category label + add to the
+          // strip + close (for sayable nouns People/Food/Places/Toys), or
+          // close silently (for folder-only triggers MY WORDS/Academic).
+          // The trigger button is z-index lifted above the panel via
+          // .is-anchor when the panel opens, so the re-tap target is
+          // visible in its motor-planned X,Y. Also gives L3 scaffolding
+          // a working "close-and-go" cue.
           if (item.action && /^open[A-Z]/.test(item.action)) {
             const panelName = item.action.slice(4).toLowerCase();
             const isOpen = activeTabbedPanel && activeTabbedPanel.name === panelName;
             if (isOpen) {
+              // Re-tap: commit the category label unless it's a silent
+              // folder, recording mode, or an L3 close-navigation step
+              // (engine wants the anchor closed for navigation only —
+              // committing would insert the parent name into the strip).
+              let shouldCommit = !item.silentLabel && !isRecording;
+              if (shouldCommit) {
+                const pw = Engine.activePathway();
+                if (pw && (pw.scaffoldingLevel || 0) >= 3 && pw.steps) {
+                  const stepTargetId = pw.steps[Engine.state.stepIndex];
+                  if (stepTargetId !== item.id) shouldCommit = false;
+                }
+              }
+              if (shouldCommit) {
+                addWord({ id: item.id, label: item.label, speak: item.speak });
+                speak(item.speak);
+              }
               if (panelName === 'academic') closeAcademicPanel();
               else closeTabbedSurface(panelName);
             } else {
               // Mutual-exclusion + open. Each panel's own open() handles
-              // closing siblings, so we can dispatch directly.
+              // closing siblings + lifting the home-button anchor.
               if (panelName === 'academic') openAcademicPanel();
               else if (TABBED_SURFACES[panelName]) {
                 TABBED_SURFACES[panelName].open();
@@ -5290,6 +5311,11 @@
       }
     }
 
+    // Trigger index for the Academic home button. See TABBED_SURFACES
+    // factory for rationale — Anchor Rule applies to Academic too,
+    // even though re-tap is silent (folder, never spoken).
+    const ACADEMIC_TRIGGER_IDX = CORE_36.findIndex(it => it.action === 'openAcademic');
+
     function openAcademicPanel() {
       // Mutual exclusion: close any other tabbed surface first.
       // Safe to reference the registry — this only runs on user tap,
@@ -5303,6 +5329,10 @@
                             && (pw.scaffoldingLevel || 0) <= 3;
       academicCloseBtn.hidden = !!scaffolded;
       activeTabbedPanel = { name: 'academic', tab: academicActiveTab };
+      if (ACADEMIC_TRIGGER_IDX >= 0) {
+        gridSlots[ACADEMIC_TRIGGER_IDX].classList.add('is-anchor');
+        activeTriggerIdx = ACADEMIC_TRIGGER_IDX;
+      }
       renderAcademicTab(academicActiveTab);
     }
 
@@ -5311,6 +5341,10 @@
       academicCloseBtn.hidden = false;
       if (activeTabbedPanel && activeTabbedPanel.name === 'academic') {
         activeTabbedPanel = null;
+        if (ACADEMIC_TRIGGER_IDX >= 0) {
+          gridSlots[ACADEMIC_TRIGGER_IDX].classList.remove('is-anchor');
+          if (activeTriggerIdx === ACADEMIC_TRIGGER_IDX) activeTriggerIdx = -1;
+        }
         renderScaffoldHighlight();
       }
     }
@@ -5435,6 +5469,16 @@
         }
       }
 
+      // Trigger index for THIS panel's home button. Computed once at
+      // factory creation (CORE_36 ids are stamped before this runs).
+      // Used to lift the anchor on open and drop it on close so the
+      // Anchor Rule applies to tabbed panels the same way it does to
+      // sub-grids — the home button stays visible in its motor-planned
+      // X,Y coordinate above the panel and can be re-tapped to commit.
+      const triggerIdx = CORE_36.findIndex(
+        it => it.action === 'open' + name.charAt(0).toUpperCase() + name.slice(1)
+      );
+
       function open() {
         // Mutual exclusion: close every other surface first.
         if (activeCategory) closeCategoryOverlay();
@@ -5451,6 +5495,12 @@
                               && (pw.scaffoldingLevel || 0) <= 3;
         closeBtn.hidden = !!scaffolded;
         activeTabbedPanel = { name, tab: activeTab };
+        // Lifted anchor — keeps the home trigger visible above the panel
+        // so the user can re-tap to commit (or close, for silent triggers).
+        if (triggerIdx >= 0) {
+          gridSlots[triggerIdx].classList.add('is-anchor');
+          activeTriggerIdx = triggerIdx;
+        }
         renderTab(activeTab);
       }
 
@@ -5459,6 +5509,10 @@
         closeBtn.hidden = false;
         if (activeTabbedPanel && activeTabbedPanel.name === name) {
           activeTabbedPanel = null;
+          if (triggerIdx >= 0) {
+            gridSlots[triggerIdx].classList.remove('is-anchor');
+            if (activeTriggerIdx === triggerIdx) activeTriggerIdx = -1;
+          }
           renderScaffoldHighlight();
         }
       }
