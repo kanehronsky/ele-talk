@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-half-gap-more-bottom" />
+  <meta name="build" content="2026-05-10-trim-strip-bottom" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1633,10 +1633,10 @@
         flex-wrap: wrap;        /* allow pathway pill to take its own row */
         height: auto;
         min-height: 0;
-        padding: 6px 6px 13px;  /* 6px top + sides, 13px bottom — extra
+        padding: 6px 6px 7px;   /* 6px top + sides, 7px bottom — small
                                    breathing room below the chrome / word
-                                   tiles so they don't crowd the strip's
-                                   bottom border */
+                                   tiles before the strip's bottom border
+                                   meets the home grid's top */
         column-gap: 5px;        /* horizontal gap between strip items */
         row-gap: 7px;           /* small intentional visible separation
                                    between the pill row and the chrome+
