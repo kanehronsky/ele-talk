@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-numbers-half-whole-swap" />
+  <meta name="build" content="2026-05-10-look-no-addtostrip" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -2154,12 +2154,28 @@
       { label: 'Who',         speak: 'Who',      emoji: '🧑', color: 'blue'                    },
       { label: 'What',        speak: 'What',     emoji: '❓', color: 'blue'                    },
 
-      /* Row 2 — Actions (Green) */
+      /* Row 2 — Actions (Green)
+         addToStrip: true on Want and Go means a single tap speaks the
+         parent + adds it to the strip + opens the sub-grid (rather than
+         the standard silent-open + re-tap-to-commit pattern). It's the
+         exception, not the rule. Justification per word:
+           Want — foundational mand verb, highest-frequency SNUG construct
+                  ("I want X"). Removing the re-tap saves motor effort
+                  on the most-used home button.
+           Go   — sub-grid is genuinely Go-prefixed (Park, Home, fast,
+                  slow, upstairs, downstairs, together, etc.). Without
+                  addToStrip, the common "Go ___" compound would need
+                  4 taps instead of 2.
+         Stop / Make / Like / Look use the standard pattern — their sub-
+         grids contain mostly standalone words (Stop's protests, Make's
+         action verbs, Like's preferences, Look's perception verbs +
+         miscellany) where auto-prefixing the parent would produce
+         awkward chains like "Look Eat" or "Like Stop". */
       { label: 'Want',        speak: 'Want',     emoji: '🤲', color: 'green',  subGrid: 'want', addToStrip: true },
       { label: 'Go',          speak: 'Go',       emoji: '🏃', color: 'green',  subGrid: 'go',   addToStrip: true },
       { label: 'Stop',        speak: 'Stop',     emoji: '🛑', color: 'green',  subGrid: 'stop'                     },
       { label: 'Make / Do',   speak: 'Make',     emoji: '🔨', color: 'green',  aria: 'Make or Do', subGrid: 'make' },
-      { label: 'Look',        speak: 'Look',     emoji: '👀', color: 'green',  subGrid: 'look', addToStrip: true  },
+      { label: 'Look',        speak: 'Look',     emoji: '👀', color: 'green',  subGrid: 'look'                     },
       { label: 'Like',        speak: 'Like',     emoji: '👍', color: 'green',  subGrid: 'like'                     },
 
       /* Row 3 — Position (Pink) */
@@ -4845,9 +4861,12 @@
             // First tap — open the overlay.
             // Yellow nav (MY WORDS, People, Food…) — silent open. The label
             // is a category, not a word the child wants to say.
-            // Want / Go / Look (addToStrip) — speak parent + add to strip,
-            // then open. Preserves SNUG construction (e.g. Want + Lego).
-            // Other action / position / descriptor triggers — open silently.
+            // Want / Go (addToStrip) — speak parent + add to strip,
+            // then open. Preserves SNUG construction (e.g. Want + Lego,
+            // Go + Park). Other action / position / descriptor triggers
+            // (Stop / Make / Like / Look / In / Out / etc.) open silently
+            // and require a re-tap on the lifted anchor to commit.
+            // See CORE_36's row-2 comment for why these two are special.
             if (item.addToStrip) {
               addWord({ id: item.id, label: item.label, speak: item.speak });
               speak(item.speak);
