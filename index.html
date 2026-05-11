@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-10-cyan-on-wrong-tab" />
+  <meta name="build" content="2026-05-11-block-myw-delete-in-pathway" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -3608,8 +3608,39 @@
 
     function deleteCurrentMyWord() {
       if (editingMyWordId === null) return;
-      // Future: block deletion if pathway uses this word.
-      Profile.current.myWords = Profile.current.myWords.filter(w => w.id !== editingMyWordId);
+
+      // Block deletion when the word is referenced by any active OR mastered
+      // pathway. Active: the in-progress chain would orphan its step.
+      // Mastered: the handover record would carry a dangling reference,
+      // which erodes the durability promise made to receiving teachers.
+      // Rename is the escape hatch — pathways store the id, so the link
+      // survives a label change.
+      const wordId = editingMyWordId;
+      const mw = Profile.current.myWords.find(w => w.id === wordId);
+      const wordLabel = mw ? mw.label : 'this word';
+
+      const usedIn = [];
+      (Profile.current.pathways || []).forEach(pw => {
+        if (Array.isArray(pw.steps) && pw.steps.includes(wordId)) {
+          usedIn.push(pw.label);
+        }
+      });
+      (Profile.current.meta?.masteredPathways || []).forEach(rec => {
+        if (Array.isArray(rec.steps) && rec.steps.includes(wordId)) {
+          usedIn.push(`${rec.label} (mastered)`);
+        }
+      });
+      if (usedIn.length > 0) {
+        const bullets = usedIn.map(s => '  • ' + s).join('\n');
+        window.alert(
+          `Can't delete "${wordLabel}" — it's used in:\n${bullets}\n\n` +
+          `Remove it from those pathways first, or rename the word instead ` +
+          `(rename keeps the pathway working).`
+        );
+        return;
+      }
+
+      Profile.current.myWords = Profile.current.myWords.filter(w => w.id !== wordId);
       Profile.save();
       renderMyWordsList();
       showSettingsScreen('settings-main-screen');
