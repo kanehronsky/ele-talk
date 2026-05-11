@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-11-block-myw-delete-in-pathway" />
+  <meta name="build" content="2026-05-11-l2-ghost-nav-to-child" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -4448,9 +4448,9 @@
           // tabs and re-renders the cue onto the actual target word.
           // Previously this returned the panel's home button, which on
           // tap closed the panel; re-opening re-defaulted to the first
-          // tab, producing an N-tap loop on the home button. (L1/L2
-          // never reach this branch — auto-navigate switches the tab
-          // proactively.)
+          // tab, producing an N-tap loop on the home button. (L1 never
+          // reaches this branch — auto-navigate switches the tab
+          // proactively. L2 and L3 both can — child handles nav.)
           return `tab:${parsed.panel}:${parsed.tab}`;
         }
         // No surface open — highlight the panel's home button.
@@ -4524,10 +4524,23 @@
       return u > 0 ? { kind: 'subgrid', key: targetId.slice(0, u) } : null;
     }
 
-    /* Engine-handled navigation for L1/L2. Adjusts overlay + tabbed-panel
-       state so the current target is reachable in one tap. No-op at L3+
-       (where the child performs the navigation themselves) and at L4.
-       Recording mode bypasses entirely. */
+    /* Engine-handled navigation. Behaviour by scaffolding level:
+       - L1 Magnet: runs every call — engine drives the chain so the
+         current target is reachable in one tap.
+       - L2 Ghost: runs ONLY at trial-end (post-completion cleanup
+         of any leftover overlay). During the chain, the child handles
+         navigation themselves — same nav model as L3; only the final
+         Speak step is still auto-handled by the engine.
+       - L3 Guide: no-op (child performs all navigation AND taps Speak).
+       Recording mode bypasses entirely.
+
+       Rationale for L2 splitting the level gate from L1: today L1 and
+       L2 both auto-navigated, so the prompt fade was flat across
+       L1→L2 on the navigation dimension then dropped a full cliff at
+       L3. Moving nav responsibility to the child at L2 makes the fade
+       monotonic (one scaffold dropped per level) and drills the full
+       motor pathway under the safety net of auto-speak before L3
+       introduces the Speak commit. */
     function engineAutoNavigate() {
       if (isRecording) return;
       const pw = Engine.activePathway();
@@ -4535,9 +4548,14 @@
       const level = pw.scaffoldingLevel || 0;
       if (level < 1 || level > 2) return;
 
-      let expected = null;
       const trialOver = Engine.state.speakTapped ||
                         Engine.state.stepIndex >= (pw.steps?.length || 0);
+      // L2 Ghost: child handles navigation during the chain. Only the
+      // post-completion cleanup (trialOver branch — expected stays
+      // null, anything still open gets closed) still runs at L2.
+      if (level === 2 && !trialOver) return;
+
+      let expected = null;
       if (!trialOver) {
         const targetId = pw.steps[Engine.state.stepIndex];
         expected = getExpectedSurfaceForTarget(targetId);
@@ -5430,8 +5448,9 @@
        a category overlay (multiple tabs over a 6×6 word area), so it
        gets its own data + render path. Words carry IDs stamped by
        stampIds() so they can serve as pathway targets — engine
-       auto-navigation drives the panel + tab switches at L1/L2,
-       gold-target highlighting works at L3.
+       auto-navigation drives the panel + tab switches at L1; at
+       L2/L3 the child performs the tab switch themselves and the
+       scaffold cue paints on the correct tab.
     ═══════════════════════════════════════════════════════════ */
     const ACADEMIC_TABS = {
       // Numbers — 1–20 as numeral glyphs, then ordinals + quantifiers.
@@ -5802,7 +5821,8 @@
        target them in pathways.
 
        Returns { open, close, renderTab, activeTab } so each surface
-       exposes the controls the engine needs for L1/L2 auto-navigation.
+       exposes the controls the engine needs for L1 auto-navigation
+       (and L2's post-completion overlay-close cleanup).
     ═══════════════════════════════════════════════════════════ */
     function defineTabbedSurface({ name, tabs, defaultTab, tileColor }) {
       const overlayEl = document.getElementById(name + '-overlay');
@@ -5960,7 +5980,7 @@
       }, { passive: false });
 
       // Expose renderTab so the engine can drive panel/tab transitions
-      // during L1/L2 auto-navigation without going through a user tap.
+      // during L1 auto-navigation without going through a user tap.
       return { open, close, renderTab, get activeTab() { return activeTab; } };
     }
 
