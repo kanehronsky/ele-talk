@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-11-manifest-orientation-any" />
+  <meta name="build" content="2026-05-16-academic-time-emotions-weather" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -1980,6 +1980,9 @@
           <button class="tabbed-tab" data-tab="actions"  role="tab" type="button">Actions</button>
           <button class="tabbed-tab" data-tab="body"     role="tab" type="button">Body</button>
           <button class="tabbed-tab" data-tab="clothing" role="tab" type="button">Clothing</button>
+          <button class="tabbed-tab" data-tab="time"     role="tab" type="button">Time</button>
+          <button class="tabbed-tab" data-tab="emotions" role="tab" type="button">Emotions</button>
+          <button class="tabbed-tab" data-tab="weather"  role="tab" type="button">Weather</button>
         </div>
         <div id="academic-words" class="tabbed-words" role="tabpanel"></div>
       </div>
@@ -5656,6 +5659,87 @@
         { label: 'Backpack',  speak: 'Backpack',  emoji: '🎒' },
         { label: 'Tie',       speak: 'Tie',       emoji: '👔' },
         { label: 'Scarf',     speak: 'Scarf',     emoji: '🧣' },
+      ],
+
+      // Time — high-frequency temporal vocab. Emojis used sparingly:
+      // most time concepts ("Later", "Yesterday", "Hour") have no
+      // distinct emoji and would all collapse onto a clock/calendar
+      // glyph, so we lean text-only and reserve emoji for the ones
+      // that genuinely read at a glance (Soon 🔜, Morning 🌅, etc).
+      // Days of the week intentionally omitted — they're a distinct
+      // concept worth a future Time-Days tab if needed; mixing them
+      // here would double the tab to 25 entries and blur the focus.
+      // Numbers tab already covers first/second/third/last/next, so
+      // those aren't duplicated here.
+      time: [
+        { label: 'Now',       speak: 'Now'                  },
+        { label: 'Later',     speak: 'Later'                },
+        { label: 'Soon',      speak: 'Soon',      emoji: '🔜' },
+        { label: 'Before',    speak: 'Before',    emoji: '⬅️' },
+        { label: 'After',     speak: 'After',     emoji: '➡️' },
+        { label: 'Today',     speak: 'Today',     emoji: '📅' },
+        { label: 'Tomorrow',  speak: 'Tomorrow'             },
+        { label: 'Yesterday', speak: 'Yesterday'            },
+        { label: 'Morning',   speak: 'Morning',   emoji: '🌅' },
+        { label: 'Afternoon', speak: 'Afternoon', emoji: '☀️' },
+        { label: 'Night',     speak: 'Night',     emoji: '🌙' },
+        { label: 'Day',       speak: 'Day'                  },
+        { label: 'Week',      speak: 'Week',      emoji: '📆' },
+        { label: 'Weekend',   speak: 'Weekend'              },
+        { label: 'Early',     speak: 'Early'                },
+        { label: 'Late',      speak: 'Late'                 },
+        { label: 'Hour',      speak: 'Hour'                 },
+        { label: 'Minute',    speak: 'Minute'               },
+      ],
+
+      // Emotions — face emojis are exceptionally distinct, so this
+      // tab is uniformly emoji'd unlike Time/Body/Clothing. NOTE:
+      // Scared/Angry/Sad/Frustrated also live in the Stop home-button
+      // sub-grid. That's intentional: Stop → Sad serves protest/
+      // escape ("I'm sad, make this stop"); Emotions → Sad serves
+      // unprompted emotional expression ("I am feeling sad"). Same
+      // surface word, different SNUG function — duplication accepted.
+      // Hurt/Sick excluded — they belong more naturally with body /
+      // physical state than emotion.
+      emotions: [
+        { label: 'Happy',      speak: 'Happy',      emoji: '😊' },
+        { label: 'Sad',        speak: 'Sad',        emoji: '😢' },
+        { label: 'Angry',      speak: 'Angry',      emoji: '😡' },
+        { label: 'Scared',     speak: 'Scared',     emoji: '😨' },
+        { label: 'Excited',    speak: 'Excited',    emoji: '🤩' },
+        { label: 'Tired',      speak: 'Tired',      emoji: '😴' },
+        { label: 'Silly',      speak: 'Silly',      emoji: '🤪' },
+        { label: 'Bored',      speak: 'Bored',      emoji: '🥱' },
+        { label: 'Calm',       speak: 'Calm',       emoji: '😌' },
+        { label: 'Worried',    speak: 'Worried',    emoji: '😟' },
+        { label: 'Surprised',  speak: 'Surprised',  emoji: '😲' },
+        { label: 'Proud',      speak: 'Proud',      emoji: '😎' },
+        { label: 'Shy',        speak: 'Shy',        emoji: '😳' },
+        { label: 'Love',       speak: 'Love',       emoji: '💗' },
+      ],
+
+      // Weather — emoji where the standard weather glyph reads
+      // cleanly (Sunny ☀️, Rainy 🌧️). Warm/Cool/Sky stay text-only;
+      // their would-be emojis overlap with other tabs (😎 = Proud
+      // in Emotions, 🌤️ would collide with Sunny). Thunder/Lightning
+      // excluded — scarier-context words, deferred until use case
+      // emerges. Hot/Cold included here (not relying on the planned
+      // Descriptors expansion) because weather is the most common
+      // context kids use those words in.
+      weather: [
+        { label: 'Sunny',   speak: 'Sunny',   emoji: '☀️'  },
+        { label: 'Cloudy',  speak: 'Cloudy',  emoji: '☁️'  },
+        { label: 'Rainy',   speak: 'Rainy',   emoji: '🌧️' },
+        { label: 'Windy',   speak: 'Windy',   emoji: '💨'  },
+        { label: 'Stormy',  speak: 'Stormy',  emoji: '⛈️' },
+        { label: 'Snowy',   speak: 'Snowy',   emoji: '🌨️' },
+        { label: 'Hot',     speak: 'Hot',     emoji: '🥵'  },
+        { label: 'Cold',    speak: 'Cold',    emoji: '🥶'  },
+        { label: 'Warm',    speak: 'Warm'                 },
+        { label: 'Cool',    speak: 'Cool'                 },
+        { label: 'Foggy',   speak: 'Foggy',   emoji: '🌫️' },
+        { label: 'Rainbow', speak: 'Rainbow', emoji: '🌈'  },
+        { label: 'Sky',     speak: 'Sky'                  },
       ],
     };
 
