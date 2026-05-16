@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-16-academic-time-emotions-weather" />
+  <meta name="build" content="2026-05-16-academic-tab-icons-on-phone" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -679,11 +679,26 @@
       box-shadow: 0 2px 6px rgba(46, 139, 139, 0.4);
     }
     /* Optional emoji prefix on a tab button — sized smaller than tile
-       emoji so it doesn't crowd the tab label on narrow screens. */
+       emoji so it doesn't crowd the tab label on narrow screens.
+       Used by dynamically-built tab strips (Food / People / Places /
+       Toys) where each tab carries an emoji alongside its label. */
     .tabbed-tab-emoji {
       font-size: clamp(0.85rem, 1.6vw, 1.15rem);
       line-height: 1;
       flex-shrink: 0;
+    }
+
+    /* Icon-only tab mode — for Academic, which has 10 tabs that
+       overflow the phone-portrait viewport when text labels are shown.
+       Default: icon hidden, label visible (preserves tablet UX
+       unchanged). Phone-portrait override below flips it. */
+    .tabbed-tab-icon {
+      display: none;
+      font-size: 22px;
+      line-height: 1;
+    }
+    .tabbed-tab-label {
+      display: inline;
     }
 
     .tabbed-words {
@@ -1891,6 +1906,15 @@
         padding: 6px 12px;
         font-size: 13px;
       }
+
+      /* Tab strip icon-only mode — Academic has 10 tabs that don't
+         fit at phone-portrait width with text labels (each tab gets
+         ~10% of ~360px = ~36px, not enough for "Numbers" let alone
+         "Emotions"). Icons are recognisable to non-readers and adults
+         alike, and the strip stays unbroken with no horizontal scroll. */
+      .tabbed-tab-icon  { display: inline; }
+      .tabbed-tab-label { display: none; }
+      .tabbed-tab       { padding: 6px 2px; }
     }
   </style>
 </head>
@@ -1972,17 +1996,22 @@
       -->
       <div id="academic-overlay" class="tabbed-panel" role="dialog" aria-label="Academic words" hidden>
         <button class="cat-close" id="academic-close" aria-label="Close academic">✕</button>
+        <!-- Each tab carries BOTH an icon and a text label. CSS shows
+             the label only on tablet (current UX preserved) and the
+             icon only on phone-portrait (where 10 text labels overflow
+             the strip — see .tabbed-tab-icon rules + phone-portrait
+             media query). -->
         <div id="academic-tabs" class="tabbed-tabs" role="tablist">
-          <button class="tabbed-tab" data-tab="numbers"  role="tab" type="button">Numbers</button>
-          <button class="tabbed-tab" data-tab="colours"  role="tab" type="button">Colours</button>
-          <button class="tabbed-tab" data-tab="shapes"   role="tab" type="button">Shapes</button>
-          <button class="tabbed-tab" data-tab="letters"  role="tab" type="button">Letters</button>
-          <button class="tabbed-tab" data-tab="actions"  role="tab" type="button">Actions</button>
-          <button class="tabbed-tab" data-tab="body"     role="tab" type="button">Body</button>
-          <button class="tabbed-tab" data-tab="clothing" role="tab" type="button">Clothing</button>
-          <button class="tabbed-tab" data-tab="time"     role="tab" type="button">Time</button>
-          <button class="tabbed-tab" data-tab="emotions" role="tab" type="button">Emotions</button>
-          <button class="tabbed-tab" data-tab="weather"  role="tab" type="button">Weather</button>
+          <button class="tabbed-tab" data-tab="numbers"  role="tab" type="button" aria-label="Numbers"><span class="tabbed-tab-icon" aria-hidden="true">🔢</span><span class="tabbed-tab-label">Numbers</span></button>
+          <button class="tabbed-tab" data-tab="colours"  role="tab" type="button" aria-label="Colours"><span class="tabbed-tab-icon" aria-hidden="true">🎨</span><span class="tabbed-tab-label">Colours</span></button>
+          <button class="tabbed-tab" data-tab="shapes"   role="tab" type="button" aria-label="Shapes"><span class="tabbed-tab-icon" aria-hidden="true">🔷</span><span class="tabbed-tab-label">Shapes</span></button>
+          <button class="tabbed-tab" data-tab="letters"  role="tab" type="button" aria-label="Letters"><span class="tabbed-tab-icon" aria-hidden="true">🔤</span><span class="tabbed-tab-label">Letters</span></button>
+          <button class="tabbed-tab" data-tab="actions"  role="tab" type="button" aria-label="Actions"><span class="tabbed-tab-icon" aria-hidden="true">🏃</span><span class="tabbed-tab-label">Actions</span></button>
+          <button class="tabbed-tab" data-tab="body"     role="tab" type="button" aria-label="Body"><span class="tabbed-tab-icon" aria-hidden="true">🧍</span><span class="tabbed-tab-label">Body</span></button>
+          <button class="tabbed-tab" data-tab="clothing" role="tab" type="button" aria-label="Clothing"><span class="tabbed-tab-icon" aria-hidden="true">👕</span><span class="tabbed-tab-label">Clothing</span></button>
+          <button class="tabbed-tab" data-tab="time"     role="tab" type="button" aria-label="Time"><span class="tabbed-tab-icon" aria-hidden="true">⏰</span><span class="tabbed-tab-label">Time</span></button>
+          <button class="tabbed-tab" data-tab="emotions" role="tab" type="button" aria-label="Emotions"><span class="tabbed-tab-icon" aria-hidden="true">😊</span><span class="tabbed-tab-label">Emotions</span></button>
+          <button class="tabbed-tab" data-tab="weather"  role="tab" type="button" aria-label="Weather"><span class="tabbed-tab-icon" aria-hidden="true">☀️</span><span class="tabbed-tab-label">Weather</span></button>
         </div>
         <div id="academic-words" class="tabbed-words" role="tabpanel"></div>
       </div>
