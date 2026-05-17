@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-restore-fruit-generic-tile" />
+  <meta name="build" content="2026-05-17-add-vegetable-generic-tile" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -6245,11 +6245,16 @@
         // with the Fruit & Veg tab itself.
       ] },
       { id: 'fruitveg', label: 'Fruit & Veg', emoji: '🥦', words: [
-        // Generic "Fruit" tile — added 2026-05-17. Manding for the
-        // category ("I want fruit") is clinically distinct from manding
-        // for a specific fruit. Eventual symbol will be a fruit salad
-        // / mixed-fruit composition (per the AI symbol prompt set).
+        // Generic category tiles — added 2026-05-17. Manding for a
+        // category ("I want fruit", "I want vegetables") is clinically
+        // distinct from manding for a specific item. Both tiles sit at
+        // the top so the category-level mand path is the most prominent.
+        // Eventual symbols: Fruit = fruit-salad / mixed-fruit composition;
+        // Vegetable = mixed-vegetables platter. Placeholder emojis
+        // chosen to be visually distinct from any specific item already
+        // in the tab (🍇 not Apple, 🥗 not Broccoli).
         { label: 'Fruit',       speak: 'Fruit',       emoji: '🍇' },
+        { label: 'Vegetable',   speak: 'Vegetable',   emoji: '🥗' },
         { label: 'Apple',       speak: 'Apple',       emoji: '🍎' },
         { label: 'Banana',      speak: 'Banana',      emoji: '🍌' },
         { label: 'Orange',      speak: 'Orange',      emoji: '🍊' },

@@ -16,7 +16,7 @@
    (icons, manifest) so old versions get purged. HTML updates
    propagate automatically via network-first.
 ═══════════════════════════════════════════════════════════ */
-const CACHE_NAME = 'ele-talk-v16';
+const CACHE_NAME = 'ele-talk-v17';
 
 const FILES_TO_CACHE = [
   '/',
