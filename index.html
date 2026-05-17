@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-ask-tile-replaces-it" />
+  <meta name="build" content="2026-05-17-vocab-cleanup-younger-language" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -2449,7 +2449,7 @@
       { label: 'Off',         speak: 'Off',      emoji: '🌑', color: 'pink',   subGrid: 'off_'  },
 
       /* Row 4 — Descriptors (Orange)
-         Big / Little / More / All Done switched 2026-05-17 to pure SNUG
+         Big / Small / More / All Done switched 2026-05-17 to pure SNUG
          pattern: no sub-grid. Tap = speak + add to strip (via the no-
          subGrid fallback at line ~5310) + home grid stays open. The
          child composes "Big dog", "More music", "Done eating" by tapping
@@ -2461,7 +2461,7 @@
          only (greetings, praise idioms, sensory protests) since those
          don't decompose grammatically. */
       { label: 'Big',         speak: 'Big',      emoji: '🐘', color: 'orange'                                       },
-      { label: 'Little',      speak: 'Little',   emoji: '🐭', color: 'orange'                                       },
+      { label: 'Small',       speak: 'Small',    emoji: '🐭', color: 'orange'                                       },
       { label: 'Good',        speak: 'Good',     emoji: '😊', color: 'orange', subGrid: 'good'                        },
       { label: 'Bad / Yucky', speak: 'Bad',      emoji: '🤢', color: 'orange', aria: 'Bad or Yucky', subGrid: 'bad'    },
       { label: 'More',        speak: 'More',     emoji: '➕', color: 'orange'                                       },
@@ -2898,10 +2898,10 @@
       ],
 
       /* ── Descriptors ─────────────────────────────────────
-         Big / Little / More / All Done sub-grids removed 2026-05-17.
+         Big / Small / More / All Done sub-grids removed 2026-05-17.
          Pure SNUG: these modifiers now have no sub-grid — tap = speak
          the modifier + add to strip + home grid stays open. The child
-         composes "Big dog" / "Little cat" / "More music" / "All done
+         composes "Big dog" / "Small cat" / "More music" / "All done
          eating" by tapping the modifier then navigating anywhere for
          the noun. Generates infinitely more combinations than the
          29 pre-baked compounds each had; restores Piano Principle
@@ -6239,7 +6239,10 @@
         { label: 'Custard',       speak: 'Custard',       emoji: '🍮' },
         { label: 'Pie',           speak: 'Pie',           emoji: '🥧' },
         { label: 'Sausage roll',  speak: 'Sausage roll',  emoji: '🥐' },
-        { label: 'Fruit',         speak: 'Fruit',         emoji: '🍇' },
+        // "Fruit" generic entry removed 2026-05-17 — the entire
+        // Fruit & Veg tab covers specific fruit items; the generic
+        // tile was categorically misplaced in Snacks and duplicative
+        // with the Fruit & Veg tab itself.
       ] },
       { id: 'fruitveg', label: 'Fruit & Veg', emoji: '🥦', words: [
         { label: 'Apple',       speak: 'Apple',       emoji: '🍎' },
@@ -6273,7 +6276,7 @@
         { label: 'Milk',          speak: 'Milk',          emoji: '🥛' },
         { label: 'Juice',         speak: 'Juice',         emoji: '🧃' },
         { label: 'Cordial',       speak: 'Cordial',       emoji: '🍹' },
-        { label: 'Hot Choc',      speak: 'Hot Chocolate', emoji: '☕' },
+        { label: 'Hot Chocolate', speak: 'Hot Chocolate', emoji: '☕' },
         { label: 'Smoothie',      speak: 'Smoothie',      emoji: '🥤' },
         { label: 'Tea',           speak: 'Tea',           emoji: '🍵' },
         { label: 'Lemonade',      speak: 'Lemonade',      emoji: '🍋' },
@@ -6310,10 +6313,13 @@
     ═══════════════════════════════════════════════════════════ */
     const PEOPLE_TABS = [
       { id: 'family', label: 'Family', emoji: '👨‍👩‍👧', words: [
+        // Mummy / Daddy removed 2026-05-17 — avoid "younger language"
+        // forms (Mum/Dad preferred over Mummy/Daddy) per the same rule
+        // that swapped home grid descriptor Little → Small. Nan/Pop
+        // retained — those are regional Australian terms used at all
+        // ages, not age-coded forms.
         { label: 'Mum',          speak: 'Mum',          emoji: '👩' },
         { label: 'Dad',          speak: 'Dad',          emoji: '👨' },
-        { label: 'Mummy',        speak: 'Mummy',        emoji: '👩' },
-        { label: 'Daddy',        speak: 'Daddy',        emoji: '👨' },
         { label: 'Brother',      speak: 'Brother',      emoji: '👦' },
         { label: 'Sister',       speak: 'Sister',       emoji: '👧' },
         { label: 'Baby',         speak: 'Baby',         emoji: '👶' },
@@ -6326,8 +6332,8 @@
         { label: 'Cousin',       speak: 'Cousin',       emoji: '🧒' },
         { label: 'Stepmum',      speak: 'Stepmum',      emoji: '👩' },
         { label: 'Stepdad',      speak: 'Stepdad',      emoji: '👨' },
-        { label: 'Halfbrother',  speak: 'Half brother', emoji: '👦' },
-        { label: 'Halfsister',   speak: 'Half sister',  emoji: '👧' },
+        { label: 'Half brother', speak: 'Half brother', emoji: '👦' },
+        { label: 'Half sister',  speak: 'Half sister',  emoji: '👧' },
         { label: 'Family',       speak: 'Family',       emoji: '👨‍👩‍👧' },
         { label: 'Twin',         speak: 'Twin',         emoji: '👯' },
       ] },
