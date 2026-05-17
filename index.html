@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-snug-restructure" />
+  <meta name="build" content="2026-05-17-tier1-vocab-additions" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -5529,6 +5529,19 @@
         { label: 'Foot',     speak: 'Foot',     emoji: '🦶' },
         { label: 'Toe',      speak: 'Toe'                   },
         { label: 'Bottom',   speak: 'Bottom'                },
+        // Body completeness — added 2026-05-17. Appended (not
+        // anatomically inserted) so the high-value original 28 parts
+        // stay in cells 1-28, well clear of the covered position 33.
+        // Belly button intentionally placed at position 33 (covered
+        // by lifted Academic anchor when panel is open) since it's
+        // the least clinically essential addition — kids rarely need
+        // to communicate about belly buttons specifically.
+        { label: 'Wrist',       speak: 'Wrist'       },         // 29
+        { label: 'Ankle',       speak: 'Ankle'       },         // 30
+        { label: 'Forehead',    speak: 'Forehead'    },         // 31
+        { label: 'Hip',         speak: 'Hip'         },         // 32
+        { label: 'Belly button',speak: 'Belly button'},         // 33 — COVERED by lifted anchor
+        { label: 'Eyebrow',     speak: 'Eyebrow'     },         // 34
       ],
 
       // Clothing — high-frequency dressing/changing/sport-day
@@ -5592,6 +5605,16 @@
         { label: 'Day',       speak: 'Day'                  },
         { label: 'Week',      speak: 'Week',      emoji: '📆' },
         { label: 'Weekend',   speak: 'Weekend'              },
+        // Days of the week — added 2026-05-17. Text-only (no distinct
+        // emoji per day). Critical school-routine vocab for "Tomorrow
+        // is Monday", "On Friday", etc.
+        { label: 'Monday',    speak: 'Monday'               },
+        { label: 'Tuesday',   speak: 'Tuesday'              },
+        { label: 'Wednesday', speak: 'Wednesday'            },
+        { label: 'Thursday',  speak: 'Thursday'             },
+        { label: 'Friday',    speak: 'Friday'               },
+        { label: 'Saturday',  speak: 'Saturday'             },
+        { label: 'Sunday',    speak: 'Sunday'               },
         { label: 'Early',     speak: 'Early'                },
         { label: 'Late',      speak: 'Late'                 },
         { label: 'Hour',      speak: 'Hour'                 },
@@ -5622,6 +5645,17 @@
         { label: 'Proud',      speak: 'Proud',      emoji: '😎' },
         { label: 'Shy',        speak: 'Shy',        emoji: '😳' },
         { label: 'Love',       speak: 'Love',       emoji: '💗' },
+        // Expansion added 2026-05-17 — complex emotions kids struggle
+        // to express. Embarrassed and Disappointed especially high
+        // clinical value. All face-only per the Emotions tab style rule.
+        { label: 'Confused',     speak: 'Confused',     emoji: '😕' },
+        { label: 'Lonely',       speak: 'Lonely',       emoji: '🥺' },
+        { label: 'Embarrassed',  speak: 'Embarrassed',  emoji: '🫣' },
+        { label: 'Nervous',      speak: 'Nervous',      emoji: '😬' },
+        { label: 'Grumpy',       speak: 'Grumpy',       emoji: '😒' },
+        { label: 'Brave',        speak: 'Brave',        emoji: '🦸' },
+        { label: 'Annoyed',      speak: 'Annoyed',      emoji: '😤' },
+        { label: 'Disappointed', speak: 'Disappointed', emoji: '😞' },
       ],
 
       // Weather — emoji where the standard weather glyph reads
@@ -6489,6 +6523,14 @@
        Academic / Food / etc. panel pattern. */
     const GRAMMAR_TABS = {
       words: [
+        // Wh-question words — added 2026-05-17. Home grid only has Who
+        // and What; these four complete the canonical English question
+        // set. Foundational AAC vocabulary for child-initiated questions
+        // ("Why no?", "Where iPad?", "When go?", "How do?").
+        { label: 'why',   speak: 'why'   },
+        { label: 'when',  speak: 'when'  },
+        { label: 'where', speak: 'where' },
+        { label: 'how',   speak: 'how'   },
         // Articles, particles, conjunctions, prepositions
         { label: 'the',   speak: 'the'   },
         { label: 'a',     speak: 'a'     },
