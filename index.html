@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-add-vegetable-generic-tile" />
+  <meta name="build" content="2026-05-17-add-drink-generic-tile" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -6282,6 +6282,13 @@
         { label: 'Onion',       speak: 'Onion',       emoji: '🧅' },
       ] },
       { id: 'drinks', label: 'Drinks', emoji: '💧', words: [
+        // Generic "Drink" tile — added 2026-05-17 to close the
+        // category-mand gap. Drink lost its home-grid slot when
+        // Academic took slot 28, and the verb-form "Drink" in `want`
+        // covers "I want to drink" but not "I want a drink" (the
+        // noun-form mand). Eventual AI symbol: a generic cup with
+        // straw / assorted drinks composition.
+        { label: 'Drink',         speak: 'Drink',         emoji: '🥤' },
         { label: 'Water',         speak: 'Water',         emoji: '💧' },
         { label: 'Milk',          speak: 'Milk',          emoji: '🥛' },
         { label: 'Juice',         speak: 'Juice',         emoji: '🧃' },
