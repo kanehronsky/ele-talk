@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-tier1-vocab-additions" />
+  <meta name="build" content="2026-05-17-anchor-cell-skip" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -5529,19 +5529,17 @@
         { label: 'Foot',     speak: 'Foot',     emoji: '🦶' },
         { label: 'Toe',      speak: 'Toe'                   },
         { label: 'Bottom',   speak: 'Bottom'                },
-        // Body completeness — added 2026-05-17. Appended (not
-        // anatomically inserted) so the high-value original 28 parts
-        // stay in cells 1-28, well clear of the covered position 33.
-        // Belly button intentionally placed at position 33 (covered
-        // by lifted Academic anchor when panel is open) since it's
-        // the least clinically essential addition — kids rarely need
-        // to communicate about belly buttons specifically.
-        { label: 'Wrist',       speak: 'Wrist'       },         // 29
-        { label: 'Ankle',       speak: 'Ankle'       },         // 30
-        { label: 'Forehead',    speak: 'Forehead'    },         // 31
-        { label: 'Hip',         speak: 'Hip'         },         // 32
-        { label: 'Belly button',speak: 'Belly button'},         // 33 — COVERED by lifted anchor
-        { label: 'Eyebrow',     speak: 'Eyebrow'     },         // 34
+        // Body completeness — added 2026-05-17. Anatomical insertion
+        // points kept simple by appending at the end. The renderer
+        // automatically inserts an empty placeholder at the covered
+        // cell (cell 33) so all 6 new entries render visibly to the
+        // right of the lifted Academic anchor.
+        { label: 'Wrist',        speak: 'Wrist'        },
+        { label: 'Ankle',        speak: 'Ankle'        },
+        { label: 'Forehead',     speak: 'Forehead'     },
+        { label: 'Hip',          speak: 'Hip'          },
+        { label: 'Eyebrow',      speak: 'Eyebrow'      },
+        { label: 'Belly button', speak: 'Belly button' },
       ],
 
       // Clothing — high-frequency dressing/changing/sport-day
@@ -5755,15 +5753,31 @@
       // Word area rebuild.
       academicWordsEl.innerHTML = '';
       const words = ACADEMIC_TABS[tabId] || [];
-      words.forEach(w => academicWordsEl.appendChild(buildAcademicWordButton(w)));
-      // Pad remainder of the 6×6 area with empty placeholder cells so
-      // the grid stays visually balanced when a tab has < 36 entries.
-      const empty = 36 - words.length;
-      for (let i = 0; i < empty; i++) {
+
+      // Cell 33 (1-indexed) is visually covered by the lifted Academic
+      // home-button anchor when the panel is open. For tabs with 33+
+      // entries, render an empty placeholder at that cell and shift the
+      // remaining entries one cell to the right — so no real entry ever
+      // gets buried behind the anchor. Tabs with ≤32 entries are
+      // unaffected (cell 33 is empty anyway).
+      const ANCHOR_CELL_IDX = 32; // 0-indexed; corresponds to cell 33
+      const totalCells = 36;
+      let cellsUsed = 0;
+      const appendEmpty = () => {
         const cell = document.createElement('div');
         cell.className = 'tabbed-empty';
         academicWordsEl.appendChild(cell);
+        cellsUsed++;
+      };
+      for (let i = 0; i < words.length; i++) {
+        if (cellsUsed === ANCHOR_CELL_IDX && words.length > ANCHOR_CELL_IDX) {
+          appendEmpty(); // skip the anchor cell
+        }
+        if (cellsUsed >= totalCells) break;
+        academicWordsEl.appendChild(buildAcademicWordButton(words[i]));
+        cellsUsed++;
       }
+      while (cellsUsed < totalCells) appendEmpty();
       if (!academicEl.hidden) {
         activeTabbedPanel = { name: 'academic', tab: tabId };
         renderScaffoldHighlight();
