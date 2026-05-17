@@ -70,6 +70,13 @@ const mappings = [
     target: 'stop_need-break.svg',
     note: 'CORE_36 BREAK → stop sub-grid Need break',
   },
+  // Food: canonical is the CORE_36 slot 27 (Food, plate with assorted items).
+  // The like sub-grid contains "Food" as a bare noun — same concept.
+  {
+    source: 'a-plate-viewed-from-above-with-assorted-food-items.svg',
+    target: 'like_food.svg',
+    note: 'CORE_36 Food plate → like sub-grid Food',
+  },
 ];
 
 let copied = 0, failed = 0;
