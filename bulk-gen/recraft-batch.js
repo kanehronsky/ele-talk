@@ -9,11 +9,14 @@
   Usage:
     node bulk-gen/recraft-batch.js bulk-gen/chunk-2-ask.csv
     node bulk-gen/recraft-batch.js bulk-gen/chunk-2a-verbs.csv
+    node bulk-gen/recraft-batch.js bulk-gen/chunk-2a-regen.csv --overwrite
 
   Behaviour:
     - Loads RECRAFT_API_KEY from ../ele.env (kept out of git via .gitignore).
     - Resumable: if symbols/<word_id>.svg already exists, the row is skipped.
       So if a run partially fails, just re-run — only the missing ones generate.
+    - Pass --overwrite (or -f) to ignore existing files and regenerate anyway.
+      Use this for regen runs where the existing SVG is the failed one being replaced.
     - 300ms politeness delay between requests.
     - Logs progress per row and a summary at the end. Failures are listed
       but don't abort the run.
@@ -112,9 +115,11 @@ const sleep = ms => new Promise(r => setTimeout(r, ms));
 
 /* ─── main ────────────────────────────────────────────────────────── */
 async function main() {
-  const csvArg = process.argv[2];
+  const args = process.argv.slice(2);
+  const overwrite = args.includes('--overwrite') || args.includes('-f');
+  const csvArg = args.filter(a => !a.startsWith('-'))[0];
   if (!csvArg) {
-    console.error('Usage: node bulk-gen/recraft-batch.js <csv-path>');
+    console.error('Usage: node bulk-gen/recraft-batch.js <csv-path> [--overwrite]');
     process.exit(1);
   }
   const csvPath = path.isAbsolute(csvArg) ? csvArg : path.join(PROJECT_ROOT, csvArg);
@@ -136,6 +141,7 @@ async function main() {
   console.log(`Loaded ${rows.length} prompts from ${path.basename(csvPath)}`);
   console.log(`Cost estimate: $${(rows.length * 0.08).toFixed(2)} (${rows.length} × $0.08)`);
   console.log(`Output: ${SYMBOLS_DIR}`);
+  if (overwrite) console.log(`Mode: --overwrite (will regenerate existing SVGs)`);
   console.log('');
 
   const failures = [];
@@ -153,7 +159,7 @@ async function main() {
     }
 
     const outPath = path.join(SYMBOLS_DIR, `${wordId}.svg`);
-    if (fs.existsSync(outPath)) {
+    if (fs.existsSync(outPath) && !overwrite) {
       console.log(`${idx} ${wordId} — already exists, skip`);
       skipped++;
       continue;
