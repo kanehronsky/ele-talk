@@ -1,0 +1,14 @@
+# Environment files — contain API keys, never commit
+.env
+ele.env
+.env.*
+
+# Node dependencies (if we add any)
+node_modules/
+
+# Local logs
+*.log
+
+# OS junk
+.DS_Store
+Thumbs.db
