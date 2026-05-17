@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-fast-food-replaces-mcdonalds" />
+  <meta name="build" content="2026-05-17-restore-fruit-generic-tile" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -6245,6 +6245,11 @@
         // with the Fruit & Veg tab itself.
       ] },
       { id: 'fruitveg', label: 'Fruit & Veg', emoji: '🥦', words: [
+        // Generic "Fruit" tile — added 2026-05-17. Manding for the
+        // category ("I want fruit") is clinically distinct from manding
+        // for a specific fruit. Eventual symbol will be a fruit salad
+        // / mixed-fruit composition (per the AI symbol prompt set).
+        { label: 'Fruit',       speak: 'Fruit',       emoji: '🍇' },
         { label: 'Apple',       speak: 'Apple',       emoji: '🍎' },
         { label: 'Banana',      speak: 'Banana',      emoji: '🍌' },
         { label: 'Orange',      speak: 'Orange',      emoji: '🍊' },
