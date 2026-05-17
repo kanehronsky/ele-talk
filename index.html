@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-17-anchor-cell-skip" />
+  <meta name="build" content="2026-05-17-ask-tile-replaces-it" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -2400,9 +2400,18 @@
     ═══════════════════════════════════════════════════════════ */
     const CORE_36 = [
       /* Row 1 — Pronouns (Blue) — tap-to-speak only, no overlay (SNUG: build sentences via home + Want + noun) */
+      // Row 1 slot 3: "Ask" replaces "It" 2026-05-17. "It" was clinically
+      // low-utility for early AAC (kids rarely lead with "It" — they say
+      // the noun directly). The slot is repurposed as the home for the
+      // four wh-question words (Why / When / Where / How) via the `ask`
+      // sub-grid, giving early users 2-tap access to question-asking
+      // vocabulary that previously lived buried in the Grammar overlay.
+      // "Ask" itself is a legitimate mand verb ("Ask Mum") and parents
+      // the question-words semantically. If "It" comes back as a need,
+      // it's still reachable via the People → Pronouns tab.
       { label: 'I / Me',      speak: 'I',        emoji: '👤', color: 'blue',   aria: 'I or Me' },
       { label: 'You',         speak: 'You',      emoji: '👉', color: 'blue'                    },
-      { label: 'It',          speak: 'It',       emoji: '👇', color: 'blue'                    },
+      { label: 'Ask',         speak: 'Ask',      emoji: '🙋', color: 'blue',   subGrid: 'ask'   },
       { label: 'We',          speak: 'We',       emoji: '👫', color: 'blue'                    },
       { label: 'Who',         speak: 'Who',      emoji: '🧑', color: 'blue'                    },
       { label: 'What',        speak: 'What',     emoji: '❓', color: 'blue'                    },
@@ -2489,6 +2498,21 @@
        (36 total slots − 6 power tools − 1 trigger = 29 available)
     ═══════════════════════════════════════════════════════════ */
     const SUB_GRIDS = {
+
+      // Ask sub-grid: the four wh-question words that aren't on the
+      // home grid (Who and What are home-grid tiles in row 1). Added
+      // 2026-05-17 when "It" was replaced with "Ask" to give early
+      // users 2-tap access to question-asking vocabulary. Standard
+      // pattern: tap Ask = silent open, tap a wh-word = strip + speak,
+      // re-tap Ask anchor = commit "Ask" + close. Sparse 4-entry
+      // sub-grid is intentional — wh-words are alternatives to each
+      // other, not extensions of a parent concept, so we don't pad.
+      ask: [
+        { label: 'Why',   speak: 'Why',   emoji: '🤔', color: 'blue-light' },
+        { label: 'When',  speak: 'When',  emoji: '⏰', color: 'blue-light' },
+        { label: 'Where', speak: 'Where', emoji: '📍', color: 'blue-light' },
+        { label: 'How',   speak: 'How',   emoji: '💭', color: 'blue-light' },
+      ],
 
       // Want sub-grid: bare MAND verbs — things a child commonly wants
       // to DO. Trimmed 2026-05-17 to honour the Piano Principle: canonical
@@ -6537,14 +6561,12 @@
        Academic / Food / etc. panel pattern. */
     const GRAMMAR_TABS = {
       words: [
-        // Wh-question words — added 2026-05-17. Home grid only has Who
-        // and What; these four complete the canonical English question
-        // set. Foundational AAC vocabulary for child-initiated questions
-        // ("Why no?", "Where iPad?", "When go?", "How do?").
-        { label: 'why',   speak: 'why'   },
-        { label: 'when',  speak: 'when'  },
-        { label: 'where', speak: 'where' },
-        { label: 'how',   speak: 'how'   },
+        // Wh-question words (why / when / where / how) intentionally NOT
+        // duplicated here — they live in the `ask` sub-grid under home
+        // grid slot 3 ("Ask"). Piano Principle: one motor coordinate per
+        // word. Grammar overlay is for function-word grammar (articles,
+        // auxiliaries, possessives, etc.); wh-questions are mand
+        // openers and belong on the home-grid path.
         // Articles, particles, conjunctions, prepositions
         { label: 'the',   speak: 'the'   },
         { label: 'a',     speak: 'a'     },
