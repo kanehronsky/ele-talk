@@ -9,6 +9,10 @@ node_modules/
 # Local logs
 *.log
 
+# Generated review/grid HTMLs (regenerated from scripts)
+bulk-gen/grid.html
+bulk-gen/review.html
+
 # OS junk
 .DS_Store
 Thumbs.db
