@@ -11,7 +11,7 @@
   <!-- Build identifier — bumped on every commit. Verify a deploy
        reached the device by opening view-source: in mobile Chrome
        and searching for the current commit short-hash. -->
-  <meta name="build" content="2026-05-16-academic-tab-icons-on-phone" />
+  <meta name="build" content="2026-05-17-snug-restructure" />
   <title>ELE Talk</title>
   <link rel="manifest" href="manifest.json" />
   <link rel="apple-touch-icon" href="icon-192.svg" />
@@ -2439,13 +2439,24 @@
       { label: 'On',          speak: 'On',       emoji: '💡', color: 'pink',   subGrid: 'on_'   },
       { label: 'Off',         speak: 'Off',      emoji: '🌑', color: 'pink',   subGrid: 'off_'  },
 
-      /* Row 4 — Descriptors (Orange) */
-      { label: 'Big',         speak: 'Big',      emoji: '🐘', color: 'orange', subGrid: 'big'                         },
-      { label: 'Little',      speak: 'Little',   emoji: '🐭', color: 'orange', subGrid: 'little'                      },
+      /* Row 4 — Descriptors (Orange)
+         Big / Little / More / All Done switched 2026-05-17 to pure SNUG
+         pattern: no sub-grid. Tap = speak + add to strip (via the no-
+         subGrid fallback at line ~5310) + home grid stays open. The
+         child composes "Big dog", "More music", "Done eating" by tapping
+         the modifier and then navigating anywhere for the noun. Previous
+         compound sub-grids ("Big dog" as a pre-baked tile, etc.) were
+         scrapped — modifier + noun is now generative, restoring SNUG and
+         eliminating dozens of cross-panel duplicates. Good / Bad keep
+         their sub-grids but trimmed to idiomatic single-unit phrases
+         only (greetings, praise idioms, sensory protests) since those
+         don't decompose grammatically. */
+      { label: 'Big',         speak: 'Big',      emoji: '🐘', color: 'orange'                                       },
+      { label: 'Little',      speak: 'Little',   emoji: '🐭', color: 'orange'                                       },
       { label: 'Good',        speak: 'Good',     emoji: '😊', color: 'orange', subGrid: 'good'                        },
       { label: 'Bad / Yucky', speak: 'Bad',      emoji: '🤢', color: 'orange', aria: 'Bad or Yucky', subGrid: 'bad'    },
-      { label: 'More',        speak: 'More',     emoji: '➕', color: 'orange', subGrid: 'more'                        },
-      { label: 'All Done',    speak: 'All Done', emoji: '✅', color: 'orange', subGrid: 'alldone'                     },
+      { label: 'More',        speak: 'More',     emoji: '➕', color: 'orange'                                       },
+      { label: 'All Done',    speak: 'All Done', emoji: '✅', color: 'orange'                                       },
 
       /* Row 5 — Nouns / Navigation (Yellow) */
       /* MY WORDS is a navigation-only folder for the child's custom vocabulary.
@@ -2479,36 +2490,34 @@
     ═══════════════════════════════════════════════════════════ */
     const SUB_GRIDS = {
 
+      // Want sub-grid: bare MAND verbs — things a child commonly wants
+      // to DO. Trimmed 2026-05-17 to honour the Piano Principle: canonical
+      // homes are Want=mands, Go=locomotion verbs, Make=creative arts,
+      // Look=perception. Locomotion verbs (Run/Jump/Walk/Swim/Climb) moved
+      // to `go`. Creative arts (Sing/Dance/Build/Draw/Write/Cook) moved to
+      // `make`. Perception (Watch/Listen) moved to `look`. Learn/Take/Give
+      // migrated in from the trimmed `look` sub-grid.
       want: [
-        { label: 'Eat',    speak: 'Eat',    emoji: '🍽️', color: 'green-light' },
-        { label: 'Sleep',  speak: 'Sleep',  emoji: '😴', color: 'green-light' },
-        { label: 'Help',   speak: 'Help',   emoji: '🙏', color: 'green-light' },
-        { label: 'Play',   speak: 'Play',   emoji: '🎮', color: 'green-light' },
-        { label: 'Drink',  speak: 'Drink',  emoji: '💧', color: 'green-light' },
-        { label: 'Read',   speak: 'Read',   emoji: '📖', color: 'green-light' },
-        { label: 'Sing',   speak: 'Sing',   emoji: '🎵', color: 'green-light' },
-        { label: 'Dance',  speak: 'Dance',  emoji: '💃', color: 'green-light' },
-        { label: 'Wash',   speak: 'Wash',   emoji: '🫧', color: 'green-light' },
-        { label: 'Sit',    speak: 'Sit',    emoji: '🪑', color: 'green-light' },
-        { label: 'Stand',  speak: 'Stand',  emoji: '🧍', color: 'green-light' },
-        { label: 'Run',    speak: 'Run',    emoji: '🏃', color: 'green-light' },
-        { label: 'Jump',   speak: 'Jump',   emoji: '🦘', color: 'green-light' },
-        { label: 'Walk',   speak: 'Walk',   emoji: '🚶', color: 'green-light' },
-        { label: 'Swim',   speak: 'Swim',   emoji: '🏊', color: 'green-light' },
-        { label: 'Climb',  speak: 'Climb',  emoji: '🧗', color: 'green-light' },
-        { label: 'Build',  speak: 'Build',  emoji: '🏗️', color: 'green-light' },
-        { label: 'Draw',   speak: 'Draw',   emoji: '✏️', color: 'green-light' },
-        { label: 'Write',  speak: 'Write',  emoji: '✍️', color: 'green-light' },
-        { label: 'Hug',    speak: 'Hug',    emoji: '🤗', color: 'green-light' },
-        { label: 'Watch',  speak: 'Watch',  emoji: '📺', color: 'green-light' },
-        { label: 'Listen', speak: 'Listen', emoji: '🎧', color: 'green-light' },
-        { label: 'Cook',   speak: 'Cook',   emoji: '👨‍🍳', color: 'green-light' },
-        { label: 'Try',    speak: 'Try',    emoji: '🌟', color: 'green-light' },
-        { label: 'Choose', speak: 'Choose', emoji: '🤔', color: 'green-light' },
-        { label: 'Open',   speak: 'Open',   emoji: '📂', color: 'green-light' },
-        { label: 'Close',  speak: 'Close',  emoji: '📁', color: 'green-light' },
-        { label: 'Share',  speak: 'Share',  emoji: '🤝', color: 'green-light' },
-        { label: 'Fix',    speak: 'Fix',    emoji: '🔧', color: 'green-light' },
+        { label: 'Eat',     speak: 'Eat',     emoji: '🍽️', color: 'green-light' },
+        { label: 'Drink',   speak: 'Drink',   emoji: '💧', color: 'green-light' },
+        { label: 'Sleep',   speak: 'Sleep',   emoji: '😴', color: 'green-light' },
+        { label: 'Play',    speak: 'Play',    emoji: '🎮', color: 'green-light' },
+        { label: 'Read',    speak: 'Read',    emoji: '📖', color: 'green-light' },
+        { label: 'Help',    speak: 'Help',    emoji: '🙏', color: 'green-light' },
+        { label: 'Hug',     speak: 'Hug',     emoji: '🤗', color: 'green-light' },
+        { label: 'Wash',    speak: 'Wash',    emoji: '🫧', color: 'green-light' },
+        { label: 'Sit',     speak: 'Sit',     emoji: '🪑', color: 'green-light' },
+        { label: 'Stand',   speak: 'Stand',   emoji: '🧍', color: 'green-light' },
+        { label: 'Try',     speak: 'Try',     emoji: '🌟', color: 'green-light' },
+        { label: 'Choose',  speak: 'Choose',  emoji: '🤔', color: 'green-light' },
+        { label: 'Share',   speak: 'Share',   emoji: '🤝', color: 'green-light' },
+        { label: 'Fix',     speak: 'Fix',     emoji: '🔧', color: 'green-light' },
+        { label: 'Open',    speak: 'Open',    emoji: '📂', color: 'green-light' },
+        { label: 'Close',   speak: 'Close',   emoji: '📁', color: 'green-light' },
+        { label: 'Toilet',  speak: 'Toilet',  emoji: '🚽', color: 'green-light' },
+        { label: 'Learn',   speak: 'Learn',   emoji: '📚', color: 'green-light' },
+        { label: 'Take',    speak: 'Take',    emoji: '🖐️', color: 'green-light' },
+        { label: 'Give',    speak: 'Give',    emoji: '🎁', color: 'green-light' },
       ],
 
       go: [
@@ -2543,35 +2552,22 @@
         { label: 'Alone',      speak: 'Alone',      emoji: '🧍', color: 'green-light' },
       ],
 
+      // Look sub-grid: PERCEPTION VERBS only — five-senses verbs + the
+      // deictic Show/Point/Find/Here. Trimmed 2026-05-17 from the
+      // previous 29-entry mixed bag (which included generic verbs like
+      // Help/Try/Draw/Make/Eat that duplicated `want` and `make`).
+      // Canonical home for perception in the Piano Principle is here.
       look: [
         { label: 'See',    speak: 'See',    emoji: '👁️', color: 'green-light' },
         { label: 'Watch',  speak: 'Watch',  emoji: '📺', color: 'green-light' },
-        { label: 'Find',   speak: 'Find',   emoji: '🔍', color: 'green-light' },
-        { label: 'Show',   speak: 'Show',   emoji: '📌', color: 'green-light' },
-        { label: 'Point',  speak: 'Point',  emoji: '👆', color: 'green-light' },
-        { label: 'Read',   speak: 'Read',   emoji: '📖', color: 'green-light' },
         { label: 'Listen', speak: 'Listen', emoji: '👂', color: 'green-light' },
         { label: 'Hear',   speak: 'Hear',   emoji: '🔊', color: 'green-light' },
         { label: 'Smell',  speak: 'Smell',  emoji: '👃', color: 'green-light' },
         { label: 'Taste',  speak: 'Taste',  emoji: '👅', color: 'green-light' },
         { label: 'Touch',  speak: 'Touch',  emoji: '🤏', color: 'green-light' },
-        { label: 'Help',   speak: 'Help',   emoji: '🙏', color: 'green-light' },
-        { label: 'Try',    speak: 'Try',    emoji: '🌟', color: 'green-light' },
-        { label: 'Check',  speak: 'Check',  emoji: '✅', color: 'green-light' },
-        { label: 'Wait',   speak: 'Wait',   emoji: '⏰', color: 'green-light' },
-        { label: 'Draw',   speak: 'Draw',   emoji: '✏️', color: 'green-light' },
-        { label: 'Count',  speak: 'Count',  emoji: '🔢', color: 'green-light' },
-        { label: 'Learn',  speak: 'Learn',  emoji: '📚', color: 'green-light' },
-        { label: 'Play',   speak: 'Play',   emoji: '🎮', color: 'green-light' },
-        { label: 'Make',   speak: 'Make',   emoji: '🔨', color: 'green-light' },
-        { label: 'Eat',    speak: 'Eat',    emoji: '🍽️', color: 'green-light' },
-        { label: 'Drink',  speak: 'Drink',  emoji: '💧', color: 'green-light' },
-        { label: 'Sleep',  speak: 'Sleep',  emoji: '😴', color: 'green-light' },
-        { label: 'Open',   speak: 'Open',   emoji: '📂', color: 'green-light' },
-        { label: 'Close',  speak: 'Close',  emoji: '📁', color: 'green-light' },
-        { label: 'Give',   speak: 'Give',   emoji: '🎁', color: 'green-light' },
-        { label: 'Take',   speak: 'Take',   emoji: '🖐️', color: 'green-light' },
-        { label: 'Share',  speak: 'Share',  emoji: '🤝', color: 'green-light' },
+        { label: 'Find',   speak: 'Find',   emoji: '🔍', color: 'green-light' },
+        { label: 'Show',   speak: 'Show',   emoji: '📌', color: 'green-light' },
+        { label: 'Point',  speak: 'Point',  emoji: '👆', color: 'green-light' },
         { label: 'Here',   speak: 'Here',   emoji: '📍', color: 'green-light' },
       ],
 
@@ -2626,36 +2622,31 @@
         { label: 'Need quiet',   speak: 'Need quiet',   emoji: '🤫', color: 'green-light' },
       ],
 
+      // Make sub-grid: CREATIVE & PRODUCTIVE verbs — building, expressing,
+      // moving objects. Trimmed 2026-05-17 to honour the Piano Principle:
+      // locomotion verbs (Run/Jump/Climb/Swing/Slide) moved to canonical
+      // home `go`. Open/Stand/Toilet/Read moved to `want` (mand verbs).
       make: [
-        { label: 'Draw',     speak: 'Draw',     emoji: '✏️', color: 'green-light' },
-        { label: 'Paint',    speak: 'Paint',    emoji: '🎨', color: 'green-light' },
-        { label: 'Cut',      speak: 'Cut',      emoji: '✂️', color: 'green-light' },
-        { label: 'Build',    speak: 'Build',    emoji: '🏗️', color: 'green-light' },
-        { label: 'Cook',     speak: 'Cook',     emoji: '👨‍🍳', color: 'green-light' },
-        { label: 'Bake',     speak: 'Bake',     emoji: '🥐', color: 'green-light' },
-        { label: 'Clean',    speak: 'Clean',    emoji: '🧹', color: 'green-light' },
-        { label: 'Write',    speak: 'Write',    emoji: '✍️', color: 'green-light' },
-        { label: 'Read',     speak: 'Read',     emoji: '📖', color: 'green-light' },
-        { label: 'Sing',     speak: 'Sing',     emoji: '🎵', color: 'green-light' },
-        { label: 'Dance',    speak: 'Dance',    emoji: '💃', color: 'green-light' },
-        { label: 'Jump',     speak: 'Jump',     emoji: '🦘', color: 'green-light' },
-        { label: 'Run',      speak: 'Run',      emoji: '🏃', color: 'green-light' },
-        { label: 'Climb',    speak: 'Climb',    emoji: '🧗', color: 'green-light' },
-        { label: 'Swing',    speak: 'Swing',    emoji: '🎠', color: 'green-light' },
-        { label: 'Slide',    speak: 'Slide',    emoji: '🛝', color: 'green-light' },
-        { label: 'Kick',     speak: 'Kick',     emoji: '🦵', color: 'green-light' },
-        { label: 'Throw',    speak: 'Throw',    emoji: '🤾', color: 'green-light' },
-        { label: 'Catch',    speak: 'Catch',    emoji: '🥎', color: 'green-light' },
-        { label: 'Push',     speak: 'Push',     emoji: '👊', color: 'green-light' },
-        { label: 'Pull',     speak: 'Pull',     emoji: '💪', color: 'green-light' },
-        { label: 'Fold',     speak: 'Fold',     emoji: '📄', color: 'green-light' },
-        { label: 'Colour',   speak: 'Colour',   emoji: '🖍️', color: 'green-light' },
-        { label: 'Pour',     speak: 'Pour',     emoji: '🫗', color: 'green-light' },
-        { label: 'Mix',      speak: 'Mix',      emoji: '🥄', color: 'green-light' },
-        { label: 'Open',     speak: 'Open',     emoji: '📂', color: 'green-light' },
-        { label: 'Stand',    speak: 'Stand',    emoji: '🧍', color: 'green-light' },
-        { label: 'Pick Up',  speak: 'Pick up',  emoji: '🤚', color: 'green-light' },
-        { label: 'Toilet',   speak: 'Toilet',   emoji: '🚽', color: 'green-light' },
+        { label: 'Draw',    speak: 'Draw',    emoji: '✏️', color: 'green-light' },
+        { label: 'Paint',   speak: 'Paint',   emoji: '🎨', color: 'green-light' },
+        { label: 'Colour',  speak: 'Colour',  emoji: '🖍️', color: 'green-light' },
+        { label: 'Write',   speak: 'Write',   emoji: '✍️', color: 'green-light' },
+        { label: 'Cut',     speak: 'Cut',     emoji: '✂️', color: 'green-light' },
+        { label: 'Fold',    speak: 'Fold',    emoji: '📄', color: 'green-light' },
+        { label: 'Build',   speak: 'Build',   emoji: '🏗️', color: 'green-light' },
+        { label: 'Cook',    speak: 'Cook',    emoji: '👨‍🍳', color: 'green-light' },
+        { label: 'Bake',    speak: 'Bake',    emoji: '🥐', color: 'green-light' },
+        { label: 'Mix',     speak: 'Mix',     emoji: '🥄', color: 'green-light' },
+        { label: 'Pour',    speak: 'Pour',    emoji: '🫗', color: 'green-light' },
+        { label: 'Clean',   speak: 'Clean',   emoji: '🧹', color: 'green-light' },
+        { label: 'Sing',    speak: 'Sing',    emoji: '🎵', color: 'green-light' },
+        { label: 'Dance',   speak: 'Dance',   emoji: '💃', color: 'green-light' },
+        { label: 'Kick',    speak: 'Kick',    emoji: '🦵', color: 'green-light' },
+        { label: 'Throw',   speak: 'Throw',   emoji: '🤾', color: 'green-light' },
+        { label: 'Catch',   speak: 'Catch',   emoji: '🥎', color: 'green-light' },
+        { label: 'Push',    speak: 'Push',    emoji: '👊', color: 'green-light' },
+        { label: 'Pull',    speak: 'Pull',    emoji: '💪', color: 'green-light' },
+        { label: 'Pick Up', speak: 'Pick up', emoji: '🤚', color: 'green-light' },
       ],
 
       like: [
@@ -2882,197 +2873,83 @@
         { label: 'Peel off',   speak: 'Peel off',   emoji: '🍊', color: 'pink-light' },
       ],
 
-      /* ── Descriptors ───────────────────────────────────── */
+      /* ── Descriptors ─────────────────────────────────────
+         Big / Little / More / All Done sub-grids removed 2026-05-17.
+         Pure SNUG: these modifiers now have no sub-grid — tap = speak
+         the modifier + add to strip + home grid stays open. The child
+         composes "Big dog" / "Little cat" / "More music" / "All done
+         eating" by tapping the modifier then navigating anywhere for
+         the noun. Generates infinitely more combinations than the
+         29 pre-baked compounds each had; restores Piano Principle
+         (every noun has ONE coordinate, not duplicated across the
+         compound sub-grids of every modifier). */
 
-      big: [
-        { label: 'Big please', speak: 'Big please', emoji: '🙏', color: 'orange-light' },
-        { label: 'Very big',   speak: 'Very big',   emoji: '🐘', color: 'orange-light' },
-        { label: 'Too big',    speak: 'Too big',    emoji: '😤', color: 'orange-light' },
-        { label: 'So big',     speak: 'So big',     emoji: '🤩', color: 'orange-light' },
-        { label: 'Really big', speak: 'Really big', emoji: '⬆️', color: 'orange-light' },
-        { label: 'Biggest',    speak: 'Biggest',    emoji: '🏆', color: 'orange-light' },
-        { label: 'Big one',    speak: 'Big one',    emoji: '☝️', color: 'orange-light' },
-        { label: 'Big dog',    speak: 'Big dog',    emoji: '🐕', color: 'orange-light' },
-        { label: 'Big car',    speak: 'Big car',    emoji: '🚌', color: 'orange-light' },
-        { label: 'Big house',  speak: 'Big house',  emoji: '🏠', color: 'orange-light' },
-        { label: 'Big school', speak: 'Big school', emoji: '🏫', color: 'orange-light' },
-        { label: 'Big tree',   speak: 'Big tree',   emoji: '🌳', color: 'orange-light' },
-        { label: 'Big ball',   speak: 'Big ball',   emoji: '⚽', color: 'orange-light' },
-        { label: 'Big box',    speak: 'Big box',    emoji: '📦', color: 'orange-light' },
-        { label: 'Big bed',    speak: 'Big bed',    emoji: '🛏️', color: 'orange-light' },
-        { label: 'Big chair',  speak: 'Big chair',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Big table',  speak: 'Big table',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Big room',   speak: 'Big room',   emoji: '🏠', color: 'orange-light' },
-        { label: 'Big pool',   speak: 'Big pool',   emoji: '🏊', color: 'orange-light' },
-        { label: 'Big park',   speak: 'Big park',   emoji: '🌳', color: 'orange-light' },
-        { label: 'Big noise',  speak: 'Big noise',  emoji: '📢', color: 'orange-light' },
-        { label: 'Big mess',   speak: 'Big mess',   emoji: '😱', color: 'orange-light' },
-        { label: 'Big hug',    speak: 'Big hug',    emoji: '🤗', color: 'orange-light' },
-        { label: 'Big smile',  speak: 'Big smile',  emoji: '😄', color: 'orange-light' },
-        { label: 'Big laugh',  speak: 'Big laugh',  emoji: '😂', color: 'orange-light' },
-        { label: 'Big cry',    speak: 'Big cry',    emoji: '😭', color: 'orange-light' },
-        { label: 'Big jump',   speak: 'Big jump',   emoji: '🦘', color: 'orange-light' },
-        { label: 'Big run',    speak: 'Big run',    emoji: '🏃', color: 'orange-light' },
-        { label: 'Big eat',    speak: 'Big eat',    emoji: '🍽️', color: 'orange-light' },
-      ],
-
-      little: [
-        { label: 'Little please', speak: 'Little please', emoji: '🙏', color: 'orange-light' },
-        { label: 'Very little',   speak: 'Very little',   emoji: '🐭', color: 'orange-light' },
-        { label: 'Too little',    speak: 'Too little',    emoji: '😟', color: 'orange-light' },
-        { label: 'So little',     speak: 'So little',     emoji: '🤏', color: 'orange-light' },
-        { label: 'Really little', speak: 'Really little', emoji: '🐜', color: 'orange-light' },
-        { label: 'Littlest',      speak: 'Littlest',      emoji: '🥇', color: 'orange-light' },
-        { label: 'Little one',    speak: 'Little one',    emoji: '🧒', color: 'orange-light' },
-        { label: 'Little bit',    speak: 'Little bit',    emoji: '🤏', color: 'orange-light' },
-        { label: 'Little dog',    speak: 'Little dog',    emoji: '🐕', color: 'orange-light' },
-        { label: 'Little cat',    speak: 'Little cat',    emoji: '🐱', color: 'orange-light' },
-        { label: 'Little baby',   speak: 'Little baby',   emoji: '👶', color: 'orange-light' },
-        { label: 'Little child',  speak: 'Little child',  emoji: '🧒', color: 'orange-light' },
-        { label: 'Little car',    speak: 'Little car',    emoji: '🚗', color: 'orange-light' },
-        { label: 'Little box',    speak: 'Little box',    emoji: '📦', color: 'orange-light' },
-        { label: 'Little room',   speak: 'Little room',   emoji: '🏠', color: 'orange-light' },
-        { label: 'Little house',  speak: 'Little house',  emoji: '🏡', color: 'orange-light' },
-        { label: 'Little chair',  speak: 'Little chair',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Little table',  speak: 'Little table',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Little ball',   speak: 'Little ball',   emoji: '⚽', color: 'orange-light' },
-        { label: 'Little bird',   speak: 'Little bird',   emoji: '🐦', color: 'orange-light' },
-        { label: 'Little bug',    speak: 'Little bug',    emoji: '🐛', color: 'orange-light' },
-        { label: 'Little hand',   speak: 'Little hand',   emoji: '🖐️', color: 'orange-light' },
-        { label: 'Little foot',   speak: 'Little foot',   emoji: '🦶', color: 'orange-light' },
-        { label: 'Little nose',   speak: 'Little nose',   emoji: '👃', color: 'orange-light' },
-        { label: 'Little ear',    speak: 'Little ear',    emoji: '👂', color: 'orange-light' },
-        { label: 'Little mouth',  speak: 'Little mouth',  emoji: '👄', color: 'orange-light' },
-        { label: 'Little smile',  speak: 'Little smile',  emoji: '🙂', color: 'orange-light' },
-        { label: 'Little laugh',  speak: 'Little laugh',  emoji: '😄', color: 'orange-light' },
-        { label: 'Little cry',    speak: 'Little cry',    emoji: '😢', color: 'orange-light' },
-      ],
-
+      // Good sub-grid: IDIOMATIC phrases only — greetings, praise idioms,
+      // and discrete-trial reinforcement phrases that function as single
+      // utterances in clinical/teaching practice. Trimmed 2026-05-17 from
+      // the previous 29-entry mixed bag. Compositional "Good [verb-ing]"
+      // entries (Good drawing/running/catching/etc.) were dropped — those
+      // are now SNUG-composed by tapping Good then navigating to the verb.
+      // The behaviour-praise phrases retained (Good sitting / listening /
+      // waiting / sharing) are the canonical FCT/ABA reinforcement
+      // phrases — they ARE used as single units by teachers and warrant
+      // tile status.
       good: [
+        // Greetings
+        { label: 'Good morning',  speak: 'Good morning',  emoji: '🌅', color: 'orange-light' },
+        { label: 'Good night',    speak: 'Good night',    emoji: '🌙', color: 'orange-light' },
+        { label: 'Good day',      speak: 'Good day',      emoji: '☀️', color: 'orange-light' },
+        // Praise idioms
         { label: 'Good job',      speak: 'Good job',      emoji: '👏', color: 'orange-light' },
         { label: 'Good work',     speak: 'Good work',     emoji: '💪', color: 'orange-light' },
         { label: 'Good try',      speak: 'Good try',      emoji: '🌟', color: 'orange-light' },
         { label: 'Good idea',     speak: 'Good idea',     emoji: '💡', color: 'orange-light' },
-        { label: 'Good morning',  speak: 'Good morning',  emoji: '🌅', color: 'orange-light' },
-        { label: 'Good night',    speak: 'Good night',    emoji: '🌙', color: 'orange-light' },
-        { label: 'Good day',      speak: 'Good day',      emoji: '☀️', color: 'orange-light' },
-        { label: 'Good doggy',    speak: 'Good doggy',    emoji: '🐕', color: 'orange-light' },
-        { label: 'Good times',    speak: 'Good times',    emoji: '🎉', color: 'orange-light' },
-        { label: 'Good sleep',    speak: 'Good sleep',    emoji: '😴', color: 'orange-light' },
         { label: 'Good news',     speak: 'Good news',     emoji: '📰', color: 'orange-light' },
-        { label: 'Good friend',   speak: 'Good friend',   emoji: '🤝', color: 'orange-light' },
-        { label: 'Good helper',   speak: 'Good helper',   emoji: '🙋', color: 'orange-light' },
-        { label: 'Good listener', speak: 'Good listener', emoji: '👂', color: 'orange-light' },
-        { label: 'Good sharing',  speak: 'Good sharing',  emoji: '🤝', color: 'orange-light' },
-        { label: 'Good waiting',  speak: 'Good waiting',  emoji: '⏰', color: 'orange-light' },
+        { label: 'Good times',    speak: 'Good times',    emoji: '🎉', color: 'orange-light' },
+        // Behaviour-praise (FCT/ABA reinforcement phrases used as units)
         { label: 'Good sitting',  speak: 'Good sitting',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Good walking',  speak: 'Good walking',  emoji: '🚶', color: 'orange-light' },
-        { label: 'Good talking',  speak: 'Good talking',  emoji: '💬', color: 'orange-light' },
-        { label: 'Good reading',  speak: 'Good reading',  emoji: '📖', color: 'orange-light' },
-        { label: 'Good drawing',  speak: 'Good drawing',  emoji: '✏️', color: 'orange-light' },
-        { label: 'Good building', speak: 'Good building', emoji: '🏗️', color: 'orange-light' },
-        { label: 'Good singing',  speak: 'Good singing',  emoji: '🎵', color: 'orange-light' },
-        { label: 'Good dancing',  speak: 'Good dancing',  emoji: '💃', color: 'orange-light' },
-        { label: 'Good jumping',  speak: 'Good jumping',  emoji: '🦘', color: 'orange-light' },
-        { label: 'Good running',  speak: 'Good running',  emoji: '🏃', color: 'orange-light' },
-        { label: 'Good catching', speak: 'Good catching', emoji: '🥎', color: 'orange-light' },
-        { label: 'Good throwing', speak: 'Good throwing', emoji: '🤾', color: 'orange-light' },
-        { label: 'Good climbing', speak: 'Good climbing', emoji: '🧗', color: 'orange-light' },
+        { label: 'Good listening',speak: 'Good listening',emoji: '👂', color: 'orange-light' },
+        { label: 'Good waiting',  speak: 'Good waiting',  emoji: '⏰', color: 'orange-light' },
+        { label: 'Good sharing',  speak: 'Good sharing',  emoji: '🤝', color: 'orange-light' },
+        { label: 'Good helper',   speak: 'Good helper',   emoji: '🙋', color: 'orange-light' },
+        { label: 'Good friend',   speak: 'Good friend',   emoji: '🤝', color: 'orange-light' },
       ],
 
+      // Bad sub-grid: IDIOMATIC negative phrases — sensory protests,
+      // negative states, and "Not X" idioms. Trimmed 2026-05-17 from the
+      // previous 27-entry mixed bag. Compositional intensifiers (Very
+      // bad / Too bad / So bad / Really bad) and "Too [sensory]" entries
+      // were dropped — those are SNUG-composed via the Bad descriptor or
+      // are weak Tier-1 vocab. "Bad please" was semantically incoherent,
+      // dropped. The sensory protest phrases retained (Tastes/Smells/
+      // Looks/Sounds/Feels bad + Yucky X) are clinically high-value
+      // single-unit utterances for kids who can't yet decompose negation.
       bad: [
-        { label: 'Bad please',    speak: 'Bad please',    emoji: '🙏', color: 'orange-light' },
-        { label: 'Very bad',      speak: 'Very bad',      emoji: '😟', color: 'orange-light' },
-        { label: 'Too bad',       speak: 'Too bad',       emoji: '😤', color: 'orange-light' },
-        { label: 'So bad',        speak: 'So bad',        emoji: '😫', color: 'orange-light' },
-        { label: 'Really bad',    speak: 'Really bad',    emoji: '😱', color: 'orange-light' },
-        { label: 'Feels bad',     speak: 'Feels bad',     emoji: '💔', color: 'orange-light' },
+        // Sensory protests
         { label: 'Tastes bad',    speak: 'Tastes bad',    emoji: '🤢', color: 'orange-light' },
         { label: 'Smells bad',    speak: 'Smells bad',    emoji: '👃', color: 'orange-light' },
         { label: 'Looks bad',     speak: 'Looks bad',     emoji: '👁️', color: 'orange-light' },
         { label: 'Sounds bad',    speak: 'Sounds bad',    emoji: '📢', color: 'orange-light' },
-        { label: 'Bad dream',     speak: 'Bad dream',     emoji: '😱', color: 'orange-light' },
-        { label: 'Bad mood',      speak: 'Bad mood',      emoji: '😤', color: 'orange-light' },
+        { label: 'Feels bad',     speak: 'Feels bad',     emoji: '💔', color: 'orange-light' },
+        // Yucky variants (Aus-English alt to "bad" used commonly by kids)
         { label: 'Yucky smell',   speak: 'Yucky smell',   emoji: '👃', color: 'orange-light' },
         { label: 'Yucky taste',   speak: 'Yucky taste',   emoji: '👅', color: 'orange-light' },
         { label: 'Yucky feeling', speak: 'Yucky feeling', emoji: '🤢', color: 'orange-light' },
-        { label: 'Not good',      speak: 'Not good',      emoji: '👎', color: 'orange-light' },
+        // Negative states
+        { label: 'Bad dream',     speak: 'Bad dream',     emoji: '😱', color: 'orange-light' },
+        { label: 'Bad mood',      speak: 'Bad mood',      emoji: '😤', color: 'orange-light' },
+        { label: 'Hurts bad',     speak: 'Hurts bad',     emoji: '🤕', color: 'orange-light' },
+        // "Not X" idiomatic negatives
         { label: 'Not nice',      speak: 'Not nice',      emoji: '😤', color: 'orange-light' },
         { label: 'Not fair',      speak: 'Not fair',      emoji: '😢', color: 'orange-light' },
         { label: 'Not okay',      speak: 'Not okay',      emoji: '❌', color: 'orange-light' },
-        { label: 'Not right',     speak: 'Not right',     emoji: '❌', color: 'orange-light' },
         { label: 'Not safe',      speak: 'Not safe',      emoji: '⚠️', color: 'orange-light' },
-        { label: 'Hurts bad',     speak: 'Hurts bad',     emoji: '🤕', color: 'orange-light' },
-        { label: 'Too smelly',    speak: 'Too smelly',    emoji: '👃', color: 'orange-light' },
-        { label: 'Too scratchy',  speak: 'Too scratchy',  emoji: '😣', color: 'orange-light' },
-        { label: 'Too tight',     speak: 'Too tight',     emoji: '😣', color: 'orange-light' },
-        { label: 'Too hot',       speak: 'Too hot',       emoji: '🔥', color: 'orange-light' },
-        { label: 'Too cold',      speak: 'Too cold',      emoji: '🧊', color: 'orange-light' },
       ],
 
-      more: [
-        { label: 'More please',  speak: 'More please',  emoji: '🙏', color: 'orange-light' },
-        { label: 'More turn',    speak: 'More turn',    emoji: '🔄', color: 'orange-light' },
-        { label: 'More tickle',  speak: 'More tickle',  emoji: '🤭', color: 'orange-light' },
-        { label: 'More cuddles', speak: 'More cuddles', emoji: '🤗', color: 'orange-light' },
-        { label: 'More time',    speak: 'More time',    emoji: '⏰', color: 'orange-light' },
-        { label: 'More help',    speak: 'More help',    emoji: '🤝', color: 'orange-light' },
-        { label: 'More hugs',    speak: 'More hugs',    emoji: '🤗', color: 'orange-light' },
-        { label: 'More music',   speak: 'More music',   emoji: '🎵', color: 'orange-light' },
-        { label: 'More TV',      speak: 'More TV',      emoji: '📺', color: 'orange-light' },
-        { label: 'More iPad',    speak: 'More iPad',    emoji: '📱', color: 'orange-light' },
-        { label: 'More games',   speak: 'More games',   emoji: '🎮', color: 'orange-light' },
-        { label: 'More reading', speak: 'More reading', emoji: '📖', color: 'orange-light' },
-        { label: 'More drawing', speak: 'More drawing', emoji: '✏️', color: 'orange-light' },
-        { label: 'More building',speak: 'More building',emoji: '🏗️', color: 'orange-light' },
-        { label: 'More singing', speak: 'More singing', emoji: '🎵', color: 'orange-light' },
-        { label: 'More dancing', speak: 'More dancing', emoji: '💃', color: 'orange-light' },
-        { label: 'More jumping', speak: 'More jumping', emoji: '🦘', color: 'orange-light' },
-        { label: 'More running', speak: 'More running', emoji: '🏃', color: 'orange-light' },
-        { label: 'More swimming',speak: 'More swimming',emoji: '🏊', color: 'orange-light' },
-        { label: 'More outside', speak: 'More outside', emoji: '🌳', color: 'orange-light' },
-        { label: 'More inside',  speak: 'More inside',  emoji: '🏠', color: 'orange-light' },
-        { label: 'More friends', speak: 'More friends', emoji: '🤝', color: 'orange-light' },
-        { label: 'More family',  speak: 'More family',  emoji: '👨‍👩‍👧', color: 'orange-light' },
-        { label: 'More school',  speak: 'More school',  emoji: '🏫', color: 'orange-light' },
-        { label: 'More home',    speak: 'More home',    emoji: '🏡', color: 'orange-light' },
-        { label: 'More sleep',   speak: 'More sleep',   emoji: '😴', color: 'orange-light' },
-        { label: 'More rest',    speak: 'More rest',    emoji: '😌', color: 'orange-light' },
-        { label: 'More quiet',   speak: 'More quiet',   emoji: '🤫', color: 'orange-light' },
-        { label: 'More noise',   speak: 'More noise',   emoji: '📢', color: 'orange-light' },
-      ],
-
-      alldone: [
-        { label: 'Done eating',   speak: 'All done eating',   emoji: '🍽️', color: 'orange-light' },
-        { label: 'Done drinking', speak: 'All done drinking', emoji: '💧', color: 'orange-light' },
-        { label: 'Done playing',  speak: 'All done playing',  emoji: '🎮', color: 'orange-light' },
-        { label: 'Done working',  speak: 'All done working',  emoji: '💼', color: 'orange-light' },
-        { label: 'Done reading',  speak: 'All done reading',  emoji: '📖', color: 'orange-light' },
-        { label: 'Done drawing',  speak: 'All done drawing',  emoji: '✏️', color: 'orange-light' },
-        { label: 'Done building', speak: 'All done building', emoji: '🏗️', color: 'orange-light' },
-        { label: 'Done singing',  speak: 'All done singing',  emoji: '🎵', color: 'orange-light' },
-        { label: 'Done dancing',  speak: 'All done dancing',  emoji: '💃', color: 'orange-light' },
-        { label: 'Done jumping',  speak: 'All done jumping',  emoji: '🦘', color: 'orange-light' },
-        { label: 'Done running',  speak: 'All done running',  emoji: '🏃', color: 'orange-light' },
-        { label: 'Done swimming', speak: 'All done swimming', emoji: '🏊', color: 'orange-light' },
-        { label: 'Done outside',  speak: 'All done outside',  emoji: '🌳', color: 'orange-light' },
-        { label: 'Done inside',   speak: 'All done inside',   emoji: '🏠', color: 'orange-light' },
-        { label: 'Done school',   speak: 'All done school',   emoji: '🏫', color: 'orange-light' },
-        { label: 'Done home',     speak: 'All done home',     emoji: '🏡', color: 'orange-light' },
-        { label: 'Done bath',     speak: 'All done bath',     emoji: '🛁', color: 'orange-light' },
-        { label: 'Done toilet',   speak: 'All done toilet',   emoji: '🚽', color: 'orange-light' },
-        { label: 'Done dressing', speak: 'All done dressing', emoji: '👕', color: 'orange-light' },
-        { label: 'Done cleaning', speak: 'All done cleaning', emoji: '🧹', color: 'orange-light' },
-        { label: 'Done tidying',  speak: 'All done tidying',  emoji: '🗂️', color: 'orange-light' },
-        { label: 'Done helping',  speak: 'All done helping',  emoji: '🤝', color: 'orange-light' },
-        { label: 'Done waiting',  speak: 'All done waiting',  emoji: '⏰', color: 'orange-light' },
-        { label: 'Done sitting',  speak: 'All done sitting',  emoji: '🪑', color: 'orange-light' },
-        { label: 'Done standing', speak: 'All done standing', emoji: '🧍', color: 'orange-light' },
-        { label: 'Done talking',  speak: 'All done talking',  emoji: '💬', color: 'orange-light' },
-        { label: 'Done listening',speak: 'All done listening',emoji: '👂', color: 'orange-light' },
-        { label: 'Done watching', speak: 'All done watching', emoji: '📺', color: 'orange-light' },
-        { label: 'Done sleeping', speak: 'All done sleeping', emoji: '😴', color: 'orange-light' },
-      ],
+      // more and alldone sub-grids removed 2026-05-17 — see Descriptors
+      // comment block above for the SNUG rationale. Both are now no-sub-
+      // grid modifiers; the child composes "More music" / "All done
+      // eating" via the modifier + navigation pattern.
     };
 
     /* ═══════════════════════════════════════════════════════════
@@ -6268,14 +6145,14 @@
       { id: 'snacks', label: 'Snacks', emoji: '🍪', words: [
         { label: 'Snack',         speak: 'Snack',         emoji: '🍿' },
         { label: 'Treat',         speak: 'Treat',         emoji: '🍬' },
-        { label: 'Cookie',        speak: 'Cookie',        emoji: '🍪' },
+        { label: 'Biscuit',       speak: 'Biscuit',       emoji: '🍪' },
         { label: 'Cake',          speak: 'Cake',          emoji: '🎂' },
         { label: 'Chips',         speak: 'Chips',         emoji: '🥔' },
         { label: 'Crackers',      speak: 'Crackers',      emoji: '🍘' },
         { label: 'Lollies',       speak: 'Lollies',       emoji: '🍬' },
         { label: 'Chocolate',     speak: 'Chocolate',     emoji: '🍫' },
         { label: 'Ice cream',     speak: 'Ice cream',     emoji: '🍦' },
-        { label: 'Donut',         speak: 'Donut',         emoji: '🍩' },
+        { label: 'Doughnut',      speak: 'Doughnut',      emoji: '🍩' },
         { label: 'Muffin',        speak: 'Muffin',        emoji: '🧁' },
         { label: 'Cupcake',       speak: 'Cupcake',       emoji: '🧁' },
         { label: 'Yoghurt',       speak: 'Yoghurt',       emoji: '🥛' },
