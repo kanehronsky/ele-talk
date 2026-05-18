@@ -77,6 +77,74 @@ const mappings = [
     target: 'like_food.svg',
     note: 'CORE_36 Food plate → like sub-grid Food',
   },
+
+  // ─── Chunk 2b preposition canonicals (added 2026-05-18) ───
+  // "In bed" = lying in bed = identical to Sleep visual
+  {
+    source: '--a-child-sleeping-peacefully-in-bed-with-eyes-clo.svg',
+    target: 'in_in-bed.svg',
+    note: 'PoC Sleep → in sub-grid In bed',
+  },
+  // "In park" = being in park = identical to seed-set Park scene
+  {
+    source: 'go_park.svg',
+    target: 'in_in-park.svg',
+    note: 'go_park (seed-set Park) → in sub-grid In park',
+  },
+  // "Lie down" = lying down horizontally = identical to Sleep visual
+  {
+    source: '--a-child-sleeping-peacefully-in-bed-with-eyes-clo.svg',
+    target: 'down_lie-down.svg',
+    note: 'PoC Sleep → down sub-grid Lie down',
+  },
+  // "Lay down" = regional variant of "lie down", identical concept
+  {
+    source: '--a-child-sleeping-peacefully-in-bed-with-eyes-clo.svg',
+    target: 'down_lay-down.svg',
+    note: 'PoC Sleep → down sub-grid Lay down (variant of lie down)',
+  },
+  // "Down stairs" = descending stairs = identical to go_downstairs
+  {
+    source: 'go_downstairs.svg',
+    target: 'down_down-stairs.svg',
+    note: 'go_downstairs → down sub-grid Down stairs',
+  },
+  // "Climb up" = climbing action = identical to go_climb
+  {
+    source: 'go_climb.svg',
+    target: 'up_climb-up.svg',
+    note: 'go_climb → up sub-grid Climb up',
+  },
+  // "Jump up" = vertical jump = identical to go_jump
+  {
+    source: 'go_jump.svg',
+    target: 'up_jump-up.svg',
+    note: 'go_jump → up sub-grid Jump up',
+  },
+  // "Up stairs" = ascending stairs = identical to go_upstairs
+  {
+    source: 'go_upstairs.svg',
+    target: 'up_up-stairs.svg',
+    note: 'go_upstairs → up sub-grid Up stairs',
+  },
+  // "Worn out" = tired-emotion identical to face-only Tired
+  {
+    source: 'stop_too-tired.svg',
+    target: 'out_worn-out.svg',
+    note: 'Tired face (via stop_too-tired) → out sub-grid Worn out',
+  },
+  // "Tired out" = same concept as "Worn out", identical visual
+  {
+    source: 'stop_too-tired.svg',
+    target: 'out_tired-out.svg',
+    note: 'Tired face (via stop_too-tired) → out sub-grid Tired out',
+  },
+  // "Find out" = discovery via magnifying glass = identical to look_find
+  {
+    source: 'look_find.svg',
+    target: 'out_find-out.svg',
+    note: 'look_find → out sub-grid Find out',
+  },
 ];
 
 let copied = 0, failed = 0;
