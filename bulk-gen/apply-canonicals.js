@@ -192,11 +192,11 @@ const mappings = [
     target: 'people_family_mum.svg',
     note: 'Seed-set Mum → people_family_mum',
   },
-  {
-    source: 'a-smiling-father-figure-with-warm-colours-and-a-si.svg',
-    target: 'people_family_dad.svg',
-    note: 'Seed-set Dad → people_family_dad',
-  },
+  // Note: people_family_dad was previously canonicalled to seed-set Dad
+  // (a-smiling-father-figure-...svg) but user review 2026-05-18 said the
+  // seed-set Dad is too bright/saturated for the current style direction.
+  // Regenerated fresh in chunk-3a-regen.csv with "muted natural colours,
+  // less saturated" emphasis.
   {
     source: 'a-friendly-teacher-figure-with-glasses-holding-a-b.svg',
     target: 'people_school_teacher.svg',
