@@ -150,6 +150,38 @@ const mappings = [
     target: 'down_slow-down.svg',
     note: 'go_slow tortoise → down sub-grid Slow down (per user spec)',
   },
+
+  // ─── Chunk 2c descriptor canonicals (added 2026-05-18) ───
+  // "Good night" = bedtime farewell = bedtime visual (child sleeping)
+  {
+    source: '--a-child-sleeping-peacefully-in-bed-with-eyes-clo.svg',
+    target: 'good_good-night.svg',
+    note: 'PoC Sleep → good sub-grid Good night (bedtime concept)',
+  },
+  // "Hurts bad" = same pained-face visual as stop_hurts (chunk 2a)
+  {
+    source: 'stop_hurts.svg',
+    target: 'bad_hurts-bad.svg',
+    note: 'stop_hurts → bad sub-grid Hurts bad (same pain concept)',
+  },
+  // "Yucky smell" = same visual as Smells bad (chunk 2c intra)
+  {
+    source: 'bad_smells-bad.svg',
+    target: 'bad_yucky-smell.svg',
+    note: 'bad_smells-bad → bad_yucky-smell (intra-chunk: same concept)',
+  },
+  // "Yucky taste" = same visual as Tastes bad (chunk 2c intra)
+  {
+    source: 'bad_tastes-bad.svg',
+    target: 'bad_yucky-taste.svg',
+    note: 'bad_tastes-bad → bad_yucky-taste (intra-chunk: same concept)',
+  },
+  // "Yucky feeling" = same visual as Feels bad (chunk 2c intra)
+  {
+    source: 'bad_feels-bad.svg',
+    target: 'bad_yucky-feeling.svg',
+    note: 'bad_feels-bad → bad_yucky-feeling (intra-chunk: same concept)',
+  },
 ];
 
 let copied = 0, failed = 0;
