@@ -9,6 +9,14 @@
 
   Output: bulk-gen/review.html — open in any browser.
   Decisions persist in localStorage so you can stop and resume.
+
+  STALE DETECTION (added 2026-05-18):
+    Each decision is stored with the SVG file's mtime at time of decision.
+    Next time the page loads, if any SVG has been modified (regenerated)
+    SINCE its decision, that decision is flagged as STALE and shown first
+    for re-review. This means after a regen run, you just open the review
+    page and the tool jumps straight to the regenerated symbols.
+
   Export button gives a JSON blob to paste back into the chat.
 */
 
@@ -25,7 +33,11 @@ const prefixes  = filterArg ? filterArg.split(',').map(s => s.trim()) : [];
 const files = fs.readdirSync(SYMBOLS_DIR)
   .filter(f => f.toLowerCase().endsWith('.svg'))
   .filter(f => !prefixes.length || prefixes.some(p => f.startsWith(p)))
-  .sort();
+  .sort()
+  .map(name => ({
+    name,
+    mtime: fs.statSync(path.join(SYMBOLS_DIR, name)).mtimeMs,
+  }));
 
 console.log(`Found ${files.length} SVGs to review`);
 
@@ -54,16 +66,30 @@ const html = `<!doctype html>
     position: sticky;
     top: 0;
     z-index: 10;
+    flex-wrap: wrap;
+    gap: 10px;
   }
   .progress { font-size: 14px; font-weight: 600; }
   .counts { color: #666; font-weight: 400; margin-left: 16px; }
-  .top-buttons { display: flex; gap: 8px; }
+  .counts .stale-count { color: #d97706; font-weight: 600; }
+  .top-buttons { display: flex; gap: 8px; flex-wrap: wrap; }
   .main {
     display: flex;
     flex-direction: column;
     align-items: center;
     padding: 32px 24px;
   }
+  .stale-badge {
+    background: #fef3c7;
+    border: 1.5px solid #d97706;
+    color: #92400e;
+    border-radius: 6px;
+    padding: 6px 12px;
+    font-size: 13px;
+    font-weight: 600;
+    margin-bottom: 12px;
+  }
+  .stale-badge.hidden { display: none; }
   .image-wrap {
     width: 420px;
     height: 420px;
@@ -75,6 +101,10 @@ const html = `<!doctype html>
     justify-content: center;
     padding: 24px;
     box-shadow: 0 2px 8px rgba(0,0,0,0.04);
+  }
+  .image-wrap.stale {
+    border-color: #d97706;
+    box-shadow: 0 2px 12px rgba(217, 119, 6, 0.25);
   }
   .image-wrap img {
     max-width: 100%;
@@ -137,7 +167,8 @@ const html = `<!doctype html>
   .btn-pass { background: #d4edda; border-color: #28a745; color: #155724; }
   .btn-fail { background: #f8d7da; border-color: #dc3545; color: #721c24; }
   .btn-nav  { background: #e9ecef; border-color: #adb5bd; color: #495057; }
-  .btn-secondary { background: #fff; border-color: #80AADC; color: #1a4a7a; padding: 8px 14px; font-size: 13px; }
+  .btn-secondary { background: #fff; border-color: #80AADC; color: #1a4a7a; padding: 8px 14px; font-size: 13px; min-width: 0; }
+  .btn-stale-jump { background: #fef3c7; border-color: #d97706; color: #92400e; padding: 8px 14px; font-size: 13px; min-width: 0; }
   .status {
     margin-top: 12px;
     font-size: 13px;
@@ -146,6 +177,7 @@ const html = `<!doctype html>
   }
   .status.pass { color: #28a745; }
   .status.fail { color: #dc3545; }
+  .status.stale { color: #d97706; }
   .export-output {
     margin-top: 24px;
     width: 600px;
@@ -171,14 +203,16 @@ const html = `<!doctype html>
     <span class="counts" id="counts"></span>
   </div>
   <div class="top-buttons">
-    <button class="btn btn-secondary" onclick="resetAll()" title="Clear all decisions">Reset</button>
+    <button class="btn btn-stale-jump" id="stale-jump-btn" onclick="jumpToStale()">Next stale →</button>
     <button class="btn btn-secondary" onclick="jumpToUndecided()">Next unreviewed</button>
+    <button class="btn btn-secondary" onclick="resetAll()" title="Clear all decisions">Reset</button>
     <button class="btn btn-secondary" onclick="exportResults()">Export results</button>
   </div>
 </div>
 
 <div class="main">
-  <div class="image-wrap"><img id="current-img" src="" alt="" /></div>
+  <div class="stale-badge hidden" id="stale-badge">⚠️ STALE — this symbol was regenerated since you last reviewed it. Please re-review.</div>
+  <div class="image-wrap" id="image-wrap"><img id="current-img" src="" alt="" /></div>
   <div class="word-id" id="word-id">—</div>
   <div class="help-text">
     <kbd>P</kbd> pass &nbsp;·&nbsp; <kbd>F</kbd> fail &nbsp;·&nbsp; <kbd>←</kbd>/<kbd>→</kbd> navigate
@@ -210,41 +244,83 @@ let state = {};
 try { state = JSON.parse(localStorage.getItem(STORAGE_KEY) || '{}'); } catch {}
 let idx = 0;
 
-// On load, jump to the first undecided symbol (resume where left off)
-function findFirstUndecided() {
-  for (let i = 0; i < files.length; i++) {
-    if (!state[files[i]]) return i;
-  }
+/* A decision is STALE when the SVG was modified after the decision was made.
+   We compare the file's current mtime (embedded at generator-time) against
+   the mtime recorded with the decision. Older decisions stored before this
+   feature was added won't have an mtime — those are treated as fresh. */
+function isStale(fileObj) {
+  const d = state[fileObj.name];
+  if (!d || d.mtime === undefined) return false;
+  return fileObj.mtime > d.mtime;
+}
+
+/* Priority for jumping on load:
+   1. Stale decisions (regenerated since reviewed)
+   2. Completely unreviewed
+   3. Fall back to index 0
+*/
+function findStartIndex() {
+  for (let i = 0; i < files.length; i++) if (isStale(files[i])) return i;
+  for (let i = 0; i < files.length; i++) if (!state[files[i].name]) return i;
   return 0;
+}
+
+function findNextStale(fromIdx) {
+  for (let i = (fromIdx + 1) % files.length; i !== fromIdx; i = (i + 1) % files.length) {
+    if (isStale(files[i])) return i;
+  }
+  return -1;
+}
+
+function findNextUndecided(fromIdx) {
+  for (let i = (fromIdx + 1) % files.length; i !== fromIdx; i = (i + 1) % files.length) {
+    if (!state[files[i].name]) return i;
+  }
+  return -1;
 }
 
 function render() {
   const file = files[idx];
+  const stale = isStale(file);
   document.getElementById('current').textContent = idx + 1;
-  document.getElementById('current-img').src = '../symbols/' + file;
-  document.getElementById('current-img').alt = file;
-  document.getElementById('word-id').textContent = file.replace(/\\.svg$/, '');
+  document.getElementById('current-img').src = '../symbols/' + file.name;
+  document.getElementById('current-img').alt = file.name;
+  document.getElementById('word-id').textContent = file.name.replace(/\\.svg$/, '');
+  document.getElementById('image-wrap').classList.toggle('stale', stale);
+  document.getElementById('stale-badge').classList.toggle('hidden', !stale);
 
-  const decision = state[file];
+  const decision = state[file.name];
   document.getElementById('note-input').value = decision?.note || '';
 
   updateCounts();
-  updateStatus(decision);
+  updateStatus(decision, stale);
+  updateStaleJumpButton();
 }
 
 function updateCounts() {
-  let passed = 0, failed = 0;
-  for (const d of Object.values(state)) {
-    if (d.decision === 'pass') passed++;
-    else if (d.decision === 'fail') failed++;
+  let passed = 0, failed = 0, staleCount = 0;
+  for (const f of files) {
+    const d = state[f.name];
+    if (isStale(f)) staleCount++;
+    else if (d?.decision === 'pass') passed++;
+    else if (d?.decision === 'fail') failed++;
   }
-  const remaining = files.length - passed - failed;
-  document.getElementById('counts').textContent =
-    \`· ✓ \${passed} · ✗ \${failed} · \${remaining} to go\`;
+  const remaining = files.length - passed - failed - staleCount;
+  const stalePart = staleCount > 0
+    ? ' · <span class="stale-count">⚠ ' + staleCount + ' stale</span>'
+    : '';
+  document.getElementById('counts').innerHTML =
+    \`· ✓ \${passed} · ✗ \${failed} · \${remaining} to go\${stalePart}\`;
 }
 
-function updateStatus(decision) {
+function updateStatus(decision, stale) {
   const s = document.getElementById('status');
+  if (stale) {
+    const prev = decision?.decision === 'pass' ? 'previously passed' : 'previously failed';
+    s.textContent = '⚠ Stale: ' + prev + (decision?.note ? ' — note: ' + decision.note : '');
+    s.className = 'status stale';
+    return;
+  }
   if (!decision) {
     s.textContent = '';
     s.className = 'status';
@@ -257,24 +333,47 @@ function updateStatus(decision) {
   }
 }
 
+function updateStaleJumpButton() {
+  let staleCount = 0;
+  for (const f of files) if (isStale(f)) staleCount++;
+  const btn = document.getElementById('stale-jump-btn');
+  if (staleCount === 0) {
+    btn.style.display = 'none';
+  } else {
+    btn.style.display = '';
+    btn.textContent = \`Next stale (\${staleCount}) →\`;
+  }
+}
+
 function mark(decision) {
   const file = files[idx];
   const note = document.getElementById('note-input').value.trim();
-  state[file] = { decision, note };
+  state[file.name] = { decision, note, mtime: file.mtime };
   localStorage.setItem(STORAGE_KEY, JSON.stringify(state));
+
+  // After marking, prefer next stale; else next undecided; else next sequential
+  const nextStale = findNextStale(idx);
+  if (nextStale >= 0) { idx = nextStale; render(); return; }
+  const nextUnreviewed = findNextUndecided(idx);
+  if (nextUnreviewed >= 0) { idx = nextUnreviewed; render(); return; }
   navigate(1);
 }
 
 function navigate(delta) {
-  const next = Math.max(0, Math.min(files.length - 1, idx + delta));
-  idx = next;
+  idx = Math.max(0, Math.min(files.length - 1, idx + delta));
   render();
 }
 
+function jumpToStale() {
+  for (let i = 0; i < files.length; i++) {
+    if (isStale(files[i])) { idx = i; render(); return; }
+  }
+}
+
 function jumpToUndecided() {
-  const next = findFirstUndecided();
-  idx = next;
-  render();
+  for (let i = 0; i < files.length; i++) {
+    if (!state[files[i].name]) { idx = i; render(); return; }
+  }
 }
 
 function resetAll() {
@@ -289,10 +388,10 @@ function exportResults() {
   const failures = [];
   let passed = 0;
   for (const file of files) {
-    const d = state[file];
-    if (!d) continue;
+    const d = state[file.name];
+    if (!d || isStale(file)) continue;  // stale decisions excluded from export
     if (d.decision === 'fail') {
-      failures.push({ word_id: file.replace(/\\.svg$/, ''), note: d.note || '' });
+      failures.push({ word_id: file.name.replace(/\\.svg$/, ''), note: d.note || '' });
     } else if (d.decision === 'pass') {
       passed++;
     }
@@ -320,7 +419,7 @@ document.addEventListener('keydown', (e) => {
   else if (e.key === 'ArrowRight') { e.preventDefault(); navigate(1); }
 });
 
-idx = findFirstUndecided();
+idx = findStartIndex();
 render();
 </script>
 
