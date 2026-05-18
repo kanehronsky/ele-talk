@@ -182,6 +182,64 @@ const mappings = [
     target: 'bad_yucky-feeling.svg',
     note: 'bad_feels-bad → bad_yucky-feeling (intra-chunk: same concept)',
   },
+
+  // ─── Chunk 3a People canonicals (added 2026-05-18) ───
+  // Mum/Dad/Teacher/Friend/Family — seed-set generations are the canonical
+  // visuals for these people-panel entries (Piano Principle: same word = same
+  // motor coordinate regardless of which sub-grid it's reached via).
+  {
+    source: 'a-smiling-mother-figure-with-warm-colours-and-a-si.svg',
+    target: 'people_family_mum.svg',
+    note: 'Seed-set Mum → people_family_mum',
+  },
+  {
+    source: 'a-smiling-father-figure-with-warm-colours-and-a-si.svg',
+    target: 'people_family_dad.svg',
+    note: 'Seed-set Dad → people_family_dad',
+  },
+  {
+    source: 'a-friendly-teacher-figure-with-glasses-holding-a-b.svg',
+    target: 'people_school_teacher.svg',
+    note: 'Seed-set Teacher → people_school_teacher',
+  },
+  {
+    source: '-a-friendly-child-of-peer-age-waving--head-and-sho.svg',
+    target: 'people_school_friend.svg',
+    note: 'Seed-set Friend → people_school_friend',
+  },
+  {
+    source: 'like_family.svg',
+    target: 'people_family_family.svg',
+    note: 'like_family (chunk 2a) → people_family_family',
+  },
+  // Nan = Grandma (Australian regional variant, same visual)
+  {
+    source: 'people_family_grandma.svg',
+    target: 'people_family_nan.svg',
+    note: 'Grandma → Nan (intra-chunk: Australian regional variant)',
+  },
+  // Pop = Grandpa (Australian regional variant, same visual)
+  {
+    source: 'people_family_grandpa.svg',
+    target: 'people_family_pop.svg',
+    note: 'Grandpa → Pop (intra-chunk: Australian regional variant)',
+  },
+  // Object-form pronouns share visuals with their subject forms
+  {
+    source: 'people_roles_he.svg',
+    target: 'people_roles_him.svg',
+    note: 'He → Him (intra-chunk: same person, object form)',
+  },
+  {
+    source: 'people_roles_she.svg',
+    target: 'people_roles_her.svg',
+    note: 'She → Her (intra-chunk: same person, object form)',
+  },
+  {
+    source: 'people_roles_they.svg',
+    target: 'people_roles_them.svg',
+    note: 'They → Them (intra-chunk: same persons, object form)',
+  },
 ];
 
 let copied = 0, failed = 0;
