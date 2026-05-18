@@ -139,11 +139,16 @@ const mappings = [
     target: 'out_tired-out.svg',
     note: 'Tired face (via stop_too-tired) → out sub-grid Tired out',
   },
-  // "Find out" = discovery via magnifying glass = identical to look_find
+  // Note: out_find-out previously canonicalled to look_find (magnifying glass)
+  // but user review 2026-05-18 said it doesn't read as "finding out".
+  // Now regenerated fresh in chunk-2b-regen.csv with lightbulb-realization framing.
+
+  // "Slow down" = same iconic tortoise as go_slow (user explicitly stated
+  // the existing go_slow tortoise reads better than chunk-2b generation)
   {
-    source: 'look_find.svg',
-    target: 'out_find-out.svg',
-    note: 'look_find → out sub-grid Find out',
+    source: 'go_slow.svg',
+    target: 'down_slow-down.svg',
+    note: 'go_slow tortoise → down sub-grid Slow down (per user spec)',
   },
 ];
 
